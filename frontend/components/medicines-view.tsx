@@ -16,7 +16,7 @@ export function MedicinesView({ records, onOpen }: { records: HealthRecord[] | n
       {rows.length === 0 ? <Empty icon={<Pill size={28} />} title={t.noneYet} /> : (
         <ul className="divide-y divide-line">
           {rows.map(({ m, r }, i) => (
-            <li key={i} className="grid gap-x-6 gap-y-2 px-4 py-3.5 md:grid-cols-[minmax(0,1.4fr)_auto_minmax(0,1fr)]">
+            <li key={i} className="grid gap-x-6 gap-y-2 px-5 py-3.5 md:grid-cols-[minmax(0,1.4fr)_auto_minmax(0,1fr)]">
               <div className="min-w-0">
                 <p className="text-[14px] font-medium">{m.name} <span className="num text-sm font-normal text-fg-3">{m.dosage}</span></p>
                 {m.instructions && <p className="mt-0.5 text-sm text-fg-2">{pick(m.instructions, lang)}</p>}

@@ -65,7 +65,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
       </div>
 
       {record.name_check === "mismatch" && !keep && (
-        <div role="status" className="mt-4 rounded-md border border-warn/30 bg-warn-soft px-4 py-3">
+        <div role="status" className="mt-4 rounded-md border border-warn/30 bg-warn-soft px-5 py-3">
           <p className="flex items-start gap-2 text-[14px] text-fg"><WarningCircle size={18} weight="fill" className="mt-px shrink-0 text-warn" />{t.nameMismatch(e.patient_name || "?", active.name)}</p>
           <div className="mt-2.5 flex flex-wrap gap-2 pl-6">
             {profiles.filter((p) => p.id !== active.id).map((p) => (
@@ -88,7 +88,14 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
             <div className="bg-subtle p-3">
               {srcErr || !record.has_source_file ? <p className="py-16 text-center text-sm text-fg-3">Original file not available.</p>
                 : !src ? <Skeleton className="aspect-[3/4] w-full" />
-                : isPdf ? <iframe src={src} title={record.source_filename} className="aspect-[3/4] w-full rounded bg-white" />
+                : isPdf ? (
+                  <object data={src} type="application/pdf" aria-label={record.source_filename} className="aspect-[3/4] w-full rounded bg-white">
+                    <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded bg-surface text-sm text-fg-3">
+                      <p>PDF preview is not available in this browser.</p>
+                      <a href={src} target="_blank" rel="noreferrer" className="rounded-full bg-accent px-4 py-2 font-medium text-accent-fg">{t.openOriginal}</a>
+                    </div>
+                  </object>
+                )
                 : (
                   <div className="relative">
                     {!imgLoaded && <Skeleton className="absolute inset-0" />}
@@ -110,7 +117,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
             )} />
             <p className="px-4 py-3.5 text-[15px] leading-[1.65]">{summary}</p>
             {e.diagnoses.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 border-t border-line px-4 py-3">
+              <div className="flex flex-wrap items-center gap-1.5 border-t border-line px-5 py-3">
                 <span className="mr-1 text-xs font-medium text-fg-3">{t.diagnoses}</span>
                 {e.diagnoses.map((d, i) => <Badge key={i} tone="accent">{d}</Badge>)}
               </div>
@@ -125,7 +132,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
                   const bad = isOut(o.flag);
                   const tone = o.flag === "LOW" ? "low" : bad ? "high" : "ok";
                   return (
-                    <li key={i} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1.5 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_7.5rem_9rem]">
+                    <li key={i} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1.5 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_7.5rem_9rem]">
                       <div className="min-w-0">
                         <p className="text-[14px] font-medium">{o.test_name}</p>
                         {bad && o.explanation && <p className="mt-1 text-sm leading-relaxed text-fg-2">{pick(o.explanation, lang)}</p>}
@@ -152,7 +159,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
               <CardHeader title={t.medicines} />
               <ul className="divide-y divide-line">
                 {e.medications.map((m, i) => (
-                  <li key={i} className="grid gap-x-4 gap-y-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <li key={i} className="grid gap-x-4 gap-y-2 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_auto]">
                     <div className="min-w-0">
                       <p className="text-[14px] font-medium">{m.name} <span className="num text-sm font-normal text-fg-3">{m.dosage}</span>{m.form && <span className="ml-1.5 text-xs text-fg-3">{m.form}</span>}</p>
                       {m.instructions && <p className="mt-0.5 text-sm text-fg-2">{pick(m.instructions, lang)}</p>}
@@ -169,7 +176,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
           {questions.length > 0 && (
             <Card>
               <CardHeader title={t.questions} />
-              <ol className="space-y-2 px-4 py-3.5 text-[14px]">
+              <ol className="space-y-2 px-5 py-3.5 text-[14px]">
                 {questions.map((q, i) => (
                   <li key={i} className="flex gap-3"><span className="num flex h-5 w-5 shrink-0 items-center justify-center rounded bg-subtle text-2xs text-fg-3">{i + 1}</span><span>{q}</span></li>
                 ))}

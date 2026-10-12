@@ -70,9 +70,9 @@ export function MemberForm({ initialName = "", initialAge = "", initialSex = "",
   const [sex, setSex] = useState(["M", "F", "O"].includes((initialSex || "").toUpperCase()) ? initialSex.toUpperCase() : "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const f = "h-8 w-full rounded border border-line bg-surface px-2 text-sm text-fg placeholder:text-fg-3 focus:border-accent focus:shadow-focus focus:outline-none";
+  const f = "h-9 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-fg placeholder:text-fg-3 focus:border-accent focus:shadow-focus focus:outline-none";
   return (
-    <form className="mt-2 space-y-2 rounded-md border border-line bg-surface p-2.5 shadow-card" onSubmit={async (e) => {
+    <form className="space-y-2 p-2.5" onSubmit={async (e) => {
       e.preventDefault(); setBusy(true); setErr(null);
       try { onDone(await api.createProfile({ name: name.trim(), relation: relation.trim() || "Family member", age: age || undefined, sex: sex || undefined })); }
       catch (x) { setErr((x as Error).message); setBusy(false); }

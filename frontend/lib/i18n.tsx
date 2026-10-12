@@ -4,6 +4,10 @@ import type { Lang } from "./types";
 
 const en = {
   appName: "Health Copilot",
+  heroOut: (n: number): string => (n === 1 ? "result needs a look" : "results need a look"),
+  heroClear: "Everything in range", heroEmpty: "Nothing here yet",
+  heroSub: (tests: number, meds: number, recs: number) => `${tests} test${tests === 1 ? "" : "s"} · ${meds} medicine${meds === 1 ? "" : "s"} · ${recs} record${recs === 1 ? "" : "s"}`,
+  normal: "Normal", day: "Today",
   tabs: { overview: "Overview", records: "Records", medicines: "Medicines", ask: "Ask" },
   needsAttention: "Needs attention", attentionNote: "Latest value of each test, outside the range printed on the report.",
   allClear: "Every latest test value is inside its printed range.", noTests: "No lab results yet.",
@@ -67,6 +71,10 @@ type Dict = typeof en;
 const hi: Dict = {
   ...en,
   appName: "हेल्थ कोपायलट",
+  heroOut: (_n: number) => "नतीजे देखने लायक",
+  heroClear: "सब कुछ सीमा में", heroEmpty: "अभी कुछ नहीं",
+  heroSub: (tests: number, meds: number, recs: number) => `${tests} जांच · ${meds} दवाएं · ${recs} रिकॉर्ड`,
+  normal: "सामान्य", day: "आज",
   tabs: { overview: "सारांश", records: "रिकॉर्ड", medicines: "दवाएं", ask: "पूछें" },
   needsAttention: "ध्यान देने योग्य", attentionNote: "हर जांच का नवीनतम मान, जो रिपोर्ट पर छपी सीमा से बाहर है।",
   allClear: "हर जांच का नवीनतम मान अपनी छपी सीमा के अंदर है।", noTests: "अभी कोई जांच नतीजा नहीं।",
@@ -129,6 +137,10 @@ const hi: Dict = {
 const te: Dict = {
   ...en,
   appName: "హెల్త్ కోపైలట్",
+  heroOut: (_n: number) => "ఫలితాలు చూడాలి",
+  heroClear: "అన్నీ పరిధిలోనే", heroEmpty: "ఇంకా ఏమీ లేదు",
+  heroSub: (tests: number, meds: number, recs: number) => `${tests} పరీక్షలు · ${meds} మందులు · ${recs} రికార్డులు`,
+  normal: "సాధారణం", day: "ఈరోజు",
   tabs: { overview: "సారాంశం", records: "రికార్డులు", medicines: "మందులు", ask: "అడగండి" },
   needsAttention: "గమనించాల్సినవి", attentionNote: "ప్రతి పరీక్ష తాజా విలువ, రిపోర్ట్‌పై ముద్రించిన పరిధి దాటినవి.",
   allClear: "ప్రతి పరీక్ష తాజా విలువ ముద్రించిన పరిధిలోనే ఉంది.", noTests: "ఇంకా ల్యాబ్ ఫలితాలు లేవు.",

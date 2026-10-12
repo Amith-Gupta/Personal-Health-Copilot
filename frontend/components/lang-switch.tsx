@@ -9,10 +9,10 @@ const LANGS: { code: Lang; label: string }[] = [
 export function LangSwitch() {
   const { lang, setLang } = useI18n();
   return (
-    <div role="radiogroup" aria-label="Language" className="grid grid-cols-3 rounded-md border border-line bg-subtle p-0.5 text-sm">
+    <div role="radiogroup" aria-label="Language" className="grid grid-cols-3 rounded-full border border-line p-0.5 text-sm">
       {LANGS.map((l) => (
         <button key={l.code} role="radio" aria-checked={lang === l.code} onClick={() => setLang(l.code)}
-          className={`rounded-[5px] px-2 py-1 font-medium transition-colors ${lang === l.code ? "bg-surface text-fg shadow-card" : "text-fg-3 hover:text-fg"}`}>
+          className={`rounded-full px-2 py-1 font-medium transition-colors ${lang === l.code ? "bg-accent text-accent-fg" : "text-fg-3 hover:text-fg"}`}>
           {l.label}
         </button>
       ))}

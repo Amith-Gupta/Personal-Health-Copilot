@@ -3,7 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "./lang-switch";
-import { Logo } from "./logo";
+import { ThemeToggle } from "./theme-toggle";
 import { Button, ErrorNote } from "./ui";
 
 export function AuthScreen() {
@@ -30,18 +30,19 @@ export function AuthScreen() {
   }
 
 
-  const input = "h-10 w-full rounded border border-line bg-surface px-3 text-[14px] text-fg shadow-card placeholder:text-fg-3 focus:border-accent focus:shadow-focus focus:outline-none";
+  const input = "h-11 w-full rounded-full border border-line bg-surface px-4 text-[14px] text-fg placeholder:text-fg-3 focus:border-fg focus:outline-none";
 
   return (
     <main className="flex min-h-[100dvh] flex-col">
       <div className="flex items-center justify-between px-5 py-4">
-        <div className="flex items-center gap-2 font-semibold"><Logo /> {t.appName}</div>
-        <div className="w-48"><LangSwitch /></div>
+        <span className="display text-[20px] font-bold">copilot<span className="text-signal">.</span></span>
+        <div className="flex items-center gap-2"><div className="w-48"><LangSwitch /></div><ThemeToggle /></div>
       </div>
-      <div className="flex flex-1 items-center justify-center px-5 pb-16">
-        <div className="w-full max-w-[380px] animate-fade-up">
-          <h1 className="text-[22px] font-semibold tracking-[-0.02em]">{mode === "in" ? t.signIn : t.signUp}</h1>
-          <p className="mt-1 text-[14px] text-fg-3">{t.tagline}</p>
+      <div className="mx-auto grid w-full max-w-[1240px] flex-1 items-center gap-12 px-5 pb-16 md:grid-cols-2">
+        <h2 className="display hidden text-[64px] font-semibold leading-[0.95] md:block">{t.tagline}</h2>
+        <div className="w-full max-w-[380px] animate-fade-up md:justify-self-end">
+          <h1 className="display text-[32px] font-semibold">{mode === "in" ? t.signIn : t.signUp}</h1>
+          <p className="mt-1 text-[14px] text-fg-3 md:hidden">{t.tagline}</p>
 
 
           <form onSubmit={submit} className="mt-6 space-y-3">
@@ -56,7 +57,7 @@ export function AuthScreen() {
             </label>
             {error && <ErrorNote message={error} />}
             {notice && <p className="rounded-md bg-ok-soft px-3 py-2 text-sm text-ok">{notice}</p>}
-            <Button variant="primary" className="h-10 w-full" loading={busy === "form"} disabled={!!busy}>
+            <Button variant="primary" className="h-11 w-full" loading={busy === "form"} disabled={!!busy}>
               {mode === "in" ? t.signIn : t.signUp}
             </Button>
           </form>

@@ -19,15 +19,15 @@ type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 export function Button({ variant = "secondary", size = "md", loading, icon, className, children, disabled, ...rest }: BtnProps) {
   const v = {
-    primary: "bg-accent text-accent-fg shadow-card hover:bg-accent/90",
-    secondary: "border border-line bg-surface text-fg shadow-card hover:bg-hover",
+    primary: "bg-accent text-accent-fg hover:opacity-85",
+    secondary: "border border-line bg-transparent text-fg hover:bg-hover",
     ghost: "text-fg-2 hover:bg-hover hover:text-fg",
     danger: "text-high hover:bg-high-soft",
   }[variant];
-  const s = size === "sm" ? "h-8 gap-1.5 px-2.5 text-sm" : "h-9 gap-2 px-3.5 text-[14px]";
+  const s = size === "sm" ? "h-8 gap-1.5 px-3.5 text-sm" : "h-10 gap-2 px-5 text-[14px]";
   return (
     <button {...rest} disabled={disabled || loading} aria-busy={loading || undefined}
-      className={cx("inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded font-medium transition-colors disabled:pointer-events-none disabled:opacity-55", v, s, className)}>
+      className={cx("inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded-full font-medium transition-all active:scale-[.98] disabled:pointer-events-none disabled:opacity-55", v, s, className)}>
       {loading ? <Spinner /> : icon}
       {children}
     </button>
@@ -36,22 +36,22 @@ export function Button({ variant = "secondary", size = "md", loading, icon, clas
 
 export function Badge({ tone = "neutral", children, className }: { tone?: "neutral" | "accent" | "high" | "low" | "ok" | "warn"; children: ReactNode; className?: string }) {
   const t = {
-    neutral: "bg-subtle text-fg-2 ring-line", accent: "bg-accent-soft text-accent ring-accent/20",
+    neutral: "bg-subtle text-fg-2 ring-transparent", accent: "bg-signal/25 text-fg ring-signal/40",
     high: "bg-high-soft text-high ring-high/20", low: "bg-low-soft text-low ring-low/20",
     ok: "bg-ok-soft text-ok ring-ok/20", warn: "bg-warn-soft text-warn ring-warn/25",
   }[tone];
-  return <span className={cx("inline-flex items-center gap-1 whitespace-nowrap rounded-[5px] px-1.5 py-px text-xs font-medium ring-1 ring-inset", t, className)}>{children}</span>;
+  return <span className={cx("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset", t, className)}>{children}</span>;
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cx("rounded-lg border border-line bg-surface shadow-card", className)}>{children}</section>;
+  return <section className={cx("rounded-xl border border-line bg-surface", className)}>{children}</section>;
 }
 
 export function CardHeader({ title, note, action }: { title: ReactNode; note?: ReactNode; action?: ReactNode }) {
   return (
-    <header className="flex items-start justify-between gap-4 border-b border-line px-4 py-3">
+    <header className="flex items-start justify-between gap-4 px-5 pb-2 pt-5">
       <div className="min-w-0">
-        <h2 className="text-[14px] font-semibold text-fg">{title}</h2>
+        <h2 className="display text-[19px] font-semibold text-fg">{title}</h2>
         {note && <p className="mt-0.5 text-sm text-fg-3">{note}</p>}
       </div>
       {action}
