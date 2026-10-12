@@ -1,97 +1,71 @@
-import json
+"""Copilot answers grounded in one person's records."""
 import logging
-from typing import Dict, Any, List
+import re
+from typing import List, Tuple
+
 from app.config import settings
-from app.services.guardrails import screen_safety_with_llama_guard, attach_clinical_disclaimer
+from app.schemas.payloads import Citation, HealthRecord, Profile
 
 logger = logging.getLogger(__name__)
+GROQ_MODEL = "qwen/qwen3.8-27b"
+LANG_NAME = {"en": "English", "hi": "Hindi (Devanagari script)", "te": "Telugu (Telugu script)"}
 
 
-async def route_clinical_query(
-    query_text: str,
-    patient_context: List[str],
-    language: str = "en"
-) -> Dict[str, Any]:
-    """
-    Multi-Agent Routing Pipeline:
-    1. Safety & Guardrail Screening (Llama-Guard-3)
-    2. Intent Triage (Llama-3.1-8b)
-    3. Clinical Reasoning Agent (Llama-3.3-70b / BioMistral)
-    4. Multilingual Localizer Agent (Hindi / Telugu / English)
-    5. Disclaimer Injection
-    """
-    # 1. Guardrail Screening
-    is_safe, guard_note = await screen_safety_with_llama_guard(query_text)
-    if not is_safe:
-        return {
-            "answer": f"⚠️ Safety Advisory: {guard_note}. If you are facing a medical emergency, please call 112 or 108 immediately.",
-            "citations": [],
-            "guardrail_status": "FLAGGED",
-            "provider": "Llama-Guard-3",
-            "latency_ms": 60
-        }
+class CopilotUnavailable(Exception):
+    pass
 
-    # 2 & 3. Clinical Reasoning on Groq LPU if key provided
-    if settings.GROQ_API_KEY and settings.GROQ_API_KEY.strip():
-        try:
-            from groq import Groq
-            client = Groq(api_key=settings.GROQ_API_KEY)
 
-            context_str = "\n".join(patient_context) if patient_context else "No active records."
-            
-            system_prompt = (
-                f"You are the Clinical Reasoning & Copilot QA Agent of an ABDM Health Copilot. "
-                f"Answer the patient query factually based on the patient's records below. "
-                f"Target Language: {language} (en = English, hi = Hindi, te = Telugu). "
-                f"Explain abnormal lab values in plain reassuring terms. "
-                f"Patient Clinical Records:\n{context_str}\n"
-                f"Provide concise, empathetic medical guidance."
-            )
+def build_context(records: List[HealthRecord]) -> str:
+    blocks = []
+    for r in records:
+        e = r.extracted
+        lines = [f"[{r.id[:8]}] {r.title} | date: {r.record_date or 'not printed'} | doctor: {e.doctor_name or '-'} | facility: {e.facility_name or '-'}"]
+        if e.diagnoses:
+            lines.append("  Diagnoses: " + "; ".join(e.diagnoses))
+        for m in e.medications:
+            lines.append(f"  Medicine: {m.name} {m.dosage} | {m.frequency} | {m.timing or ''} | {m.duration or ''}")
+        for o in e.lab_observations:
+            lines.append(f"  Test: {o.test_name} = {o.observed_value} {o.unit or ''} (range {o.reference_range or 'n/a'}) -> {o.flag}")
+        if e.follow_up:
+            lines.append(f"  Follow-up: {e.follow_up}")
+        blocks.append("\n".join(lines))
+    return "\n\n".join(blocks)
 
-            response = client.chat.completions.create(
-                model="qwen/qwen3.8-27b",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": query_text}
-                ],
-                temperature=0.2,
-                max_tokens=600
-            )
 
-            raw_answer = response.choices[0].message.content.strip()
-            final_answer = attach_clinical_disclaimer(raw_answer, language)
-
-            return {
-                "answer": final_answer,
-                "citations": [c.split(" - ")[0] for c in patient_context[:3]],
-                "guardrail_status": "VERIFIED_SAFE",
-                "provider": "Groq LPU (Qwen-27b)",
-                "latency_ms": 210
-            }
-        except Exception as e:
-            logger.error(f"Groq routing error: {e}. Falling back.")
-
-    # High-quality fallback answers with multilingual support
-    if "sugar" in query_text.lower() or "glucose" in query_text.lower() or "test" in query_text.lower():
-        if language == "hi":
-            raw_answer = "आपकी हालिया जांच में उपवास रक्त शर्करा (Fasting Glucose) 185 mg/dL और HbA1c 8.4% पाया गया है, जो उच्च सीमा में है। डॉक्टर द्वारा निर्धारित मेटफॉर्मिन 500mg भोजन के बाद नियमित रूप से लें।"
-        elif language == "te":
-            raw_answer = "మీ తాజా పరీక్షల్లో ఫాస్టింగ్ బ్లడ్ షుగర్ 185 mg/dL మరియు HbA1c 8.4% ఎక్కువగా ఉన్నాయి. డాక్టర్ సూచించిన మెట్‌ఫార్మిన్ 500mg ని భోజనం తర్వాత క్రమం తప్పకుండా వాడండి."
-        else:
-            raw_answer = "Your recent metabolic panel indicates elevated fasting blood glucose (185 mg/dL) and high HbA1c (8.4%). Your endocrinologist has prescribed Metformin 500mg twice daily with meals to stabilize glycemic levels."
+def answer_question(question: str, language: str, profile: Profile, records: List[HealthRecord]) -> Tuple[str, List[Citation], str]:
+    if not settings.GROQ_API_KEY:
+        raise CopilotUnavailable("Groq key not configured")
+    if not records:
+        context = "(no documents uploaded yet)"
     else:
-        if language == "hi":
-            raw_answer = "नमस्ते! मैं आपका एआई हेल्थ कोपायलट हूं। आप अपनी दवाओं के समय, असामान्य लैब रिपोर्ट या डॉक्टर के निर्देशों के बारे में पूछ सकते हैं।"
-        elif language == "te":
-            raw_answer = "నమస్తే! నేను మీ AI హెల్త్ కోపైలట్‌ని. మీ మందుల వివరాలు లేదా ల్యాబ్ ఫలితాల గురించి ఏదైనా అడగవచ్చు."
-        else:
-            raw_answer = "Hello! I am your AI Health Copilot. I analyze your ABHA-linked clinical timeline to clarify lab results and prescription schedules in simple language."
+        context = build_context(records)
+    system = f"""You help an Indian family understand {profile.name}'s own medical documents.
+Answer ONLY from the records below. Each record starts with an id in square brackets.
+- Reply in {LANG_NAME.get(language, 'English')}, in short plain sentences a non-medical family member understands. Use short bullet points when listing.
+- Explain what out-of-range values usually mean in calm words. Never diagnose, never suggest starting, stopping or changing a dose.
+- If the records do not contain the answer, say so plainly and suggest asking the doctor.
+- When a fact comes from a record, put its id in square brackets right after, like [ab12cd34].
+- Do not add a disclaimer; the app shows one.
 
-    final_answer = attach_clinical_disclaimer(raw_answer, language)
-    return {
-        "answer": final_answer,
-        "citations": ["Comprehensive Metabolic Profile (2026-03-28)", "Endocrinology Follow-up Prescription (2026-03-29)"],
-        "guardrail_status": "VERIFIED_SAFE",
-        "provider": "Multi-Agent Router (Simulation Mode)",
-        "latency_ms": 95
-    }
+Records for {profile.name}:
+{context}"""
+    try:
+        from groq import Groq
+        client = Groq(api_key=settings.GROQ_API_KEY)
+        resp = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": question}],
+            temperature=0.2, max_tokens=900,
+        )
+        answer = (resp.choices[0].message.content or "").strip()
+    except Exception as e:
+        logger.error(f"Copilot model failed: {e}")
+        raise CopilotUnavailable(str(e))
+    answer = re.sub(r"<think>.*?</think>", "", answer, flags=re.DOTALL).strip()
+    by_short = {r.id[:8]: r for r in records}
+    cited_ids = []
+    for short in re.findall(r"\[([0-9a-f]{8})\]", answer):
+        if short in by_short and short not in cited_ids:
+            cited_ids.append(short)
+    citations = [Citation(record_id=by_short[s].id, title=by_short[s].title, record_date=by_short[s].record_date) for s in cited_ids]
+    return answer, citations, GROQ_MODEL

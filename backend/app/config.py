@@ -15,15 +15,11 @@ class Settings(BaseSettings):
     # Supabase credentials (optional fallback to in-memory/mock if not provided)
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
+    SUPABASE_JWKS_URL: str = ""
+    SUPABASE_PUBLISHABLE_KEY: str = ""
     
     # Allowed CORS Origins for Frontend
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-        "*"
-    ]
+    CORS_ORIGINS: List[str] = [o.strip() for o in os.getenv("FRONTEND_ORIGIN", "http://localhost:3000").split(",")] + ["http://localhost:3010", "http://127.0.0.1:3010"]
 
     class Config:
         env_file = ".env"

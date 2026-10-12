@@ -1,46 +1,27 @@
-from fastapi import APIRouter
-from app.schemas.payloads import CopilotQueryRequest, CopilotQueryResponse
-from app.routers.ingestion import RECORDS_STORE
-from app.services.ai_router import route_clinical_query
+import asyncio
+from fastapi import APIRouter, Depends, HTTPException
 
-router = APIRouter(prefix="/copilot", tags=["AI Copilot Query"])
+from app.schemas.payloads import CopilotQueryRequest, CopilotQueryResponse
+from app.services import store
+from app.services.auth import current_user_id
+from app.services.ai_router import CopilotUnavailable, answer_question
+from app.services.guardrails import DISCLAIMER, crisis_reply
+
+router = APIRouter(prefix="/copilot", tags=["Copilot"])
 
 
 @router.post("/query", response_model=CopilotQueryResponse)
-async def query_health_records(payload: CopilotQueryRequest):
-    """
-    Multi-Agent Copilot Endpoint:
-    Processes patient queries through Safety Guardrails, Intent Routing,
-    Clinical Reasoning, and Multilingual Localization.
-    """
-    lang = payload.language or "en"
-
-    # Context collection from active records store
-    patient_context = []
-    for rec in RECORDS_STORE:
-        for med in rec.medications:
-            patient_context.append(f"Medication: {med.name} - Dosage: {med.dosage} - Frequency: {med.frequency}")
-        for obs in rec.lab_observations:
-            patient_context.append(f"Lab: {obs.test_name} - Result: {obs.observed_value} {obs.unit} - Flag: {obs.flag}")
-
-    # Fallback default clinical context if timeline is fresh
-    if not patient_context:
-        patient_context = [
-            "Medication: Metformin Hydrochloride - Dosage: 500 mg - Frequency: 1-0-1 (Twice daily after food)",
-            "Medication: Atorvastatin Calcium - Dosage: 10 mg - Frequency: 0-0-1 (Once daily at bedtime)",
-            "Lab: Fasting Blood Glucose - Result: 185 mg/dL - Flag: HIGH (Normal: 70 - 99)",
-            "Lab: HbA1c (Glycated Hemoglobin) - Result: 8.4 % - Flag: HIGH (Normal: 4.0 - 5.6)",
-        ]
-
-    result = await route_clinical_query(
-        query_text=payload.query,
-        patient_context=patient_context,
-        language=lang
-    )
-
-    return CopilotQueryResponse(
-        answer=result["answer"],
-        language=lang,
-        citations=result.get("citations", []),
-        relevant_record_ids=[r.id for r in RECORDS_STORE[:3]]
-    )
+async def query(body: CopilotQueryRequest, owner: str = Depends(current_user_id)):
+    disclaimer = DISCLAIMER[body.language]
+    crisis = crisis_reply(body.query, body.language)
+    if crisis:
+        return CopilotQueryResponse(answer=crisis, language=body.language, disclaimer=disclaimer, safety="crisis", model="safety rules")
+    profile = store.get_profile(owner, body.profile_id)
+    if not profile:
+        raise HTTPException(404, "Profile not found")
+    records = store.list_records(owner, profile.id)
+    try:
+        answer, citations, model = await asyncio.to_thread(answer_question, body.query, body.language, profile, records)
+    except CopilotUnavailable:
+        raise HTTPException(503, "The assistant is not reachable right now. Your records are safe; please try again.")
+    return CopilotQueryResponse(answer=answer, language=body.language, citations=citations, disclaimer=disclaimer, model=model)

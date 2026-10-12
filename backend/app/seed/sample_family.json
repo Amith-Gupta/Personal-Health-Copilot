@@ -1,0 +1,1942 @@
+{
+ "profiles": [
+  {
+   "id": "9fba4e52-50ff-412d-a52e-3f4d0205f7d7",
+   "name": "Ravi Kumar K.",
+   "relation": "Self",
+   "age": "45",
+   "sex": "M",
+   "abha_number": null,
+   "abha_address": null,
+   "abha_linked": false,
+   "abha_linked_at": null,
+   "is_sample": true,
+   "created_at": "2026-10-12T17:49:31Z"
+  },
+  {
+   "id": "b1672a1f-5df0-415e-b7b5-390a390df276",
+   "name": "Lakshmi Devi",
+   "relation": "Wife",
+   "age": "44",
+   "sex": "F",
+   "abha_number": null,
+   "abha_address": null,
+   "abha_linked": false,
+   "abha_linked_at": null,
+   "is_sample": true,
+   "created_at": "2026-10-12T17:49:31Z"
+  },
+  {
+   "id": "270c2346-2722-40dd-ac0e-6a4c88e16b77",
+   "name": "Venkata Rao K.",
+   "relation": "Father",
+   "age": "72",
+   "sex": "M",
+   "abha_number": null,
+   "abha_address": null,
+   "abha_linked": false,
+   "abha_linked_at": null,
+   "is_sample": true,
+   "created_at": "2026-10-12T17:49:31Z"
+  }
+ ],
+ "records": [
+  {
+   "id": "ec6bf1f1-d31f-4f98-8c48-9d8685076a11",
+   "profile_id": "9fba4e52-50ff-412d-a52e-3f4d0205f7d7",
+   "document_type": "DischargeSummary",
+   "record_date": "2026-06-07",
+   "title": "Discharge summary, SVIMS SUPER SPECIALITY HOSPITAL, TIRUPATI",
+   "extracted": {
+    "record_type": "DischargeSummary",
+    "record_date": "2026-06-07",
+    "patient_name": "Ravi Kumar K.",
+    "patient_age": "45",
+    "patient_sex": "M",
+    "doctor_name": "Dr. M. Prasad",
+    "facility_name": "SVIMS SUPER SPECIALITY HOSPITAL, TIRUPATI",
+    "diagnoses": [
+     "Acute appendicitis"
+    ],
+    "medications": [
+     {
+      "name": "Cefuroxime",
+      "form": "Tablet",
+      "dosage": "500 mg",
+      "frequency": "1-0-1 (1 morning, 1 night)",
+      "timing": "after food",
+      "duration": "5 days",
+      "instructions": {
+       "english": "Take 1 tablet in the morning and 1 tablet at night after food for 5 days.",
+       "hindi": "5 दिनों तक सुबह और रात को खाना खाने के बाद 1-1 गोली लें।",
+       "telugu": "5 రోజుల పాటు ఉదయం మరియు రాత్రి భోజనం తర్వాత 1 మాత్ర చొప్పున తీసుకోండి."
+      },
+      "uncertain": false
+     },
+     {
+      "name": "Paracetamol",
+      "form": "Tablet",
+      "dosage": "650 mg",
+      "frequency": "SOS (only when needed)",
+      "timing": null,
+      "duration": null,
+      "instructions": {
+       "english": "Take as needed for pain, maximum 3 tablets per day.",
+       "hindi": "दर्द होने पर जरूरत के अनुसार लें, दिन में अधिकतम 3 गोलियां ही लें।",
+       "telugu": "నొప్పిగా ఉన్నప్పుడు మాత్రమే వేసుకోండి, రోజుకు గరిష్టంగా 3 మాత్రలకు మించరాదు."
+      },
+      "uncertain": false
+     },
+     {
+      "name": "Pantoprazole",
+      "form": "Tablet",
+      "dosage": "40 mg",
+      "frequency": "1-0-0 (1 morning)",
+      "timing": "before breakfast",
+      "duration": "5 days",
+      "instructions": {
+       "english": "Take 1 tablet in the morning before breakfast for 5 days.",
+       "hindi": "5 दिनों तक सुबह नाश्ते से पहले 1 गोली लें।",
+       "telugu": "5 రోజుల పాటు ఉదయం అల్పాహారానికి ముందు 1 మాత్ర తీసుకోండి."
+      },
+      "uncertain": false
+     }
+    ],
+    "lab_observations": [
+     {
+      "test_name": "Total WBC",
+      "observed_value": "13,800",
+      "unit": "/cumm",
+      "reference_range": "4,000-11,000",
+      "flag": "HIGH",
+      "flag_source": "computed",
+      "explanation": {
+       "english": "Total WBC measures white blood cells. Higher levels often indicate infection or inflammation, such as with appendicitis.",
+       "hindi": "टोटल डब्ल्यूबीसी (सफेद रक्त कोशिकाएं) संक्रमण या सूजन का संकेत देती हैं, जो अपेंडिक्स में सूजन के दौरान बढ़ सकती हैं।",
+       "telugu": "టోటల్ డబ్ల్యూబీసీ అనేది శరీరంలో ఇన్ఫెక్షన్ లేదా వాపు ఉన్నప్పుడు పెరుగుతుంది, ఇది అపెండిసైటిస్ సమయంలో సాధారణంగా కనిపిస్తుంది."
+      },
+      "uncertain": false
+     },
+     {
+      "test_name": "CRP",
+      "observed_value": "48",
+      "unit": "mg/L",
+      "reference_range": "< 6",
+      "flag": "HIGH",
+      "flag_source": "computed",
+      "explanation": {
+       "english": "CRP is a marker of inflammation in the body. An elevated level shows that there was active inflammation at the time of admission.",
+       "hindi": "सीआरपी शरीर में सूजन का स्तर दिखाता है। इसका बढ़ा हुआ स्तर अस्पताल में भर्ती होने के समय सूजन की स्थिति को दर्शाता है।",
+       "telugu": "సీఆర్‌పీ అనేది శరీరంలో వాపు లేదా ఇన్ఫెక్షన్‌ను సూచిస్తుంది. ఇది పెరగడం అనేది చేరిన సమయంలో వాపు ఉందని తెలియజేస్తుంది."
+      },
+      "uncertain": false
+     }
+    ],
+    "summary": {
+     "english": "This is a hospital discharge summary for Ravi Kumar K. following surgery for acute appendicitis (laparoscopic appendectomy). Admission tests showed higher than normal Total WBC and CRP levels, which are signs of infection and inflammation. He recovered well, is tolerating regular food, and has been prescribed antibiotics, pain relievers, and an antacid for recovery. He is advised not to lift heavy items for 4 weeks.",
+     "hindi": "यह रवि कुमार के. का अस्पताल डिस्चार्ज सारांश है, जिन्हें अपेंडिक्स के ऑपरेशन (लैप्रोस्कोपिक अपेंडिकटॉमी) के बाद छुट्टी दी गई है। अस्पताल में भर्ती के समय टोटल WBC और CRP का स्तर सामान्य से अधिक था, जो सूजन और इन्फेक्शन को दर्शाता है। मरीज की हालत अब स्थिर है और उन्हें 5 दिन की दवाइयां दी गई हैं। अगले 4 हफ्तों तक भारी सामान उठाने से मना किया गया है।",
+     "telugu": "ఇది రవి కుమార్ కె. గారి అపెండిసైటిస్ శస్త్రచికిత్స (లాపరోస్కోపిక్ అపెండెక్టమీ) తర్వాత ఇచ్చిన డిశ్చార్జ్ సమ్మరీ. ఆసుపత్రిలో చేరినప్పుడు పరీక్షల్లో టోటల్ WBC మరియు CRP ఎక్కువగా ఉన్నాయి, ఇవి ఇన్ఫెక్షన్ మరియు వాపును సూచిస్తాయి. ప్రస్తుతం ఆరోగ్యం నిలకడగా ఉంది, 5 రోజుల పాటు మందులు సూచించారు. 4 వారాల పాటు బరువులు ఎత్తకూడదని సూచించారు."
+    },
+    "doctor_questions": {
+     "english": [
+      "When should the surgical incisions or stitches be inspected or removed?",
+      "Are there specific warning signs, such as fever or worsening pain, that require urgent medical attention?",
+      "When can I safely return to normal physical activity and work?"
+     ],
+     "hindi": [
+      "सर्जरी के टांके या घाव की जांच कब करवानी होगी?",
+      "बुखार या पेट दर्द जैसे कौन से लक्षण दिखने पर तुरंत अस्पताल आना चाहिए?",
+      "मैं सामान्य कामकाज और शारीरिक गतिविधियां कब से शुरू कर सकता हूँ?"
+     ],
+     "telugu": [
+      "సర్జరీ చేసిన గాయాలు లేదా కుట్లను ఎప్పుడు పరిశీలించాలి?",
+      "జ్వరం లేదా తీవ్రమైన కడుపు నొప్పి వంటి ఏవైనా అత్యవసర లక్షణాలు కనిపిస్తే ఎప్పుడు సంప్రదించాలి?",
+      "నేను సాధారణ పనులు మరియు ఉద్యోగానికి ఎప్పటి నుండి వెళ్ళవచ్చు?"
+     ]
+    },
+    "follow_up": "No heavy lifting for 4 weeks. Follow up in Surgery OPD after 7 days.",
+    "handwritten": false,
+    "languages_detected": [
+     "English"
+    ],
+    "unreadable_parts": []
+   },
+   "source_filename": "2026-06-07_ravi_discharge_summary.pdf",
+   "source_mime": "application/pdf",
+   "has_source_file": true,
+   "name_check": "match",
+   "extraction": {
+    "engine": "Gemini vision",
+    "model": "gemini-3.8-flash",
+    "duration_ms": 19460,
+    "warnings": []
+   },
+   "fhir_bundle": {
+    "resourceType": "Bundle",
+    "id": "ec6bf1f1-d31f-4f98-8c48-9d8685076a11",
+    "meta": {
+     "lastUpdated": "2026-10-12T17:54:32Z",
+     "profile": [
+      "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DocumentBundle"
+     ]
+    },
+    "identifier": {
+     "system": "https://health-copilot.local/bundles",
+     "value": "ec6bf1f1-d31f-4f98-8c48-9d8685076a11"
+    },
+    "type": "document",
+    "timestamp": "2026-10-12T17:54:32Z",
+    "entry": [
+     {
+      "fullUrl": "urn:uuid:b5fb08f7-0828-4bb9-9b6b-4b3fe7bd78d7",
+      "resource": {
+       "resourceType": "Composition",
+       "id": "b5fb08f7-0828-4bb9-9b6b-4b3fe7bd78d7",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DischargeSummaryRecord"
+        ]
+       },
+       "status": "final",
+       "type": {
+        "coding": [
+         {
+          "system": "http://snomed.info/sct",
+          "code": "373942005",
+          "display": "Discharge summary"
+         }
+        ],
+        "text": "Discharge summary"
+       },
+       "subject": {
+        "reference": "urn:uuid:9fba4e52-50ff-412d-a52e-3f4d0205f7d7"
+       },
+       "date": "2026-06-07T00:00:00+05:30",
+       "author": [
+        {
+         "reference": "urn:uuid:ccd36485-aa9d-4224-a708-f9ed2822654e"
+        }
+       ],
+       "title": "Discharge summary",
+       "section": [
+        {
+         "title": "Diagnoses",
+         "code": {
+          "coding": [
+           {
+            "system": "http://snomed.info/sct",
+            "code": "439401001",
+            "display": "Diagnosis"
+           }
+          ]
+         },
+         "entry": [
+          {
+           "reference": "urn:uuid:f41992ff-355a-4a1d-a262-193c69377393"
+          }
+         ]
+        },
+        {
+         "title": "Medications",
+         "code": {
+          "coding": [
+           {
+            "system": "http://snomed.info/sct",
+            "code": "721912009",
+            "display": "Medication summary document"
+           }
+          ]
+         },
+         "entry": [
+          {
+           "reference": "urn:uuid:33424daf-8511-4560-a0f1-ae6e8423d644"
+          },
+          {
+           "reference": "urn:uuid:eff332ee-2b9c-4fe1-b0a2-2e9ed11365e7"
+          },
+          {
+           "reference": "urn:uuid:4337bb8c-9897-42ae-9302-3029fdc1e3a6"
+          }
+         ]
+        },
+        {
+         "title": "Investigations",
+         "code": {
+          "coding": [
+           {
+            "system": "http://snomed.info/sct",
+            "code": "721981007",
+            "display": "Diagnostic studies report"
+           }
+          ]
+         },
+         "entry": [
+          {
+           "reference": "urn:uuid:476deed9-ea45-422f-8086-47ee2337e38f"
+          }
+         ]
+        },
+        {
+         "title": "Summary",
+         "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">This is a discharge summary from SVIMS Super Speciality Hospital, Tirupati, for Ravi Kumar K., who underwent a laparoscopic appendectomy for acute appendicitis on 04-06-2026. The post-operative recovery was uneventful and the patient is stable on a normal diet. The admission tests showed out-of-range values for Total WBC (13,800 /cumm) and CRP (48 mg/L). Medications including Cefuroxime, Paracetamol, and Pantoprazole were prescribed upon discharge.</div>"
+         }
+        }
+       ],
+       "custodian": {
+        "reference": "urn:uuid:23e21920-fafc-4866-bd53-ce8fd2e12f97"
+       }
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:9fba4e52-50ff-412d-a52e-3f4d0205f7d7",
+      "resource": {
+       "resourceType": "Patient",
+       "id": "9fba4e52-50ff-412d-a52e-3f4d0205f7d7",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Patient"
+        ]
+       },
+       "identifier": [],
+       "name": [
+        {
+         "text": "Ravi Kumar K."
+        }
+       ],
+       "gender": "male"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:ccd36485-aa9d-4224-a708-f9ed2822654e",
+      "resource": {
+       "resourceType": "Practitioner",
+       "id": "ccd36485-aa9d-4224-a708-f9ed2822654e",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Practitioner"
+        ]
+       },
+       "name": [
+        {
+         "text": "Dr. M. Prasad, MS (General Surgery)"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:23e21920-fafc-4866-bd53-ce8fd2e12f97",
+      "resource": {
+       "resourceType": "Organization",
+       "id": "23e21920-fafc-4866-bd53-ce8fd2e12f97",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Organization"
+        ]
+       },
+       "name": "SVIMS SUPER SPECIALITY HOSPITAL, TIRUPATI"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:f41992ff-355a-4a1d-a262-193c69377393",
+      "resource": {
+       "resourceType": "Condition",
+       "id": "f41992ff-355a-4a1d-a262-193c69377393",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Condition"
+        ]
+       },
+       "code": {
+        "text": "Acute appendicitis"
+       },
+       "subject": {
+        "reference": "urn:uuid:9fba4e52-50ff-412d-a52e-3f4d0205f7d7"
+       },
+       "recordedDate": "2026-06-07"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:33424daf-8511-4560-a0f1-ae6e8423d644",
+      "resource": {
+       "resourceType": "MedicationRequest",
+       "id": "33424daf-8511-4560-a0f1-ae6e8423d644",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/MedicationRequest"
+        ]
+       },
+       "status": "active",
+       "intent": "order",
+       "subject": {
+        "reference": "urn:uuid:9fba4e52-50ff-412d-a52e-3f4d0205f7d7"
+       },
+       "authoredOn": "2026-06-07",
+       "medicationCodeableConcept": {
+        "text": "Tablet Cefuroxime 500 mg"
+       },
+       "dosageInstruction": [
+        {
+         "text": "1-0-1 (1 morning, 1 night) after food for 5 days"
+        }
+       ],
+       "requester": {
+        "reference": "urn:uuid:ccd36485-aa9d-4224-a708-f9ed2822654e"
+       },
+       "reasonReference": [
+        {
+         "reference": "urn:uuid:f41992ff-355a-4a1d-a262-193c69377393"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:eff332ee-2b9c-4fe1-b0a2-2e9ed11365e7",
+      "resource": {
+       "resourceType": "MedicationRequest",
+       "id": "eff332ee-2b9c-4fe1-b0a2-2e9ed11365e7",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/MedicationRequest"
+        ]
+       },
+       "status": "active",
+       "intent": "order",
+       "subject": {
+        "reference": "urn:uuid:9fba4e52-50ff-412d-a52e-3f4d0205f7d7"
+       },
+       "authoredOn": "2026-06-07",
+       "medicationCodeableConcept": {
+        "text": "Tablet Paracetamol 650 mg"
+       },
+       "dosageInstruction": [
+        {
+         "text": "SOS (only when needed)"
+        }
+       ],
+       "requester": {
+        "reference": "urn:uuid:ccd36485-aa9d-4224-a708-f9ed2822654e"
+       },
+       "reasonReference": [
+        {
+         "reference": "urn:uuid:f41992ff-355a-4a1d-a262-193c69377393"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:4337bb8c-9897-42ae-9302-3029fdc1e3a6",
+      "resource": {
+       "resourceType": "MedicationRequest",
+       "id": "4337bb8c-9897-42ae-9302-3029fdc1e3a6",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/MedicationRequest"
+        ]
+       },
+       "status": "active",
+       "intent": "order",
+       "subject": {
+        "reference": "urn:uuid:9fba4e52-50ff-412d-a52e-3f4d0205f7d7"
+       },
+       "authoredOn": "2026-06-07",
+       "medicationCodeableConcept": {
+        "text": "Tablet Pantoprazole 40 mg"
+       },
+       "dosageInstruction": [
+        {
+         "text": "1-0-0 (1 morning) before breakfast for 5 days"
+        }
+       ],
+       "requester": {
+        "reference": "urn:uuid:ccd36485-aa9d-4224-a708-f9ed2822654e"
+       },
+       "reasonReference": [
+        {
+         "reference": "urn:uuid:f41992ff-355a-4a1d-a262-193c69377393"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:476deed9-ea45-422f-8086-47ee2337e38f",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "476deed9-ea45-422f-8086-47ee2337e38f",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Total WBC"
+       },
+       "subject": {
+        "reference": "urn:uuid:9fba4e52-50ff-412d-a52e-3f4d0205f7d7"
+       },
+       "effectiveDateTime": "2026-06-07",
+       "valueQuantity": {
+        "value": 13800.0,
+        "unit": "/cumm"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "H",
+           "display": "High"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "4,000-11,000",
+         "low": {
+          "value": 4000.0,
+          "unit": "/cumm"
+         },
+         "high": {
+          "value": 11000.0,
+          "unit": "/cumm"
+         }
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "is_sample": true,
+   "created_at": "2026-10-12T17:54:32Z"
+  },
+  {
+   "id": "7bea2567-8621-4f61-885c-13f025ae32f2",
+   "profile_id": "270c2346-2722-40dd-ac0e-6a4c88e16b77",
+   "document_type": "Prescription",
+   "record_date": "2026-07-18",
+   "title": "Prescription, Sri Balaji Heart Clinic, Tirupati",
+   "extracted": {
+    "record_type": "Prescription",
+    "record_date": "2026-07-18",
+    "patient_name": "Venkata Rao K.",
+    "patient_age": "72",
+    "patient_sex": "M",
+    "doctor_name": "Dr. S. Narasimha Murthy",
+    "facility_name": "Sri Balaji Heart Clinic, Tirupati",
+    "diagnoses": [
+     "High blood pressure [Hypertension]",
+     "Sugar [Type 2 Diabetes]"
+    ],
+    "medications": [
+     {
+      "name": "Telmisartan",
+      "form": "Tablet",
+      "dosage": "40 mg",
+      "frequency": "1-0-0 (1 morning)",
+      "timing": "after breakfast",
+      "duration": "30 days",
+      "instructions": {
+       "english": "Take 1 tablet in the morning after breakfast.",
+       "hindi": "सुबह नाश्ते के बाद 1 गोली लें।",
+       "telugu": "ఉదయం టిఫెన్ తర్వాత ఒక మాತ್ರೆ తీసుకోండి."
+      },
+      "uncertain": false
+     },
+     {
+      "name": "Metformin SR",
+      "form": "Tablet",
+      "dosage": "500 mg",
+      "frequency": "1-0-1 (1 morning, 1 night)",
+      "timing": "after food",
+      "duration": "30 days",
+      "instructions": {
+       "english": "Take 1 tablet in the morning and 1 tablet at night after food.",
+       "hindi": "भोजन के बाद सुबह और रात को 1-1 गोली लें।",
+       "telugu": "భోజనం తర్వాత, ఉదయం మరియు రాత్రికి ఒక మాತ್ರೆ చొప్పున తీసుకోండి."
+      },
+      "uncertain": false
+     },
+     {
+      "name": "Atorvastatin",
+      "form": "Tablet",
+      "dosage": "10 mg",
+      "frequency": "0-0-1 (1 night)",
+      "timing": "at bedtime",
+      "duration": "30 days",
+      "instructions": {
+       "english": "Take 1 tablet at night before going to bed.",
+       "hindi": "रात को सोने से पहले 1 गोली लें।",
+       "telugu": "రాత్రి పడుకునే ముందు ఒక మాತ್ರೆ తీసుకోండి."
+      },
+      "uncertain": false
+     }
+    ],
+    "lab_observations": [],
+    "summary": {
+     "english": "This is a prescription from Dr. S. Narasimha Murthy for a 72-year-old male patient named Venkata Rao K. dated 18 July 2026. The patient is diagnosed with high blood pressure and type 2 diabetes. Three medicines have been prescribed: Telmisartan 40 mg, Metformin SR 500 mg, and Atorvastatin 10 mg for 30 days. General lifestyle advice includes salt restriction and walking for 30 minutes daily.",
+     "hindi": "यह 18 जुलाई 2026 की डॉ. एस. नरसिम्हा मूर्ति की एक प्रिस्क्रिप्शन पर्ची है जो 72 वर्षीय पुरुष मरीज वेंकट राव के. के लिए है। मरीज को उच्च रक्तचाप और टाइप 2 मधुमेह है। 30 दिनों के लिए तीन दवाएं लिखी गई हैं: टेलमिसार्टन 40 मिलीग्राम, मेटफॉर्मिन एसआर 500 मिलीग्राम, और अटोर्वास्टेटिन 10 मिलीग्राम। जीवनशैली में नमक कम करने और रोज 30 मिनट टहलने की सलाह दी गई है।",
+     "telugu": "ఇది 18 జూలై 2026 నాటి డా. ఎస్. నరసింహ మూర్తి గారి ప్రిస్క్రిప్షన్. 72 సంవత్సరాల వయస్సు గల వెంకట రావు కె. గారికి ఇచ్చినది. రోగికి అధిక రక్తపోటు మరియు షుగర్ ఉన్నాయి. 30 రోజుల పాటు టెల్మిసార్టన్ 40 మి.గ్రా, మెట్‌ఫార్మిన్ ఎస్.ఆర్ 500 మి.గ్రా మరియు అటోర్వాస్టాటిన్ 10 మి.గ్రా మందులు సూచించబడ్డాయి. ఉప్పు తగ్గించాలని మరియు ప్రతిరోజూ 30 నిమిషాలు నడవాలని సలహా ఇవ్వబడింది."
+    },
+    "doctor_questions": {
+     "english": [
+      "When should I check my blood pressure and blood sugar levels next?",
+      "Are there any specific foods I should avoid with these new medications?",
+      "What tests should I complete before my next review in one month?"
+     ],
+     "hindi": [
+      "मुझे अपने रक्तचाप और रक्त शर्करा के स्तर की अगली जाँच कब करानी चाहिए?",
+      "क्या इन नई दवाओं के साथ मुझे किसी विशेष खाद्य पदार्थ से बचना चाहिए?",
+      "एक महीने बाद अपनी अगली समीक्षा से पहले मुझे कौन से परीक्षण करवाने चाहिए?"
+     ],
+     "telugu": [
+      "నేను నా రక్తపోటు మరియు షుగర్ లెవెల్స్ తదుపరి ఎప్పుడు చెక్ చేయించుకోవాలి?",
+      "ఈ కొత్త మందులతో నేను ఏవైనా ప్రత్యేక ఆహారాలకు దూరంగా ఉండాలా?",
+      "ఒక నెల తర్వాత వచ్చే రివ్యూకి ముందు నేను ఏ పరీక్షలు చేయించుకోవాలి?"
+     ]
+    },
+    "follow_up": "Review 1 month with FBS, HbA1c",
+    "handwritten": true,
+    "languages_detected": [
+     "English",
+     "Telugu"
+    ],
+    "unreadable_parts": []
+   },
+   "source_filename": "2026-07-18_venkata_rao_bilingual_prescription.jpg",
+   "source_mime": "image/jpeg",
+   "has_source_file": true,
+   "name_check": "match",
+   "extraction": {
+    "engine": "Gemini vision",
+    "model": "gemini-flash-lite-latest",
+    "duration_ms": 6373,
+    "warnings": []
+   },
+   "fhir_bundle": {
+    "resourceType": "Bundle",
+    "id": "7bea2567-8621-4f61-885c-13f025ae32f2",
+    "meta": {
+     "lastUpdated": "2026-10-12T17:54:39Z",
+     "profile": [
+      "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DocumentBundle"
+     ]
+    },
+    "identifier": {
+     "system": "https://health-copilot.local/bundles",
+     "value": "7bea2567-8621-4f61-885c-13f025ae32f2"
+    },
+    "type": "document",
+    "timestamp": "2026-10-12T17:54:39Z",
+    "entry": [
+     {
+      "fullUrl": "urn:uuid:874f14d4-2059-423a-beda-cd0d02e5a571",
+      "resource": {
+       "resourceType": "Composition",
+       "id": "874f14d4-2059-423a-beda-cd0d02e5a571",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/PrescriptionRecord"
+        ]
+       },
+       "status": "final",
+       "type": {
+        "coding": [
+         {
+          "system": "http://snomed.info/sct",
+          "code": "440545006",
+          "display": "Prescription record"
+         }
+        ],
+        "text": "Prescription record"
+       },
+       "subject": {
+        "reference": "urn:uuid:270c2346-2722-40dd-ac0e-6a4c88e16b77"
+       },
+       "date": "2026-07-18T00:00:00+05:30",
+       "author": [
+        {
+         "reference": "urn:uuid:34f2221b-4a24-41a6-ab7e-b6c803d05858"
+        }
+       ],
+       "title": "Prescription record",
+       "section": [
+        {
+         "title": "Diagnoses",
+         "code": {
+          "coding": [
+           {
+            "system": "http://snomed.info/sct",
+            "code": "439401001",
+            "display": "Diagnosis"
+           }
+          ]
+         },
+         "entry": [
+          {
+           "reference": "urn:uuid:b09d4760-3332-4f5e-96e6-250fc061e6aa"
+          },
+          {
+           "reference": "urn:uuid:c3af3a01-2445-4817-9b44-9f6818c0fd01"
+          }
+         ]
+        },
+        {
+         "title": "Medications",
+         "code": {
+          "coding": [
+           {
+            "system": "http://snomed.info/sct",
+            "code": "721912009",
+            "display": "Medication summary document"
+           }
+          ]
+         },
+         "entry": [
+          {
+           "reference": "urn:uuid:b9a352e7-2011-43cb-a4b5-db2b81a8326a"
+          },
+          {
+           "reference": "urn:uuid:c48dd47e-f902-4ec3-8faa-d47f4b9df528"
+          },
+          {
+           "reference": "urn:uuid:7b8e7c88-bc9f-4419-afdc-fd0d557306b8"
+          }
+         ]
+        }
+       ],
+       "custodian": {
+        "reference": "urn:uuid:5092ae89-dd3a-4fa2-98ef-92496d79cc28"
+       }
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:270c2346-2722-40dd-ac0e-6a4c88e16b77",
+      "resource": {
+       "resourceType": "Patient",
+       "id": "270c2346-2722-40dd-ac0e-6a4c88e16b77",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Patient"
+        ]
+       },
+       "identifier": [],
+       "name": [
+        {
+         "text": "Venkata Rao K."
+        }
+       ],
+       "gender": "male"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:34f2221b-4a24-41a6-ab7e-b6c803d05858",
+      "resource": {
+       "resourceType": "Practitioner",
+       "id": "34f2221b-4a24-41a6-ab7e-b6c803d05858",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Practitioner"
+        ]
+       },
+       "name": [
+        {
+         "text": "Dr. S. Narasimha Murthy"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:5092ae89-dd3a-4fa2-98ef-92496d79cc28",
+      "resource": {
+       "resourceType": "Organization",
+       "id": "5092ae89-dd3a-4fa2-98ef-92496d79cc28",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Organization"
+        ]
+       },
+       "name": "Sri Balaji Heart Clinic, Tirupati"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:b09d4760-3332-4f5e-96e6-250fc061e6aa",
+      "resource": {
+       "resourceType": "Condition",
+       "id": "b09d4760-3332-4f5e-96e6-250fc061e6aa",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Condition"
+        ]
+       },
+       "code": {
+        "text": "High blood pressure [Hypertension]"
+       },
+       "subject": {
+        "reference": "urn:uuid:270c2346-2722-40dd-ac0e-6a4c88e16b77"
+       },
+       "recordedDate": "2026-07-18"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:c3af3a01-2445-4817-9b44-9f6818c0fd01",
+      "resource": {
+       "resourceType": "Condition",
+       "id": "c3af3a01-2445-4817-9b44-9f6818c0fd01",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Condition"
+        ]
+       },
+       "code": {
+        "text": "Sugar [Type 2 Diabetes]"
+       },
+       "subject": {
+        "reference": "urn:uuid:270c2346-2722-40dd-ac0e-6a4c88e16b77"
+       },
+       "recordedDate": "2026-07-18"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:b9a352e7-2011-43cb-a4b5-db2b81a8326a",
+      "resource": {
+       "resourceType": "MedicationRequest",
+       "id": "b9a352e7-2011-43cb-a4b5-db2b81a8326a",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/MedicationRequest"
+        ]
+       },
+       "status": "active",
+       "intent": "order",
+       "subject": {
+        "reference": "urn:uuid:270c2346-2722-40dd-ac0e-6a4c88e16b77"
+       },
+       "authoredOn": "2026-07-18",
+       "medicationCodeableConcept": {
+        "text": "Tablet Telmisartan 40 mg"
+       },
+       "dosageInstruction": [
+        {
+         "text": "1-0-0 (1 morning) after breakfast for 30 days"
+        }
+       ],
+       "requester": {
+        "reference": "urn:uuid:34f2221b-4a24-41a6-ab7e-b6c803d05858"
+       },
+       "reasonReference": [
+        {
+         "reference": "urn:uuid:b09d4760-3332-4f5e-96e6-250fc061e6aa"
+        },
+        {
+         "reference": "urn:uuid:c3af3a01-2445-4817-9b44-9f6818c0fd01"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:c48dd47e-f902-4ec3-8faa-d47f4b9df528",
+      "resource": {
+       "resourceType": "MedicationRequest",
+       "id": "c48dd47e-f902-4ec3-8faa-d47f4b9df528",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/MedicationRequest"
+        ]
+       },
+       "status": "active",
+       "intent": "order",
+       "subject": {
+        "reference": "urn:uuid:270c2346-2722-40dd-ac0e-6a4c88e16b77"
+       },
+       "authoredOn": "2026-07-18",
+       "medicationCodeableConcept": {
+        "text": "Tablet Metformin SR 500 mg"
+       },
+       "dosageInstruction": [
+        {
+         "text": "1-0-1 (1 morning, 1 night) after food for 30 days"
+        }
+       ],
+       "requester": {
+        "reference": "urn:uuid:34f2221b-4a24-41a6-ab7e-b6c803d05858"
+       },
+       "reasonReference": [
+        {
+         "reference": "urn:uuid:b09d4760-3332-4f5e-96e6-250fc061e6aa"
+        },
+        {
+         "reference": "urn:uuid:c3af3a01-2445-4817-9b44-9f6818c0fd01"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:7b8e7c88-bc9f-4419-afdc-fd0d557306b8",
+      "resource": {
+       "resourceType": "MedicationRequest",
+       "id": "7b8e7c88-bc9f-4419-afdc-fd0d557306b8",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/MedicationRequest"
+        ]
+       },
+       "status": "active",
+       "intent": "order",
+       "subject": {
+        "reference": "urn:uuid:270c2346-2722-40dd-ac0e-6a4c88e16b77"
+       },
+       "authoredOn": "2026-07-18",
+       "medicationCodeableConcept": {
+        "text": "Tablet Atorvastatin 10 mg"
+       },
+       "dosageInstruction": [
+        {
+         "text": "0-0-1 (1 night) at bedtime for 30 days"
+        }
+       ],
+       "requester": {
+        "reference": "urn:uuid:34f2221b-4a24-41a6-ab7e-b6c803d05858"
+       },
+       "reasonReference": [
+        {
+         "reference": "urn:uuid:b09d4760-3332-4f5e-96e6-250fc061e6aa"
+        },
+        {
+         "reference": "urn:uuid:c3af3a01-2445-4817-9b44-9f6818c0fd01"
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "is_sample": true,
+   "created_at": "2026-10-12T17:54:39Z"
+  },
+  {
+   "id": "91ab5654-72ae-413c-93f0-e2fe3345b4b3",
+   "profile_id": "b1672a1f-5df0-415e-b7b5-390a390df276",
+   "document_type": "DiagnosticReport",
+   "record_date": "2026-08-14",
+   "title": "Lab report, SRI VENKATESWARA DIAGNOSTICS, TIRUPATI",
+   "extracted": {
+    "record_type": "DiagnosticReport",
+    "record_date": "2026-08-14",
+    "patient_name": "Mrs. Lakshmi Devi",
+    "patient_age": "44",
+    "patient_sex": "F",
+    "doctor_name": "Dr. P. Ramana, MD",
+    "facility_name": "SRI VENKATESWARA DIAGNOSTICS, TIRUPATI",
+    "diagnoses": [],
+    "medications": [],
+    "lab_observations": [
+     {
+      "test_name": "Haemoglobin",
+      "observed_value": "9.6",
+      "unit": "g/dL",
+      "reference_range": "12.0 - 15.5",
+      "flag": "LOW",
+      "flag_source": "computed",
+      "explanation": {
+       "english": "Haemoglobin is the protein in red blood cells that carries oxygen throughout the body. A lower level suggests a low red blood cell count or mild anaemia.",
+       "hindi": "हीमोग्लोबिन लाल रक्त कोशिकाओं में मौजूद प्रोटीन है जो पूरे शरीर में ऑक्सीजन ले जाता है। इसका स्तर कम होना खून की कमी (एनीमिया) का संकेत हो सकता है।",
+       "telugu": "హీమోగ్లోబిన్ అనేది ఎర్ర రక్త కణాలలో ఉండే ఒక ప్రోటీన్, ఇది శరీరమంతటా ఆక్సిజన్‌ను మోసుకెళుతుంది. ఇది తక్కువగా ఉండటం రక్తహీనతను సూచించవచ్చు."
+      },
+      "uncertain": false
+     },
+     {
+      "test_name": "Total WBC Count",
+      "observed_value": "7,400",
+      "unit": "/cumm",
+      "reference_range": "4,000 - 11,000",
+      "flag": "NORMAL",
+      "flag_source": "computed",
+      "explanation": null,
+      "uncertain": false
+     },
+     {
+      "test_name": "TSH (Ultrasensitive)",
+      "observed_value": "7.9",
+      "unit": "uIU/mL",
+      "reference_range": "0.4 - 4.0",
+      "flag": "HIGH",
+      "flag_source": "computed",
+      "explanation": {
+       "english": "Thyroid Stimulating Hormone (TSH) controls thyroid function. A higher level typically indicates an underactive thyroid gland.",
+       "hindi": "थायरॉइड स्टिमुलेटिंग हार्मोन (TSH) थायरॉइड ग्रंथि के कार्य को नियंत्रित करता है। इसका उच्च स्तर थायरॉइड के कम सक्रिय होने का संकेत दे सकता है।",
+       "telugu": "థైరాయిడ్ స్టిమ్యులేటింగ్ హార్మోన్ (TSH) థైరాయిడ్ పనితీరును నియంత్రిస్తుంది. దీని స్థాయి ఎక్కువగా ఉండటం థైరాయిడ్ గ్రంథి తక్కువగా పనిచేస్తుండటాన్ని సూచించవచ్చు."
+      },
+      "uncertain": false
+     },
+     {
+      "test_name": "25-OH Vitamin D",
+      "observed_value": "14",
+      "unit": "ng/mL",
+      "reference_range": "30 - 100",
+      "flag": "LOW",
+      "flag_source": "computed",
+      "explanation": {
+       "english": "Vitamin D helps the body absorb calcium and keeps bones healthy. A low result indicates a deficiency or insufficient level of Vitamin D.",
+       "hindi": "विटामिन डी शरीर में कैल्शियम सोखने और हड्डियों को मजबूत रखने में मदद करता है। इसका कम स्तर शरीर में विटामिन डी की कमी को दर्शाता है।",
+       "telugu": "విటమిన్ డి కాల్షియంను గ్రహించడంలో మరియు ఎముకలను బలంగా ఉంచడంలో సహాయపడుతుంది. ఇది తక్కువగా ఉండటం శరీరంలో విటమిన్ డి లోపాన్ని సూచిస్తుంది."
+      },
+      "uncertain": false
+     },
+     {
+      "test_name": "Fasting Blood Sugar",
+      "observed_value": "92",
+      "unit": "mg/dL",
+      "reference_range": "70 - 99",
+      "flag": "NORMAL",
+      "flag_source": "computed",
+      "explanation": null,
+      "uncertain": false
+     },
+     {
+      "test_name": "Serum Creatinine",
+      "observed_value": "0.8",
+      "unit": "mg/dL",
+      "reference_range": "0.6 - 1.1",
+      "flag": "NORMAL",
+      "flag_source": "computed",
+      "explanation": null,
+      "uncertain": false
+     }
+    ],
+    "summary": {
+     "english": "This is a diagnostic blood test report for Mrs. Lakshmi Devi. Tests for WBC count, fasting blood sugar, and kidney function (Serum Creatinine) are normal. However, Haemoglobin and 25-OH Vitamin D are lower than the reference range, and TSH (Ultrasensitive) is higher than normal. Please consult your doctor to interpret these results and decide on any appropriate treatment or supplements.",
+     "hindi": "यह श्रीमती लक्ष्मी देवी की रक्त जांच रिपोर्ट है। इसमें WBC काउंट, फास्टिंग ब्लड शुगर और सीरम क्रिएटिनिन सामान्य हैं। हालांकि, हीमोग्लोबिन और 25-OH विटामिन डी सामान्य से कम हैं, तथा TSH (Ultrasensitive) सामान्य से अधिक है। कृपया इन परिणामों पर उचित मार्गदर्शन और उपचार के लिए अपने डॉक्टर से परामर्श करें।",
+     "telugu": "ఇది శ్రీమతి లక్ష్మీ దేవి గారి రక్త పరీక్ష నివేదిక. ఇందులో డబ్ల్యూబీసీ కౌంట్, ఫాస్టింగ్ బ్లడ్ షుగర్ మరియు సీరం క్రియాటినిన్ సాధారణ పరిధిలోనే ఉన్నాయి. అయితే, హీమోగ్లోబిన్ మరియు 25-OH విటమిన్ డి సాధారణం కంటే తక్కువగా ఉన్నాయి, అలాగే TSH (Ultrasensitive) సాధారణం కంటే ఎక్కువగా ఉంది. తగిన సలహా మరియు చికిత్స కోసం మీ వైద్యుడిని సంప్రదించండి."
+    },
+    "doctor_questions": {
+     "english": [
+      "Do I need any iron supplements or dietary changes for my low Haemoglobin level?",
+      "Does the elevated TSH level require further thyroid testing or medication?",
+      "What supplement dosage is recommended to correct my Vitamin D deficiency?"
+     ],
+     "hindi": [
+      "क्या कम हीमोग्लोबिन के लिए मुझे आयरन की खुराक या खान-पान में बदलाव की आवश्यकता है?",
+      "क्या बढ़े हुए TSH के लिए थायरॉइड की और जांच या दवा की जरूरत है?",
+      "विटामिन डी की कमी को पूरा करने के लिए मुझे कौन सी दवा या सप्लीमेंट लेना चाहिए?"
+     ],
+     "telugu": [
+      "తక్కువ హీమోగ్లోబిన్ కోసం నేను ఐరన్ మందులు లేదా ఆహారంలో మార్పులు తీసుకోవాలా?",
+      "పెరిగిన TSH స్థాయి కోసం మరిన్ని థైరాయిడ్ పరీక్షలు లేదా మందులు అవసరమా?",
+      "విటమిన్ డి లోపాన్ని సరిచేయడానికి ఏ మోతాదులో సప్లిమెంట్లు తీసుకోవాలి?"
+     ]
+    },
+    "follow_up": null,
+    "handwritten": false,
+    "languages_detected": [
+     "English"
+    ],
+    "unreadable_parts": []
+   },
+   "source_filename": "2026-08-14_lakshmi_lab_report.jpg",
+   "source_mime": "image/jpeg",
+   "has_source_file": true,
+   "name_check": "match",
+   "extraction": {
+    "engine": "Gemini vision",
+    "model": "gemini-flash-latest",
+    "duration_ms": 44225,
+    "warnings": []
+   },
+   "fhir_bundle": {
+    "resourceType": "Bundle",
+    "id": "91ab5654-72ae-413c-93f0-e2fe3345b4b3",
+    "meta": {
+     "lastUpdated": "2026-10-12T17:55:23Z",
+     "profile": [
+      "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DocumentBundle"
+     ]
+    },
+    "identifier": {
+     "system": "https://health-copilot.local/bundles",
+     "value": "91ab5654-72ae-413c-93f0-e2fe3345b4b3"
+    },
+    "type": "document",
+    "timestamp": "2026-10-12T17:55:23Z",
+    "entry": [
+     {
+      "fullUrl": "urn:uuid:052dfeb0-3f37-4e21-9eff-9dc9d2f7448d",
+      "resource": {
+       "resourceType": "Composition",
+       "id": "052dfeb0-3f37-4e21-9eff-9dc9d2f7448d",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DiagnosticReportRecord"
+        ]
+       },
+       "status": "final",
+       "type": {
+        "coding": [
+         {
+          "system": "http://snomed.info/sct",
+          "code": "721981007",
+          "display": "Diagnostic studies report"
+         }
+        ],
+        "text": "Diagnostic studies report"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "date": "2026-08-14T00:00:00+05:30",
+       "author": [
+        {
+         "reference": "urn:uuid:49e07d96-2a77-484b-bf0e-13d15063e28f"
+        }
+       ],
+       "title": "Diagnostic studies report",
+       "section": [
+        {
+         "title": "Laboratory report",
+         "code": {
+          "coding": [
+           {
+            "system": "http://snomed.info/sct",
+            "code": "4241000179101",
+            "display": "Laboratory report"
+           }
+          ]
+         },
+         "entry": [
+          {
+           "reference": "urn:uuid:20199546-5930-487d-8af6-68111d92d633"
+          }
+         ]
+        }
+       ],
+       "custodian": {
+        "reference": "urn:uuid:deaf60ad-ef18-485c-8da9-53d306caeb1e"
+       }
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276",
+      "resource": {
+       "resourceType": "Patient",
+       "id": "b1672a1f-5df0-415e-b7b5-390a390df276",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Patient"
+        ]
+       },
+       "identifier": [],
+       "name": [
+        {
+         "text": "Lakshmi Devi"
+        }
+       ],
+       "gender": "female"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:49e07d96-2a77-484b-bf0e-13d15063e28f",
+      "resource": {
+       "resourceType": "Practitioner",
+       "id": "49e07d96-2a77-484b-bf0e-13d15063e28f",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Practitioner"
+        ]
+       },
+       "name": [
+        {
+         "text": "Dr. P. Ramana, MD"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:deaf60ad-ef18-485c-8da9-53d306caeb1e",
+      "resource": {
+       "resourceType": "Organization",
+       "id": "deaf60ad-ef18-485c-8da9-53d306caeb1e",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Organization"
+        ]
+       },
+       "name": "SRI VENKATESWARA DIAGNOSTICS, TIRUPATI"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:7bdd3e99-33c0-4688-982f-abeae91c67ec",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "7bdd3e99-33c0-4688-982f-abeae91c67ec",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Haemoglobin"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-08-14",
+       "valueQuantity": {
+        "value": 9.6,
+        "unit": "g/dL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "L",
+           "display": "Low"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "12.0 - 15.5",
+         "low": {
+          "value": 12.0,
+          "unit": "g/dL"
+         },
+         "high": {
+          "value": 15.5,
+          "unit": "g/dL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:5cbc1ea9-b669-43bd-899f-ad545254ceab",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "5cbc1ea9-b669-43bd-899f-ad545254ceab",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Total WBC Count"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-08-14",
+       "valueQuantity": {
+        "value": 7400.0,
+        "unit": "/cumm"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "N",
+           "display": "Normal"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "4,000 - 11,000",
+         "low": {
+          "value": 4000.0,
+          "unit": "/cumm"
+         },
+         "high": {
+          "value": 11000.0,
+          "unit": "/cumm"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:4fe2eb07-9a2e-4976-8b44-f5957fa992f1",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "4fe2eb07-9a2e-4976-8b44-f5957fa992f1",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "TSH (Ultrasensitive)"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-08-14",
+       "valueQuantity": {
+        "value": 7.9,
+        "unit": "uIU/mL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "H",
+           "display": "High"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "0.4 - 4.0",
+         "low": {
+          "value": 0.4,
+          "unit": "uIU/mL"
+         },
+         "high": {
+          "value": 4.0,
+          "unit": "uIU/mL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:e5bc0218-75e7-4c64-9df5-fe30fa2413b3",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "e5bc0218-75e7-4c64-9df5-fe30fa2413b3",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "25-OH Vitamin D"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-08-14",
+       "valueQuantity": {
+        "value": 14.0,
+        "unit": "ng/mL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "L",
+           "display": "Low"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "30 - 100",
+         "low": {
+          "value": 30.0,
+          "unit": "ng/mL"
+         },
+         "high": {
+          "value": 100.0,
+          "unit": "ng/mL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:b815468f-bfbd-4520-b11a-b9a5d15d5f42",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "b815468f-bfbd-4520-b11a-b9a5d15d5f42",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Fasting Blood Sugar"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-08-14",
+       "valueQuantity": {
+        "value": 92.0,
+        "unit": "mg/dL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "N",
+           "display": "Normal"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "70 - 99",
+         "low": {
+          "value": 70.0,
+          "unit": "mg/dL"
+         },
+         "high": {
+          "value": 99.0,
+          "unit": "mg/dL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:da024bc1-1c58-4792-8594-3146696957ee",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "da024bc1-1c58-4792-8594-3146696957ee",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Serum Creatinine"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-08-14",
+       "valueQuantity": {
+        "value": 0.8,
+        "unit": "mg/dL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "N",
+           "display": "Normal"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "0.6 - 1.1",
+         "low": {
+          "value": 0.6,
+          "unit": "mg/dL"
+         },
+         "high": {
+          "value": 1.1,
+          "unit": "mg/dL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:20199546-5930-487d-8af6-68111d92d633",
+      "resource": {
+       "resourceType": "DiagnosticReport",
+       "id": "20199546-5930-487d-8af6-68111d92d633",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DiagnosticReportLab"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Laboratory report"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-08-14",
+       "issued": "2026-10-12T17:55:23Z",
+       "result": [
+        {
+         "reference": "urn:uuid:7bdd3e99-33c0-4688-982f-abeae91c67ec"
+        },
+        {
+         "reference": "urn:uuid:5cbc1ea9-b669-43bd-899f-ad545254ceab"
+        },
+        {
+         "reference": "urn:uuid:4fe2eb07-9a2e-4976-8b44-f5957fa992f1"
+        },
+        {
+         "reference": "urn:uuid:e5bc0218-75e7-4c64-9df5-fe30fa2413b3"
+        },
+        {
+         "reference": "urn:uuid:b815468f-bfbd-4520-b11a-b9a5d15d5f42"
+        },
+        {
+         "reference": "urn:uuid:da024bc1-1c58-4792-8594-3146696957ee"
+        }
+       ],
+       "conclusion": "This is a diagnostic blood test report for Mrs. Lakshmi Devi. Tests for WBC count, fasting blood sugar, and kidney function (Serum Creatinine) are normal. However, Haemoglobin and 25-OH Vitamin D are lower than the reference range, and TSH (Ultrasensitive) is higher than normal. Please consult your doctor to interpret these results and decide on any appropriate treatment or supplements.",
+       "performer": [
+        {
+         "reference": "urn:uuid:deaf60ad-ef18-485c-8da9-53d306caeb1e"
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "is_sample": true,
+   "created_at": "2026-10-12T17:55:23Z"
+  },
+  {
+   "id": "e9437507-4cfc-441b-9ea2-d40de3cc6977",
+   "profile_id": "b1672a1f-5df0-415e-b7b5-390a390df276",
+   "document_type": "Prescription",
+   "record_date": "2026-09-02",
+   "title": "Prescription, City Care Clinic, Tirupati",
+   "extracted": {
+    "record_type": "Prescription",
+    "record_date": "2026-09-02",
+    "patient_name": "Lakshmi Devi",
+    "patient_age": "44",
+    "patient_sex": "F",
+    "doctor_name": "Dr. Anitha Reddy",
+    "facility_name": "City Care Clinic, Tirupati",
+    "diagnoses": [
+     "Hypothyroidism",
+     "Iron deficiency anaemia",
+     "Vitamin D deficiency [Vit D deficiency]"
+    ],
+    "medications": [
+     {
+      "name": "Levothyroxine",
+      "form": "Tablet",
+      "dosage": "50 mcg",
+      "frequency": "1-0-0 (1 morning)",
+      "timing": "empty stomach",
+      "duration": "3 months",
+      "instructions": {
+       "english": "Take one tablet on an empty stomach once a day for 3 months.",
+       "hindi": "3 महीने तक खाली पेट दिन में एक बार एक गोली लें।",
+       "telugu": "3 నెలల పాటు రోజుకు ఒకసారి ఖాళీ కడుపుతో ఒక టాబ్లెట్ తీసుకోండి."
+      },
+      "uncertain": false
+     },
+     {
+      "name": "Ferrous Ascorbate",
+      "form": "Tablet",
+      "dosage": "100 mg",
+      "frequency": "0-1-0 (1 afternoon)",
+      "timing": "after lunch",
+      "duration": "2 months",
+      "instructions": {
+       "english": "Take one tablet after lunch once a day for 2 months.",
+       "hindi": "2 महीने तक दोपहर के भोजन के बाद दिन में एक बार एक गोली लें।",
+       "telugu": "2 నెలల పాటు మధ్యాహ్న భోజనం తర్వాత రోజుకు ఒకసారి ఒక టాబ్లెట్ తీసుకోండి."
+      },
+      "uncertain": false
+     },
+     {
+      "name": "Cholecalciferol",
+      "form": "Capsule",
+      "dosage": "60,000 IU",
+      "frequency": "once a week",
+      "timing": null,
+      "duration": "8 weeks",
+      "instructions": {
+       "english": "Take one capsule once a week for 8 weeks.",
+       "hindi": "8 सप्ताह तक सप्ताह में एक बार एक कैप्सूल लें।",
+       "telugu": "8 వారాల పాటు వారానికి ఒకసారి ఒక క్యాప్సూల్ తీసుకోండి."
+      },
+      "uncertain": false
+     }
+    ],
+    "lab_observations": [],
+    "summary": {
+     "english": "This is a medical prescription issued by Dr. Anitha Reddy from City Care Clinic for Lakshmi Devi on September 2, 2026. The patient has been diagnosed with hypothyroidism, iron deficiency anaemia, and Vitamin D deficiency. Three medications have been prescribed: Levothyroxine, Ferrous Ascorbate, and Cholecalciferol, along with specific instructions for their use. A follow-up is scheduled in six weeks with TSH and CBC tests.",
+     "hindi": "यह 2 सितंबर 2026 को लक्ष्मी देवी के लिए सिटी केयर क्लिनिक की डॉ. अनीता रेड्डी द्वारा जारी किया गया एक मेडिकल नुस्खा है। मरीज को हाइपोथायरायडिज्म, आयरन की कमी से होने वाले एनीमिया और विटामिन डी की कमी का पता चला है। उपयोग के लिए विशिष्ट निर्देशों के साथ तीन दवाएं निर्धारित की गई हैं: लेवोथायरोक्सिन, फेरस एस्कॉर्बेट और कोलेकैल्सीफेरोल। टीएसएच और सीबीसी परीक्षणों के साथ छह सप्ताह में फॉलो-अप निर्धारित है।",
+     "telugu": "ఇది సెప్టెంబర్ 2, 2026న లక్ష్మీదేవి కోసం సిటీ కేర్ క్లినిక్ కి చెందిన డాక్టర్ అనిత రెడ్డి జారీ చేసిన వైద్య ప్రిస్క్రిప్షన్. రోగికి హైపోథైరాయిడిజం, ఐరన్ లోపం వల్ల వచ్చే రక్తహీనత మరియు విటమిన్ డి లోపం ఉన్నట్లు నిర్ధారణ అయింది. లెవోథైరాక్సిన్, ఫెరస్ ఆస్కార్బేట్ మరియు కోలెకాల్సిఫెరోల్ అనే మూడు మందులను సూచించారు. TSH మరియు CBC పరీక్షలతో ఆరు వారాల తర్వాత ఫాలో-అప్ ఉంటుంది."
+    },
+    "doctor_questions": {
+     "english": [
+      "How long will I need to continue taking Levothyroxine?",
+      "Are there any specific dietary changes I should make for my iron and Vitamin D deficiencies?",
+      "Should I get any other tests done before my 6-week review?"
+     ],
+     "hindi": [
+      "मुझे कितने समय तक लेवोथायरोक्सिन लेना जारी रखना होगा?",
+      "क्या मुझे अपने आयरन और विटामिन डी की कमी के लिए कोई विशिष्ट आहार परिवर्तन करना चाहिए?",
+      "क्या मुझे अपनी 6 सप्ताह की समीक्षा से पहले कोई अन्य परीक्षण करवाना चाहिए?"
+     ],
+     "telugu": [
+      "నేను లెవోథైరాక్సిన్ తీసుకోవడం ఎంతకాలం కొనసాగించాలి?",
+      "నా ఐరన్ మరియు విటమిన్ డి లోపాల కోసం నేను ఏవైనా ప్రత్యేక ఆహార మార్పులు చేసుకోవాలా?",
+      "నా 6 వారాల సమీక్షకు ముందు నేను ఏవైనా ఇతర పరీక్షలు చేయించుకోవాలా?"
+     ]
+    },
+    "follow_up": "Review after 6 weeks with TSH, CBC",
+    "handwritten": true,
+    "languages_detected": [
+     "English"
+    ],
+    "unreadable_parts": []
+   },
+   "source_filename": "2026-09-02_lakshmi_prescription.jpg",
+   "source_mime": "image/jpeg",
+   "has_source_file": true,
+   "name_check": "match",
+   "extraction": {
+    "engine": "Gemini vision",
+    "model": "gemini-flash-lite-latest",
+    "duration_ms": 6956,
+    "warnings": []
+   },
+   "fhir_bundle": {
+    "resourceType": "Bundle",
+    "id": "e9437507-4cfc-441b-9ea2-d40de3cc6977",
+    "meta": {
+     "lastUpdated": "2026-10-12T17:55:30Z",
+     "profile": [
+      "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DocumentBundle"
+     ]
+    },
+    "identifier": {
+     "system": "https://health-copilot.local/bundles",
+     "value": "e9437507-4cfc-441b-9ea2-d40de3cc6977"
+    },
+    "type": "document",
+    "timestamp": "2026-10-12T17:55:30Z",
+    "entry": [
+     {
+      "fullUrl": "urn:uuid:a26eb9ce-d5bd-4d54-9e04-221ef3537c9d",
+      "resource": {
+       "resourceType": "Composition",
+       "id": "a26eb9ce-d5bd-4d54-9e04-221ef3537c9d",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/PrescriptionRecord"
+        ]
+       },
+       "status": "final",
+       "type": {
+        "coding": [
+         {
+          "system": "http://snomed.info/sct",
+          "code": "440545006",
+          "display": "Prescription record"
+         }
+        ],
+        "text": "Prescription record"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "date": "2026-09-02T00:00:00+05:30",
+       "author": [
+        {
+         "reference": "urn:uuid:eb7bc697-7cd0-45e1-9b0c-4371cb81a547"
+        }
+       ],
+       "title": "Prescription record",
+       "section": [
+        {
+         "title": "Diagnoses",
+         "code": {
+          "coding": [
+           {
+            "system": "http://snomed.info/sct",
+            "code": "439401001",
+            "display": "Diagnosis"
+           }
+          ]
+         },
+         "entry": [
+          {
+           "reference": "urn:uuid:419aa0c2-b5dd-41d9-9829-098e64ed53b8"
+          },
+          {
+           "reference": "urn:uuid:fe5057b9-bf60-4836-9e0e-b841f4885a87"
+          },
+          {
+           "reference": "urn:uuid:de97e426-f28d-4cd1-8824-67fc5a8adb60"
+          }
+         ]
+        },
+        {
+         "title": "Medications",
+         "code": {
+          "coding": [
+           {
+            "system": "http://snomed.info/sct",
+            "code": "721912009",
+            "display": "Medication summary document"
+           }
+          ]
+         },
+         "entry": [
+          {
+           "reference": "urn:uuid:28ca225a-e8b0-4c53-a37f-e10b052a54d5"
+          },
+          {
+           "reference": "urn:uuid:977e8148-bc81-469a-b2bd-33b5917fe3d6"
+          },
+          {
+           "reference": "urn:uuid:60141045-bba8-423a-af52-16ae617d0221"
+          }
+         ]
+        }
+       ],
+       "custodian": {
+        "reference": "urn:uuid:bad3c7d3-ea38-4180-bfbb-89012f563185"
+       }
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276",
+      "resource": {
+       "resourceType": "Patient",
+       "id": "b1672a1f-5df0-415e-b7b5-390a390df276",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Patient"
+        ]
+       },
+       "identifier": [],
+       "name": [
+        {
+         "text": "Lakshmi Devi"
+        }
+       ],
+       "gender": "female"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:eb7bc697-7cd0-45e1-9b0c-4371cb81a547",
+      "resource": {
+       "resourceType": "Practitioner",
+       "id": "eb7bc697-7cd0-45e1-9b0c-4371cb81a547",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Practitioner"
+        ]
+       },
+       "name": [
+        {
+         "text": "Dr. Anitha Reddy"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:bad3c7d3-ea38-4180-bfbb-89012f563185",
+      "resource": {
+       "resourceType": "Organization",
+       "id": "bad3c7d3-ea38-4180-bfbb-89012f563185",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Organization"
+        ]
+       },
+       "name": "City Care Clinic, Tirupati"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:419aa0c2-b5dd-41d9-9829-098e64ed53b8",
+      "resource": {
+       "resourceType": "Condition",
+       "id": "419aa0c2-b5dd-41d9-9829-098e64ed53b8",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Condition"
+        ]
+       },
+       "code": {
+        "text": "Hypothyroidism"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "recordedDate": "2026-09-02"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:fe5057b9-bf60-4836-9e0e-b841f4885a87",
+      "resource": {
+       "resourceType": "Condition",
+       "id": "fe5057b9-bf60-4836-9e0e-b841f4885a87",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Condition"
+        ]
+       },
+       "code": {
+        "text": "Iron deficiency anaemia"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "recordedDate": "2026-09-02"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:de97e426-f28d-4cd1-8824-67fc5a8adb60",
+      "resource": {
+       "resourceType": "Condition",
+       "id": "de97e426-f28d-4cd1-8824-67fc5a8adb60",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Condition"
+        ]
+       },
+       "code": {
+        "text": "Vitamin D deficiency [Vit D deficiency]"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "recordedDate": "2026-09-02"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:28ca225a-e8b0-4c53-a37f-e10b052a54d5",
+      "resource": {
+       "resourceType": "MedicationRequest",
+       "id": "28ca225a-e8b0-4c53-a37f-e10b052a54d5",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/MedicationRequest"
+        ]
+       },
+       "status": "active",
+       "intent": "order",
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "authoredOn": "2026-09-02",
+       "medicationCodeableConcept": {
+        "text": "Tablet Levothyroxine 50 mcg"
+       },
+       "dosageInstruction": [
+        {
+         "text": "1-0-0 (1 morning) empty stomach for 3 months"
+        }
+       ],
+       "requester": {
+        "reference": "urn:uuid:eb7bc697-7cd0-45e1-9b0c-4371cb81a547"
+       },
+       "reasonReference": [
+        {
+         "reference": "urn:uuid:419aa0c2-b5dd-41d9-9829-098e64ed53b8"
+        },
+        {
+         "reference": "urn:uuid:fe5057b9-bf60-4836-9e0e-b841f4885a87"
+        },
+        {
+         "reference": "urn:uuid:de97e426-f28d-4cd1-8824-67fc5a8adb60"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:977e8148-bc81-469a-b2bd-33b5917fe3d6",
+      "resource": {
+       "resourceType": "MedicationRequest",
+       "id": "977e8148-bc81-469a-b2bd-33b5917fe3d6",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/MedicationRequest"
+        ]
+       },
+       "status": "active",
+       "intent": "order",
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "authoredOn": "2026-09-02",
+       "medicationCodeableConcept": {
+        "text": "Tablet Ferrous Ascorbate 100 mg"
+       },
+       "dosageInstruction": [
+        {
+         "text": "0-1-0 (1 afternoon) after lunch for 2 months"
+        }
+       ],
+       "requester": {
+        "reference": "urn:uuid:eb7bc697-7cd0-45e1-9b0c-4371cb81a547"
+       },
+       "reasonReference": [
+        {
+         "reference": "urn:uuid:419aa0c2-b5dd-41d9-9829-098e64ed53b8"
+        },
+        {
+         "reference": "urn:uuid:fe5057b9-bf60-4836-9e0e-b841f4885a87"
+        },
+        {
+         "reference": "urn:uuid:de97e426-f28d-4cd1-8824-67fc5a8adb60"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:60141045-bba8-423a-af52-16ae617d0221",
+      "resource": {
+       "resourceType": "MedicationRequest",
+       "id": "60141045-bba8-423a-af52-16ae617d0221",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/MedicationRequest"
+        ]
+       },
+       "status": "active",
+       "intent": "order",
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "authoredOn": "2026-09-02",
+       "medicationCodeableConcept": {
+        "text": "Capsule Cholecalciferol 60,000 IU"
+       },
+       "dosageInstruction": [
+        {
+         "text": "once a week for 8 weeks"
+        }
+       ],
+       "requester": {
+        "reference": "urn:uuid:eb7bc697-7cd0-45e1-9b0c-4371cb81a547"
+       },
+       "reasonReference": [
+        {
+         "reference": "urn:uuid:419aa0c2-b5dd-41d9-9829-098e64ed53b8"
+        },
+        {
+         "reference": "urn:uuid:fe5057b9-bf60-4836-9e0e-b841f4885a87"
+        },
+        {
+         "reference": "urn:uuid:de97e426-f28d-4cd1-8824-67fc5a8adb60"
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "is_sample": true,
+   "created_at": "2026-10-12T17:55:30Z"
+  }
+ ]
+}

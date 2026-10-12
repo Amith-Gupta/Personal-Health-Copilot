@@ -1,105 +1,44 @@
+"""Safety rules for the copilot.
+
+The crisis screen is deterministic and always runs before any model call, so
+self-harm or overdose questions get emergency numbers even if every AI service is down.
+"""
 import re
-import logging
-from typing import Dict, Any, List, Tuple
-from app.config import settings
+from typing import Optional
 
-logger = logging.getLogger(__name__)
+CRISIS_PATTERNS = [
+    r"\b(suicide|suicidal|kill (myself|me)|end my life|want to die|self[- ]harm)\b",
+    r"\b(overdose|take all (the|my) (tablets|pills|medicines))\b",
+    r"\b(poison(ing)?|lethal dose)\b",
+    r"आत्महत्या", r"मरना चाहता", r"मरना चाहती", r"ఆత్మహత్య", r"చనిపోవాలని",
+]
+EMERGENCY_SIGNS = [
+    r"\b(chest pain|can'?t breathe|cannot breathe|unconscious|fainted|stroke|seizure|heavy bleeding)\b",
+    r"सीने में दर्द", r"सांस नहीं", r"ఛాతీ నొప్పి", r"ఊపిరి ఆడటం లేదు",
+]
 
-# Standard Human Daily Pharmacopeia Maximum Dosage Thresholds
-MAX_DAILY_DOSAGES: Dict[str, float] = {
-    "metformin": 2550.0,
-    "atorvastatin": 80.0,
-    "paracetamol": 4000.0,
-    "acetaminophen": 4000.0,
-    "pantoprazole": 80.0,
-    "omeprazole": 40.0,
-    "amoxicillin": 3000.0,
-    "ibuprofen": 3200.0,
-    "azithromycin": 500.0,
-    "metoprolol": 400.0,
-    "amlodipine": 10.0,
-    "losartan": 100.0,
+CRISIS_REPLY = {
+    "en": "This sounds serious and you deserve help right now. Please call 112 (emergency) or Tele-MANAS on 14416 (free, 24x7 mental health support), or go to the nearest hospital. If someone may have taken too many medicines, go to the emergency department now and take the medicine strips with you.",
+    "hi": "यह गंभीर लग रहा है और आपको अभी मदद मिलनी चाहिए। कृपया 112 (आपातकाल) या टेली-मानस 14416 (मुफ्त, 24 घंटे मानसिक स्वास्थ्य सहायता) पर कॉल करें, या नज़दीकी अस्पताल जाएं। अगर किसी ने ज़्यादा दवा ले ली है तो दवा के पत्ते साथ लेकर तुरंत इमरजेंसी जाएं।",
+    "te": "ఇది తీవ్రమైన విషయంలా ఉంది, మీకు వెంటనే సహాయం అందాలి. దయచేసి 112 (అత్యవసరం) లేదా టెలి-మానస్ 14416 (ఉచితం, 24 గంటల మానసిక ఆరోగ్య సహాయం)కి కాల్ చేయండి, లేదా దగ్గరలోని ఆసుపత్రికి వెళ్ళండి. ఎవరైనా ఎక్కువ మందులు వేసుకుంటే, మందుల స్ట్రిప్‌లు తీసుకుని వెంటనే ఎమర్జెన్సీకి వెళ్ళండి.",
+}
+EMERGENCY_REPLY = {
+    "en": "These can be signs of an emergency. Please call 112 or 108 for an ambulance, or go to the nearest emergency department now. Do not wait for an app.",
+    "hi": "ये आपातकाल के लक्षण हो सकते हैं। कृपया एम्बुलेंस के लिए 112 या 108 पर कॉल करें या तुरंत नज़दीकी इमरजेंसी जाएं।",
+    "te": "ఇవి అత్యవసర లక్షణాలు కావచ్చు. దయచేసి అంబులెన్స్ కోసం 112 లేదా 108కి కాల్ చేయండి, లేదా వెంటనే దగ్గరలోని ఎమర్జెన్సీకి వెళ్ళండి.",
 }
 
-# Critical Life-Threatening Lab Thresholds (Crisis Redirection)
-CRITICAL_LAB_VALUES = {
-    "glucose": {"low": 50.0, "high": 400.0, "unit": "mg/dL"},
-    "potassium": {"low": 2.5, "high": 6.5, "unit": "mEq/L"},
-    "hemoglobin": {"low": 6.0, "high": 20.0, "unit": "g/dL"},
-    "platelets": {"low": 20000.0, "high": 1000000.0, "unit": "/mcL"},
-}
-
-DISCLAIMER_TEXT = {
-    "en": "⚠️ Disclaimer: AI Health Copilot provides clinical reference summaries from your ABHA health records. This is not a formal medical diagnosis. Consult your licensed physician before altering medications.",
-    "hi": "⚠️ अस्वीकरण: यह एआई हेल्थ कोपायलट आपके स्वास्थ्य रिकॉर्ड का सारांश प्रस्तुत करता है। यह कोई अंतिम चिकित्सकीय निदान नहीं है। किसी भी दवा में बदलाव करने से पहले डॉक्टर से परामर्श करें।",
-    "te": "⚠️ గమనిక: AI హెల్త్ కోపైలట్ మీ ఆరోగ్య రికార్డుల సమాచారాన్ని మాత్రమే అందిస్తుంది. ఇది వైద్య నిర్ధారణ కాదు. మందులు మార్చే ముందు మీ వైద్యుడిని సంప్రదించండి."
+DISCLAIMER = {
+    "en": "Explains your documents in plain words. It is not a diagnosis. Please check with your doctor before changing any medicine.",
+    "hi": "यह आपके दस्तावेज़ों को आसान शब्दों में समझाता है। यह निदान नहीं है। कोई भी दवा बदलने से पहले अपने डॉक्टर से पूछें।",
+    "te": "ఇది మీ పత్రాలను సులభమైన మాటల్లో వివరిస్తుంది. ఇది వైద్య నిర్ధారణ కాదు. ఏ మందు మార్చే ముందైనా మీ డాక్టర్‌ను అడగండి.",
 }
 
 
-async def screen_safety_with_llama_guard(user_prompt: str) -> Tuple[bool, str]:
-    """
-    Screens prompt using Llama-Guard-3-8b via Groq if available,
-    otherwise uses regex heuristic safety screening.
-    """
-    if settings.GROQ_API_KEY and settings.GROQ_API_KEY.strip():
-        try:
-            from groq import Groq
-            client = Groq(api_key=settings.GROQ_API_KEY)
-            response = client.chat.completions.create(
-                model="meta-llama/llama-prompt-guard-2-86m",
-                messages=[{"role": "user", "content": user_prompt}],
-                max_tokens=20
-            )
-            raw = (response.choices[0].message.content or "").strip().lower()
-            return True, "Passed AI Safeguard Verification"
-        except Exception as e:
-            logger.warning(f"Groq Safeguard check fallback: {e}")
-
-    # Fallback heuristic safety screening
-    harmful_terms = ["overdose", "kill myself", "suicide", "poison", "toxic dose", "double the lethal"]
-    for term in harmful_terms:
-        if term in user_prompt.lower():
-            return False, "Emergency Alert: Dangerous or harmful intent detected. Please contact national emergency services immediately (112 / 108)."
-
-    return True, "Passed Clinical Heuristic Safety Screening"
-
-
-def validate_medication_dosages(medications: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Checks extracted medication list against clinical pharmacopeia limits.
-    Attaches safety tags and alerts if dose is unusually high.
-    """
-    validated = []
-    for med in medications:
-        item = dict(med)
-        med_name = str(item.get("name", "")).lower()
-        dosage_str = str(item.get("dosage", ""))
-        
-        # Extract numerical value in mg
-        num_match = re.search(r"(\d+(?:\.\d+)?)", dosage_str)
-        dose_val = float(num_match.group(1)) if num_match else None
-        
-        item["guardrail_status"] = "PASSED"
-        item["guardrail_warning"] = None
-
-        if dose_val is not None:
-            for drug_key, max_limit in MAX_DAILY_DOSAGES.items():
-                if drug_key in med_name:
-                    if dose_val > max_limit:
-                        item["guardrail_status"] = "WARNING_HIGH_DOSE"
-                        item["guardrail_warning"] = (
-                            f"Dosage ({dose_val}mg) exceeds standard single/daily limit of {max_limit}mg. "
-                            f"Please verify against physical prescription."
-                        )
-                        break
-
-        validated.append(item)
-    return validated
-
-
-def attach_clinical_disclaimer(response_text: str, language: str = "en") -> str:
-    """
-    Appends mandatory patient safety disclaimer in the target language.
-    """
-    disclaimer = DISCLAIMER_TEXT.get(language, DISCLAIMER_TEXT["en"])
-    return f"{response_text}\n\n---\n{disclaimer}"
+def crisis_reply(text: str, language: str) -> Optional[str]:
+    t = text.lower()
+    if any(re.search(p, t) for p in CRISIS_PATTERNS):
+        return CRISIS_REPLY.get(language, CRISIS_REPLY["en"])
+    if any(re.search(p, t) for p in EMERGENCY_SIGNS):
+        return EMERGENCY_REPLY.get(language, EMERGENCY_REPLY["en"])
+    return None
