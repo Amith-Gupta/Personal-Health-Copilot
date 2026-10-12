@@ -1,137 +1,103 @@
+"""Deterministic clean-up applied after AI extraction.
+
+The AI reads the page; these functions make the numbers trustworthy.
+A flag computed from the printed reference range always wins over the AI's guess.
+"""
 import re
-from typing import Dict, Any, Optional, Tuple
+from typing import Optional, Tuple
+
+_NUM = r"\d+(?:\.\d+)?"
 
 
-def normalize_dosage_frequency(freq_raw: str) -> str:
-    """
-    Standardizes colloquial, Latin, and abbreviated prescription dosage frequencies
-    such as '1-0-1', 'OD', 'BD', 'TID', 'SOS', 'pc', 'ac', 'after meals'
-    into clean, standardized human and machine-readable text.
-    """
+def parse_number(raw: Optional[str]) -> Optional[float]:
+    """Reads the first number in a value like '13,800', '<0.5', '7.9 H'. Commas are thousands separators."""
+    if raw is None:
+        return None
+    text = str(raw).replace(",", "").strip()
+    m = re.search(_NUM, text)
+    return float(m.group()) if m else None
+
+
+def parse_reference_range(raw: Optional[str]) -> Optional[Tuple[Optional[float], Optional[float]]]:
+    """Returns (low, high) from '70 - 99', '4000-11000', '12.0 to 15.5', '< 6', '>= 40'.
+    Hyphens between two numbers are separators, never minus signs."""
+    if not raw:
+        return None
+    text = str(raw).replace(",", "").strip().lower()
+    two = re.search(rf"({_NUM})\s*(?:-|–|to|—)\s*({_NUM})", text)
+    if two:
+        low, high = float(two.group(1)), float(two.group(2))
+        return (min(low, high), max(low, high))
+    upper = re.search(rf"(?:<=?|≤|less than|upto|up to|below)\s*({_NUM})", text)
+    if upper:
+        return (None, float(upper.group(1)))
+    lower = re.search(rf"(?:>=?|≥|more than|greater than|above)\s*({_NUM})", text)
+    if lower:
+        return (float(lower.group(1)), None)
+    return None
+
+
+def compute_flag(value: Optional[str], reference_range: Optional[str]) -> Optional[str]:
+    """HIGH / LOW / NORMAL from the printed range, or None when either side is not numeric."""
+    num = parse_number(value)
+    bounds = parse_reference_range(reference_range)
+    if num is None or bounds is None:
+        return None
+    low, high = bounds
+    if low is not None and num < low:
+        return "LOW"
+    if high is not None and num > high:
+        return "HIGH"
+    return "NORMAL"
+
+
+def normalize_frequency(freq_raw: Optional[str]) -> str:
+    """Expands Indian tripartite notation (1-0-1) and common Latin abbreviations, keeping the original."""
     if not freq_raw:
-        return "As directed by physician"
-
+        return ""
     freq = freq_raw.strip()
-
-    # Pattern matches standard Indian doctor tripartite notation: 1-0-1, 1-1-1, 0-0-1, 1-0-0
-    pattern_tripartite = re.compile(r"^([0-9]|½)\s*[-/:]\s*([0-9]|½)\s*[-/:]\s*([0-9]|½)$", re.IGNORECASE)
-    match_tri = pattern_tripartite.match(freq)
-    if match_tri:
-        morning, afternoon, night = match_tri.groups()
-        desc = []
-        if morning != "0":
-            desc.append(f"{morning} in morning")
-        if afternoon != "0":
-            desc.append(f"{afternoon} in afternoon")
-        if night != "0":
-            desc.append(f"{night} at night")
-        readable = ", ".join(desc) if desc else "As directed"
-        return f"{freq} ({readable})"
-
-    # Check common medical abbreviations
+    tri = re.match(r"^([0-9½]+)\s*[-/:]\s*([0-9½]+)\s*[-/:]\s*([0-9½]+)\b(.*)$", freq)
+    if tri:
+        m, a, n, rest = tri.groups()
+        parts = []
+        if m != "0":
+            parts.append(f"{m} morning")
+        if a != "0":
+            parts.append(f"{a} afternoon")
+        if n != "0":
+            parts.append(f"{n} night")
+        expanded = ", ".join(parts) if parts else "as directed"
+        rest = rest.strip()
+        return f"{m}-{a}-{n} ({expanded}){(' ' + rest) if rest else ''}"
     lookup = [
-        (r"\b(o\.?d\.?|once\s+daily|1\s+time\s+a\s+day)\b", "Once daily (OD)"),
-        (r"\b(b\.?d\.?|b\.?i\.?d\.?|twice\s+daily|2\s+times\s+a\s+day)\b", "Twice daily (BD / BID)"),
-        (r"\b(t\.?i\.?d\.?|t\.?d\.?s\.?|three\s+times\s+a\s+day)\b", "Three times daily (TID)"),
-        (r"\b(q\.?i\.?d\.?|four\s+times\s+a\s+day)\b", "Four times daily (QID)"),
-        (r"\b(s\.?o\.?s\.?|prn|as\s+needed|when\s+required)\b", "As needed (SOS / PRN)"),
-        (r"\b(h\.?s\.?|bedtime|at\s+night)\b", "At bedtime (HS)"),
-        (r"\b(q\s*4\s*h|every\s+4\s+hours)\b", "Every 4 hours"),
-        (r"\b(q\s*6\s*h|every\s+6\s+hours)\b", "Every 6 hours"),
-        (r"\b(weekly|once\s+a\s+week)\b", "Once weekly"),
+        (r"\b(o\.?d\.?)\b", "once daily"),
+        (r"\b(b\.?d\.?|b\.?i\.?d\.?)\b", "twice daily"),
+        (r"\b(t\.?i\.?d\.?|t\.?d\.?s\.?)\b", "three times daily"),
+        (r"\b(q\.?i\.?d\.?)\b", "four times daily"),
+        (r"\b(s\.?o\.?s\.?|prn)\b", "only when needed"),
+        (r"\b(h\.?s\.?)\b", "at bedtime"),
     ]
-
-    result = freq
-    for pattern, replacement in lookup:
-        if re.search(pattern, freq, re.IGNORECASE):
-            result = replacement
-            break
-
-    # Timing relative to food
-    timing_food = ""
-    if re.search(r"\b(a\.?c\.?|before\s+(food|meals?|eating))\b", freq, re.IGNORECASE):
-        timing_food = " before meals"
-    elif re.search(r"\b(p\.?c\.?|after\s+(food|meals?|eating))\b", freq, re.IGNORECASE):
-        timing_food = " after meals"
-
-    if timing_food and timing_food not in result:
-        result = f"{result}{timing_food}"
-
-    return result
+    for pattern, words in lookup:
+        if re.fullmatch(pattern, freq, re.IGNORECASE):
+            return f"{freq.upper()} ({words})"
+    return freq
 
 
-def normalize_lab_value(value_raw: str, ref_range_raw: Optional[str] = None) -> Tuple[str, str]:
-    """
-    Cleans numerical diagnostic results and infers abnormal status
-    (NORMAL, HIGH, LOW) if not already explicitly annotated.
-    Returns: (cleaned_value_str, inferred_flag)
-    """
-    if not value_raw:
-        return ("0", "NORMAL")
-
-    clean_val = str(value_raw).strip()
-    # Remove leading comparator symbols if present for numeric evaluation
-    num_match = re.search(r"[-+]?\d*\.?\d+", clean_val)
-    if not num_match:
-        return (clean_val, "NORMAL")
-
-    try:
-        numeric_val = float(num_match.group())
-    except ValueError:
-        return (clean_val, "NORMAL")
-
-    flag = "NORMAL"
-    if ref_range_raw:
-        # Check range pattern: "70 - 99", "70-99", "12.0 to 16.5", "< 200", "> 60"
-        bounds = re.findall(r"[-+]?\d*\.?\d+", ref_range_raw)
-        if len(bounds) >= 2:
-            try:
-                low = float(bounds[0])
-                high = float(bounds[1])
-                if numeric_val < low:
-                    flag = "LOW"
-                elif numeric_val > high:
-                    flag = "HIGH"
-            except ValueError:
-                pass
-        elif len(bounds) == 1:
-            try:
-                limit = float(bounds[0])
-                if "<" in ref_range_raw and numeric_val > limit:
-                    flag = "HIGH"
-                elif ">" in ref_range_raw and numeric_val < limit:
-                    flag = "LOW"
-            except ValueError:
-                pass
-
-    return (clean_val, flag)
+FORM_PREFIXES = [
+    (r"^(tab|tablet|tbl)\.?\s+", "Tablet"),
+    (r"^(cap|capsule)\.?\s+", "Capsule"),
+    (r"^(syp|syrup)\.?\s+", "Syrup"),
+    (r"^(inj|injection)\.?\s+", "Injection"),
+    (r"^(oint|ointment|gel|cream)\.?\s+", "Topical"),
+    (r"^(drop|drops|gtt)\.?\s+", "Drops"),
+    (r"^(inhaler|rotacap|puff)\.?\s+", "Inhaler"),
+]
 
 
-def clean_medication_name(name_raw: str) -> Dict[str, str]:
-    """
-    Strips formulation abbreviations (Tab, Cap, Syp, Inj, Oint) and standardizes
-    the clean brand/generic medication name.
-    """
-    if not name_raw:
-        return {"name": "Unknown Medication", "form": "Oral"}
-
-    form_mapping = {
-        r"^(tab|tablet|tbl)\.?\s*": "Tablet",
-        r"^(cap|capsule)\.?\s*": "Capsule",
-        r"^(syp|syrup)\.?\s*": "Syrup",
-        r"^(inj|injection)\.?\s*": "Injection",
-        r"^(oint|ointment|gel)\.?\s*": "Topical",
-        r"^(drop|drops)\.?\s*": "Drops",
-        r"^(resp|inhaler)\.?\s*": "Inhaler",
-    }
-
-    detected_form = "Tablet"
-    clean_name = name_raw.strip()
-
-    for pattern, form_name in form_mapping.items():
-        if re.search(pattern, clean_name, re.IGNORECASE):
-            detected_form = form_name
-            clean_name = re.sub(pattern, "", clean_name, flags=re.IGNORECASE).strip()
-            break
-
-    return {"name": clean_name, "form": detected_form}
+def split_medication_form(name_raw: str, form: Optional[str] = None) -> Tuple[str, Optional[str]]:
+    """'Tab. Levothyroxine' -> ('Levothyroxine', 'Tablet')."""
+    name = (name_raw or "").strip()
+    for pattern, form_name in FORM_PREFIXES:
+        if re.search(pattern, name, re.IGNORECASE):
+            return re.sub(pattern, "", name, flags=re.IGNORECASE).strip(), form or form_name
+    return name, form
