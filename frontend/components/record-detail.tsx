@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowSquareOut, Code, SpeakerHigh, SpeakerSlash, Trash, WarningCircle } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
+import { cachedImage } from "@/lib/image-cache";
 import { isOut, tidyName } from "@/lib/clinical";
 import { formatDate, useI18n } from "@/lib/i18n";
 import { pick, pickList, type HealthRecord, type Profile } from "@/lib/types";
@@ -13,14 +14,15 @@ import { useSpeech } from "./use-speech";
 import { highlight, termVariants } from "@/lib/highlight";
 import { Badge, Button, Card, CardHeader, Skeleton, cx, useToast } from "./ui";
 
-export function RecordDetail({ record, profiles, active, onBack, onMoved, onDeleted, onProfileCreated }: {
-  record: HealthRecord; profiles: Profile[]; active: Profile; onBack: () => void;
+export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, onDeleted, onProfileCreated }: {
+  record: HealthRecord; urls?: { original: string | null; preview: string | null }; profiles: Profile[]; active: Profile; onBack: () => void;
   onMoved: (r: HealthRecord, to: Profile) => void; onDeleted: (id: string) => void; onProfileCreated: () => void;
 }) {
   const { t, lang } = useI18n();
   const toast = useToast();
   const e = record.extracted;
   const [src, setSrc] = useState<string | null>(null);
+  const [original, setOriginal] = useState<string | null>(urls?.original || null);
   const [srcErr, setSrcErr] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [fhir, setFhir] = useState(false);
@@ -35,11 +37,19 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
 
   useEffect(() => {
     let live = true;
-    setSrc(null); setSrcErr(false); setImgLoaded(false);
-    if (record.has_source_file) api.sourceUrl(record.id).then((r) => live && setSrc(r.url)).catch(() => live && setSrcErr(true));
+    setSrcErr(false); setImgLoaded(false);
+    const isPdfFile = record.source_mime === "application/pdf";
+    const show = (u: string) => (isPdfFile ? Promise.resolve(u) : cachedImage(u).catch(() => u)).then((v) => { if (live) setSrc(v); });
+    if (urls?.preview || urls?.original) {
+      setOriginal(urls.original); show((urls.preview || urls.original) as string);
+    } else if (record.has_source_file) {
+      setSrc(null); setOriginal(null);
+      api.sourceUrl(record.id, record.has_preview ? "preview" : "original").then((r) => show(r.url)).catch(() => live && setSrcErr(true));
+      if (record.has_preview) api.sourceUrl(record.id, "original").then((r) => live && setOriginal(r.url)).catch(() => {});
+    }
     return () => { live = false; speech.stop?.(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [record.id]);
+  }, [record.id, urls?.preview, urls?.original]);
 
   async function move(to: Profile) {
     setBusy(to.id);
@@ -84,7 +94,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
           <Card className="overflow-hidden">
             <div className="flex items-center justify-between border-b border-line px-3 py-2 text-sm">
               <span className="font-medium">{t.original}</span>
-              {src && <a href={src} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-fg-3 hover:text-accent">{t.openOriginal}<ArrowSquareOut size={13} /></a>}
+              {(original || src) && <a href={original || src || "#"} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-fg-3 hover:text-accent">{t.openOriginal}<ArrowSquareOut size={13} /></a>}
             </div>
             <div className="bg-subtle p-3">
               {srcErr || !record.has_source_file ? <p className="py-16 text-center text-sm text-fg-3">Original file not available.</p>
@@ -93,7 +103,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
                   <object data={`${src}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} type="application/pdf" aria-label={record.source_filename} className="aspect-[3/4] w-full rounded bg-white">
                     <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded bg-surface text-sm text-fg-3">
                       <p>PDF preview is not available in this browser.</p>
-                      <a href={src} target="_blank" rel="noreferrer" className="rounded-full bg-accent px-4 py-2 font-medium text-accent-fg">{t.openOriginal}</a>
+                      <a href={original || src || "#"} target="_blank" rel="noreferrer" className="rounded-full bg-accent px-4 py-2 font-medium text-accent-fg">{t.openOriginal}</a>
                     </div>
                   </object>
                 )

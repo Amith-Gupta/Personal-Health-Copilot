@@ -8,6 +8,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
 
+import io
+from concurrent.futures import ThreadPoolExecutor
+
 from supabase import Client, create_client
 
 from app.config import settings
@@ -72,7 +75,7 @@ def _record(row: dict) -> HealthRecord:
         id=row["id"], profile_id=row["patient_id"], document_type=row["document_type"],
         record_date=row["record_date"], title=row["title"], extracted=row["extracted"],
         source_filename=row["source_filename"], source_mime=row["source_mime"],
-        has_source_file=bool(row.get("storage_path")), name_check=row["name_check"],
+        has_source_file=bool(row.get("storage_path")), has_preview=bool(row.get("preview_path")), name_check=row["name_check"],
         extraction=row["extraction"], fhir_bundle=row["fhir_bundle"], is_sample=row["is_sample"],
         created_at=row["created_at"],
     )
@@ -107,7 +110,7 @@ def _derived_rows(owner: str, rec: HealthRecord) -> tuple:
     return meds, labs, conds
 
 
-def save_record(owner: str, rec: HealthRecord, storage_path: Optional[str] = None) -> HealthRecord:
+def save_record(owner: str, rec: HealthRecord, storage_path: Optional[str] = None, preview_path: Optional[str] = None) -> HealthRecord:
     row = {"id": rec.id, "owner_id": owner, "patient_id": rec.profile_id, "document_type": rec.document_type,
            "record_date": rec.record_date, "title": rec.title, "extracted": rec.extracted.model_dump(),
            "extraction": rec.extraction.model_dump(), "name_check": rec.name_check,
@@ -115,14 +118,22 @@ def save_record(owner: str, rec: HealthRecord, storage_path: Optional[str] = Non
            "fhir_bundle": rec.fhir_bundle, "is_sample": rec.is_sample, "created_at": rec.created_at}
     if storage_path:
         row["storage_path"] = storage_path
+    if preview_path:
+        row["preview_path"] = preview_path
     db().table("health_records").upsert(row).execute()
-    for table in ("medications", "lab_observations", "conditions"):
-        db().table(table).delete().eq("record_id", rec.id).execute()
     meds, labs, conds = _derived_rows(owner, rec)
-    for table, rows in (("medications", meds), ("lab_observations", labs), ("conditions", conds)):
+
+    def refresh(table: str, rows: list) -> None:
+        db().table(table).delete().eq("record_id", rec.id).execute()
         if rows:
             db().table(table).insert(rows).execute()
-    return get_record(owner, rec.id) or rec
+
+    # The three derived tables are independent; write them in parallel (each is two round trips).
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        list(pool.map(lambda t: refresh(*t), (("medications", meds), ("lab_observations", labs), ("conditions", conds))))
+    rec.has_source_file = bool(row.get("storage_path"))
+    rec.has_preview = bool(row.get("preview_path"))
+    return rec
 
 
 def delete_record(owner: str, record_id: str) -> None:
@@ -138,21 +149,63 @@ def _path(owner: str, record_id: str) -> str:
 
 def save_upload(owner: str, record_id: str, content: bytes, mime: str) -> str:
     path = _path(owner, record_id)
-    db().storage.from_(BUCKET).upload(path, content, {"content-type": mime, "upsert": "true"})
+    db().storage.from_(BUCKET).upload(path, content, {"content-type": mime, "upsert": "true", "cache-control": "3600"})
     return path
 
 
-def signed_file_url(owner: str, record_id: str, seconds: int = 300) -> Optional[str]:
-    rec = db().table("health_records").select("storage_path").eq("owner_id", owner).eq("id", record_id).execute().data
-    if not rec or not rec[0].get("storage_path"):
+def make_preview(content: bytes, mime: str, max_px: int = 1600) -> Optional[bytes]:
+    """Downscaled JPEG of an image upload, so phones do not fetch multi-megabyte originals. None for PDFs/HEIC."""
+    if not mime.startswith("image/") or mime in ("image/heic", "image/heif"):
         return None
-    res = db().storage.from_(BUCKET).create_signed_url(rec[0]["storage_path"], seconds)
+    try:
+        from PIL import Image, ImageOps
+        im = Image.open(io.BytesIO(content))
+        im = ImageOps.exif_transpose(im).convert("RGB")
+        im.thumbnail((max_px, max_px))
+        out = io.BytesIO()
+        im.save(out, "JPEG", quality=82, optimize=True, progressive=True)
+        return out.getvalue()
+    except Exception:
+        return None
+
+
+def save_preview(owner: str, record_id: str, content: bytes, mime: str) -> Optional[str]:
+    data = make_preview(content, mime)
+    if not data:
+        return None
+    path = f"{owner}/{record_id}.preview.jpg"
+    db().storage.from_(BUCKET).upload(path, data, {"content-type": "image/jpeg", "upsert": "true", "cache-control": "3600"})
+    return path
+
+
+def signed_file_url(owner: str, record_id: str, seconds: int = 3600, variant: str = "original") -> Optional[str]:
+    rec = db().table("health_records").select("storage_path,preview_path").eq("owner_id", owner).eq("id", record_id).execute().data
+    if not rec:
+        return None
+    path = (rec[0].get("preview_path") if variant == "preview" else None) or rec[0].get("storage_path")
+    if not path:
+        return None
+    res = db().storage.from_(BUCKET).create_signed_url(path, seconds)
     return res.get("signedURL") or res.get("signedUrl")
+
+
+def signed_urls_for_profile(owner: str, profile_id: Optional[str] = None, seconds: int = 3600) -> dict:
+    """One storage call for every record (of one person, or the whole family): {record_id: {"original": url, "preview": url|None}}."""
+    q = db().table("health_records").select("id,storage_path,preview_path").eq("owner_id", owner)
+    if profile_id:
+        q = q.eq("patient_id", profile_id)
+    rows = q.execute().data
+    paths = [p for r in rows for p in (r.get("storage_path"), r.get("preview_path")) if p]
+    if not paths:
+        return {}
+    signed = db().storage.from_(BUCKET).create_signed_urls(paths, seconds)
+    by_path = {s.get("path"): (s.get("signedURL") or s.get("signedUrl")) for s in signed if s.get("path")}
+    return {r["id"]: {"original": by_path.get(r.get("storage_path")), "preview": by_path.get(r.get("preview_path"))} for r in rows}
 
 
 def _remove_upload(owner: str, record_id: str) -> None:
     try:
-        db().storage.from_(BUCKET).remove([_path(owner, record_id)])
+        db().storage.from_(BUCKET).remove([_path(owner, record_id), f"{owner}/{record_id}.preview.jpg"])
     except Exception:
         pass
 
@@ -175,10 +228,12 @@ def load_sample_family(owner: str) -> int:
         prof = id_map[r["profile_id"]]
         rec = HealthRecord(**(r | {"id": new_id(), "profile_id": prof.id, "is_sample": True, "created_at": now_iso()}))
         rec.fhir_bundle = to_fhir_bundle(rec.extracted, prof, rec.id)
-        path = None
+        path = preview = None
         src = SEED_DIR / "uploads" / r["id"]
         if src.exists():
-            path = save_upload(owner, rec.id, src.read_bytes(), rec.source_mime)
-        save_record(owner, rec, storage_path=path)
+            content = src.read_bytes()
+            path = save_upload(owner, rec.id, content, rec.source_mime)
+            preview = save_preview(owner, rec.id, content, rec.source_mime)
+        save_record(owner, rec, storage_path=path, preview_path=preview)
     audit(owner, "load_sample_family")
     return len(seed["records"])

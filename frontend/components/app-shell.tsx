@@ -1,8 +1,9 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
+import { cachedImage } from "@/lib/image-cache";
 import { useI18n } from "@/lib/i18n";
-import type { HealthRecord, Profile } from "@/lib/types";
+import type { FileUrls, HealthRecord, Profile } from "@/lib/types";
 import { TopBar } from "./top-bar";
 import { FamilyRow } from "./family-row";
 import { PatientHeader } from "./patient-header";
@@ -23,7 +24,8 @@ export function AppShell({ email }: { email: string }) {
   const toast = useToast();
   const [profiles, setProfiles] = useState<Profile[] | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [records, setRecords] = useState<HealthRecord[] | null>(null);
+  const [allRecords, setAllRecords] = useState<HealthRecord[] | null>(null);
+  const [fileUrls, setFileUrls] = useState<FileUrls>({});
   const [recordsError, setRecordsError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
@@ -31,22 +33,35 @@ export function AppShell({ email }: { email: string }) {
   const [uploading, setUploading] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
 
-  const loadProfiles = useCallback(async (select?: string) => {
-    setLoadError(null);
+  // Everything for the whole family in two parallel calls; switching people is then instant.
+  const inflight = useRef(false);
+  const loadAll = useCallback(async (select?: string) => {
+    if (inflight.current) return;
+    inflight.current = true;
+    setLoadError(null); setRecordsError(null);
     try {
-      const ps = await api.profiles();
+      const [ps, recs] = await Promise.all([api.profiles(), api.records()]);
       setProfiles(ps);
+      setAllRecords(recs.sort(byDate));
       setActiveId((cur) => select || (cur && ps.some((p) => p.id === cur) ? cur : ps[0]?.id || null));
+      api.fileUrls().then(({ urls }) => setFileUrls(urls)).catch(() => {});
     } catch (e) { setLoadError((e as Error).message); }
+    finally { inflight.current = false; }
   }, []);
-  useEffect(() => { loadProfiles(); }, [loadProfiles]);
+  const loadProfiles = loadAll;
+  useEffect(() => { loadAll(); }, [loadAll]);
 
-  const loadRecords = useCallback(async (id: string) => {
-    setRecords(null); setRecordsError(null);
-    try { setRecords((await api.records(id)).sort(byDate)); }
-    catch (e) { setRecordsError((e as Error).message); }
-  }, []);
-  useEffect(() => { if (activeId) loadRecords(activeId); }, [activeId, loadRecords]);
+  const records = useMemo(() => (allRecords ? allRecords.filter((r) => r.profile_id === activeId) : null), [allRecords, activeId]);
+  const refreshUrls = useCallback(() => { api.fileUrls().then(({ urls }) => setFileUrls(urls)).catch(() => {}); }, []);
+
+  // Warm the browser cache with this person's document previews so a record opens with its page already there.
+  useEffect(() => {
+    if (!records) return;
+    records.slice(0, 6).forEach((r) => {
+      const u = fileUrls[r.id]?.preview || (r.source_mime !== "application/pdf" ? fileUrls[r.id]?.original : null);
+      if (u) cachedImage(u).catch(() => {});
+    });
+  }, [records, fileUrls]);
 
   const active = useMemo(() => profiles?.find((p) => p.id === activeId) || null, [profiles, activeId]);
   const selected = records?.find((r) => r.id === openRecord) || null;
@@ -55,7 +70,8 @@ export function AppShell({ email }: { email: string }) {
   function openRec(id: string) { setOpenRecord(id); setTab("records"); window.scrollTo({ top: 0 }); }
   function startUpload(f: File) { setUploadFile(f); setUploading(true); setOpenRecord(null); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function upsert(rec: HealthRecord) {
-    setRecords((rs) => [rec, ...(rs || []).filter((r) => r.id !== rec.id)].filter((r) => r.profile_id === activeId).sort(byDate));
+    setAllRecords((rs) => [rec, ...(rs || []).filter((r) => r.id !== rec.id)].sort(byDate));
+    refreshUrls();
   }
 
   return (
@@ -81,11 +97,11 @@ export function AppShell({ email }: { email: string }) {
                 <UploadPanel profile={active} file={uploadFile} onClose={() => { setUploading(false); setUploadFile(null); }}
                   onFiled={(rec) => { upsert(rec); setUploading(false); setUploadFile(null); toast(t.filed(active.name)); openRec(rec.id); }} />
               )}
-              {recordsError ? <ErrorNote message={recordsError} onRetry={() => loadRecords(active.id)} retryLabel={t.tryAgain} />
+              {recordsError ? <ErrorNote message={recordsError} onRetry={() => loadAll(active.id)} retryLabel={t.tryAgain} />
                 : selected ? (
-                  <RecordDetail record={selected} profiles={profiles || []} active={active} onBack={() => setOpenRecord(null)}
-                    onMoved={(rec, to) => { setRecords((rs) => (rs || []).filter((r) => r.id !== rec.id)); setOpenRecord(null); toast(t.filed(to.name)); }}
-                    onDeleted={(id) => { setRecords((rs) => (rs || []).filter((r) => r.id !== id)); setOpenRecord(null); }}
+                  <RecordDetail record={selected} urls={fileUrls[selected.id]} profiles={profiles || []} active={active} onBack={() => setOpenRecord(null)}
+                    onMoved={(rec, to) => { upsert(rec); setOpenRecord(null); toast(t.filed(to.name)); }}
+                    onDeleted={(id) => { setAllRecords((rs) => (rs || []).filter((r) => r.id !== id)); setOpenRecord(null); }}
                     onProfileCreated={() => loadProfiles(active.id)} />
                 ) : tab === "overview" ? <Overview records={records} profile={active} onOpen={openRec} onTab={setTab} onFile={startUpload} />
                 : tab === "records" ? <RecordsView records={records} profile={active} onOpen={openRec} onFile={startUpload} />

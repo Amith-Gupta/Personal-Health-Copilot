@@ -16,10 +16,12 @@ async def query(body: CopilotQueryRequest, owner: str = Depends(current_user_id)
     crisis = crisis_reply(body.query, body.language)
     if crisis:
         return CopilotQueryResponse(answer=crisis, language=body.language, disclaimer=disclaimer, safety="crisis", model="safety rules")
-    profile = store.get_profile(owner, body.profile_id)
+    profile, records = await asyncio.gather(
+        asyncio.to_thread(store.get_profile, owner, body.profile_id),
+        asyncio.to_thread(store.list_records, owner, body.profile_id),
+    )
     if not profile:
         raise HTTPException(404, "Profile not found")
-    records = store.list_records(owner, profile.id)
     try:
         answer, citations, model = await asyncio.to_thread(answer_question, body.query, body.language, profile, records)
     except CopilotUnavailable:

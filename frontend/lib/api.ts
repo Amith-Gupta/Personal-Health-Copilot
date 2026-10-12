@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { CopilotAnswer, HealthRecord, Lang, Profile } from "./types";
+import type { CopilotAnswer, FileUrls, HealthRecord, Lang, Profile } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api/v1";
 
@@ -43,14 +43,15 @@ export const api = {
   createProfile: (p: { name: string; relation: string; age?: string; sex?: string }) => call<Profile>("/profiles", json(p)),
   linkAbha: (id: string, b: { abha_number?: string; abha_address?: string }) => call<Profile>(`/profiles/${id}/abha`, json(b)),
   unlinkAbha: (id: string) => call<Profile>(`/profiles/${id}/abha`, { method: "DELETE" }),
-  records: (profileId: string) => call<HealthRecord[]>(`/health-records?profile_id=${profileId}`),
+  records: (profileId?: string) => call<HealthRecord[]>(profileId ? `/health-records?profile_id=${profileId}` : "/health-records"),
   upload: (file: File, profileId: string) => {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("profile_id", profileId);
     return call<HealthRecord>("/health-records/upload", { method: "POST", body: fd }, 180000);
   },
-  sourceUrl: (id: string) => call<{ url: string }>(`/health-records/${id}/file`),
+  sourceUrl: (id: string, variant: "original" | "preview" = "original") => call<{ url: string }>(`/health-records/${id}/file?variant=${variant}`),
+  fileUrls: (profileId?: string) => call<{ urls: FileUrls }>(profileId ? `/health-records/files?profile_id=${profileId}` : "/health-records/files"),
   moveRecord: (id: string, profileId: string) => call<HealthRecord>(`/health-records/${id}/move`, json({ profile_id: profileId })),
   deleteRecord: (id: string) => call<void>(`/health-records/${id}`, { method: "DELETE" }),
   ask: (query: string, language: Lang, profileId: string) =>

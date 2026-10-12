@@ -2,7 +2,7 @@ import asyncio
 import re
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
 
 from app.schemas.payloads import HealthRecord, RecordMove
 from app.services import store
@@ -65,8 +65,11 @@ async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owne
         name_check=name_check(extracted.patient_name, profile.name), extraction=meta,
         fhir_bundle=to_fhir_bundle(extracted, profile, record_id), created_at=store.now_iso(),
     )
-    path = await asyncio.to_thread(store.save_upload, owner, record_id, content, mime)
-    saved = await asyncio.to_thread(store.save_record, owner, record, path)
+    path, preview = await asyncio.gather(
+        asyncio.to_thread(store.save_upload, owner, record_id, content, mime),
+        asyncio.to_thread(store.save_preview, owner, record_id, content, mime),
+    )
+    saved = await asyncio.to_thread(store.save_record, owner, record, path, preview)
     store.audit(owner, "upload", profile.id, record_id, {"type": record.document_type, "model": meta.model})
     return saved
 
@@ -74,6 +77,14 @@ async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owne
 @router.get("", response_model=list[HealthRecord])
 def list_records(profile_id: Optional[str] = None, owner: str = Depends(current_user_id)):
     return store.list_records(owner, profile_id)
+
+
+@router.get("/files")
+def get_files(background: BackgroundTasks, profile_id: Optional[str] = None, owner: str = Depends(current_user_id)):
+    """Signed links (1 hour) for every record (one person, or the whole family) in a single call."""
+    urls = store.signed_urls_for_profile(owner, profile_id)
+    background.add_task(store.audit, owner, "view_sources", profile_id)
+    return {"urls": urls, "expires_in": 3600}
 
 
 @router.get("/{record_id}", response_model=HealthRecord)
@@ -85,13 +96,13 @@ def get_record(record_id: str, owner: str = Depends(current_user_id)):
 
 
 @router.get("/{record_id}/file")
-def get_file(record_id: str, owner: str = Depends(current_user_id)):
-    """Short-lived signed link to the original document in the private bucket."""
-    url = store.signed_file_url(owner, record_id)
+def get_file(record_id: str, background: BackgroundTasks, variant: str = "original", owner: str = Depends(current_user_id)):
+    """Signed link (1 hour) to one document; variant=preview returns the downscaled image when there is one."""
+    url = store.signed_file_url(owner, record_id, variant=variant)
     if not url:
         raise HTTPException(404, "Original file not found")
-    store.audit(owner, "view_source", resource_id=record_id)
-    return {"url": url, "expires_in": 300}
+    background.add_task(store.audit, owner, "view_source", None, record_id)
+    return {"url": url, "expires_in": 3600}
 
 
 @router.post("/{record_id}/move", response_model=HealthRecord)

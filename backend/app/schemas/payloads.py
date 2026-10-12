@@ -98,6 +98,7 @@ class HealthRecord(BaseModel):
     source_filename: str
     source_mime: str
     has_source_file: bool = True
+    has_preview: bool = False
     name_check: Literal["match", "mismatch", "missing"] = "missing"
     extraction: ExtractionMeta
     fhir_bundle: Dict[str, Any]

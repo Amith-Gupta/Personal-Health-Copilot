@@ -22,7 +22,7 @@ export interface Extracted {
 }
 export interface HealthRecord {
   id: string; profile_id: string; document_type: RecordType; record_date?: string | null; title: string;
-  extracted: Extracted; source_filename: string; source_mime: string; has_source_file: boolean;
+  extracted: Extracted; source_filename: string; source_mime: string; has_source_file: boolean; has_preview: boolean;
   name_check: "match" | "mismatch" | "missing";
   extraction: { engine: string; model: string; duration_ms: number; warnings: string[] };
   fhir_bundle: Record<string, unknown>; is_sample: boolean; created_at: string;
@@ -49,3 +49,5 @@ export function pickList(l: LocalizedList | null | undefined, lang: Lang): strin
   if (lang === "te" && l.telugu.length) return l.telugu;
   return l.english;
 }
+
+export type FileUrls = Record<string, { original: string | null; preview: string | null }>;

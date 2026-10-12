@@ -13,3 +13,4 @@ huggingface-hub==0.28.1
 google-genai==2.8.0
 pypdf==6.20.1
 pyjwt[crypto]==2.15.1
+pillow==12.3.0
