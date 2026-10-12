@@ -100,3 +100,11 @@ body::after {
   box-shadow: 0 1px 0 rgb(255 255 255 / .6) inset, 0 1px 2px rgb(40 30 15 / .04), 0 28px 56px -32px rgb(40 30 15 / .28);
 }
 :root[data-theme="dark"] .panel { background: rgb(var(--surface) / .75); box-shadow: 0 28px 56px -32px rgb(0 0 0 / .6); }
+
+@media print {
+  body { background: #fff; color: #000; }
+  body::before, body::after, header, nav[aria-label="Family"], nav[aria-label="Sections"], .print\:hidden { display: none !important; }
+  main > section:first-child, main [role="status"] { display: none !important; }
+  #visit-summary { box-shadow: none; }
+  .panel { background: #fff; border: 0; backdrop-filter: none; }
+}

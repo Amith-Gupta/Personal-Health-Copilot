@@ -138,6 +138,43 @@ def _groq_text(text: str) -> Tuple[Optional[Dict[str, Any]], list]:
         return None, [f"groq: {type(e).__name__}"]
 
 
+def fhir_bundle_to_text(bundle: Dict[str, Any]) -> str:
+    """Renders an ABDM/FHIR R4 bundle as plain lines so the same extraction prompt can read it."""
+    lines: list[str] = ["FHIR R4 document bundle (ABDM import)"]
+    entries = bundle.get("entry") or []
+    for e in entries:
+        r = e.get("resource") or {}
+        t = r.get("resourceType")
+        if t == "Composition":
+            lines.append(f"Document: {r.get('title') or (r.get('type') or {}).get('text') or ''} | Date: {(r.get('date') or '')[:10]}")
+        elif t == "Patient":
+            name = (r.get("name") or [{}])[0]
+            lines.append(f"Patient: {name.get('text') or ' '.join(name.get('given', []) + [name.get('family', '')])} | Sex: {r.get('gender') or ''} | DOB: {r.get('birthDate') or ''}")
+        elif t == "Practitioner":
+            lines.append(f"Doctor: {(r.get('name') or [{}])[0].get('text', '')}")
+        elif t == "Organization":
+            lines.append(f"Facility: {r.get('name', '')}")
+        elif t == "Condition":
+            lines.append(f"Diagnosis: {(r.get('code') or {}).get('text') or ''} | Recorded: {r.get('recordedDate') or ''}")
+        elif t == "MedicationRequest":
+            med = (r.get("medicationCodeableConcept") or {}).get("text") or ""
+            dose = "; ".join(d.get("text", "") for d in r.get("dosageInstruction") or [])
+            lines.append(f"Medicine: {med} | Instructions: {dose} | Date: {r.get('authoredOn') or ''}")
+        elif t == "Observation":
+            code = (r.get("code") or {}).get("text") or ""
+            q = r.get("valueQuantity") or {}
+            num = q.get("value")
+            if isinstance(num, float) and num.is_integer():
+                num = int(num)
+            val = f"{num} {q.get('unit', '')}".strip() if q else (r.get("valueString") or "")
+            rr = "; ".join(x.get("text", "") for x in r.get("referenceRange") or [])
+            interp = ", ".join(c.get("display", "") for i in r.get("interpretation") or [] for c in i.get("coding") or [])
+            lines.append(f"Test: {code} | Result: {val} | Reference range: {rr} | Flag: {interp} | Date: {(r.get('effectiveDateTime') or '')[:10]}")
+        elif t == "DiagnosticReport":
+            lines.append(f"Report: {(r.get('code') or {}).get('text') or ''} | Conclusion: {r.get('conclusion') or ''}")
+    return "\n".join(lines)
+
+
 def _valid_date(raw: Any) -> Optional[str]:
     if not raw or not isinstance(raw, str):
         return None
@@ -233,6 +270,21 @@ def extract_document(file_bytes: bytes, mime: str, filename: str) -> Tuple[Extra
     started = time.monotonic()
     is_pdf = mime == "application/pdf" or file_bytes[:4] == b"%PDF"
     mime = "application/pdf" if is_pdf else mime
+    if mime == "application/json":
+        # ABDM / FHIR R4 import: render the bundle as text and run it through the same prompt.
+        try:
+            bundle = json.loads(file_bytes.decode("utf-8"))
+            assert isinstance(bundle, dict) and bundle.get("resourceType") == "Bundle"
+        except Exception:
+            raise NotMedicalDocument("This JSON file is not a FHIR R4 Bundle.")
+        data, errors = _groq_text(fhir_bundle_to_text(bundle))
+        if data is None:
+            raise ExtractionFailed("; ".join(errors) or "no engine available")
+        if data.get("is_medical_document") is False:
+            raise NotMedicalDocument(data.get("not_medical_reason") or "This bundle holds no medical records.")
+        record, warnings = normalize(data)
+        meta = ExtractionMeta(engine="FHIR import", model=GROQ_MODEL, duration_ms=int((time.monotonic() - started) * 1000), warnings=warnings)
+        return record, meta
     data, model, errors = _gemini(file_bytes, mime)
     engine = "Gemini vision"
     if data is None and is_pdf:

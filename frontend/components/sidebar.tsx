@@ -62,10 +62,10 @@ export function Sidebar({ email, profiles, activeId, onSelect, onProfilesChanged
   );
 }
 
-export function MemberForm({ initialName = "", initialAge = "", initialSex = "", onDone }: { initialName?: string; initialAge?: string; initialSex?: string; onDone: (p: Profile | null) => void }) {
+export function MemberForm({ initialName = "", initialAge = "", initialSex = "", initialRelation = "", hideCancel = false, onDone }: { initialName?: string; initialAge?: string; initialSex?: string; initialRelation?: string; hideCancel?: boolean; onDone: (p: Profile | null) => void }) {
   const { t } = useI18n();
   const [name, setName] = useState(initialName);
-  const [relation, setRelation] = useState("");
+  const [relation, setRelation] = useState(initialRelation);
   const [age, setAge] = useState((initialAge || "").replace(/\D/g, "").slice(0, 3));
   const [sex, setSex] = useState(["M", "F", "O"].includes((initialSex || "").toUpperCase()) ? initialSex.toUpperCase() : "");
   const [busy, setBusy] = useState(false);
@@ -87,7 +87,7 @@ export function MemberForm({ initialName = "", initialAge = "", initialSex = "",
       </div>
       {err && <p className="text-xs text-high">{err}</p>}
       <div className="flex justify-end gap-1.5">
-        <Button type="button" variant="ghost" size="sm" onClick={() => onDone(null)}>{t.cancel}</Button>
+        {!hideCancel && <Button type="button" variant="ghost" size="sm" onClick={() => onDone(null)}>{t.cancel}</Button>}
         <Button variant="primary" size="sm" loading={busy}>{t.save}</Button>
       </div>
     </form>

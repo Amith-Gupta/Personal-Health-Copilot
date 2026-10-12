@@ -14,7 +14,9 @@ import { MedicinesView } from "./medicines-view";
 import { AskView } from "./ask-view";
 import { RecordDetail } from "./record-detail";
 import { UploadPanel } from "./upload-panel";
-import { Button, ErrorNote, Skeleton, Empty, useToast } from "./ui";
+import { Button, ErrorNote, Skeleton, useToast } from "./ui";
+import { MemberForm } from "./sidebar";
+import { VisitSummary } from "./visit-summary";
 
 export type Tab = "overview" | "records" | "medicines" | "ask";
 const byDate = (a: HealthRecord, b: HealthRecord) => (b.record_date || "").localeCompare(a.record_date || "") || b.created_at.localeCompare(a.created_at);
@@ -31,6 +33,7 @@ export function AppShell({ email }: { email: string }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [openRecord, setOpenRecord] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [visit, setVisit] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
 
   // Everything for the whole family in two parallel calls; switching people is then instant.
@@ -66,7 +69,7 @@ export function AppShell({ email }: { email: string }) {
   const active = useMemo(() => profiles?.find((p) => p.id === activeId) || null, [profiles, activeId]);
   const selected = records?.find((r) => r.id === openRecord) || null;
 
-  function select(id: string) { setActiveId(id); setOpenRecord(null); setUploading(false); setTab("overview"); }
+  function select(id: string) { setActiveId(id); setOpenRecord(null); setUploading(false); setVisit(false); setTab("overview"); }
   function openRec(id: string) { setOpenRecord(id); setTab("records"); window.scrollTo({ top: 0 }); }
   function startUpload(f: File) { setUploadFile(f); setUploading(true); setOpenRecord(null); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function upsert(rec: HealthRecord) {
@@ -83,13 +86,18 @@ export function AppShell({ email }: { email: string }) {
       </div>
       <main className="min-w-0">
         {loadError && <div className="p-6"><ErrorNote message={loadError} onRetry={() => loadProfiles()} retryLabel={t.tryAgain} /></div>}
-        {profiles && profiles.length === 0 && <FirstRun onDone={() => loadProfiles()} />}
+        {profiles && profiles.length === 0 && <FirstRun onDone={(id) => loadProfiles(id)} />}
         {active && (
           <>
             <div>
             <PatientHeader profile={active} tab={tab} onTab={(x) => { setTab(x); setOpenRecord(null); }}
               recordCount={records?.length} onUpload={() => { setUploadFile(null); setUploading(true); setOpenRecord(null); }}
               onProfile={(p) => setProfiles((ps) => (ps || []).map((x) => (x.id === p.id ? p : x)))}
+              onVisit={() => { setVisit(true); setOpenRecord(null); }}
+              onRemove={async () => {
+                if (!window.confirm(t.confirmRemove(active.name))) return;
+                try { await api.deleteProfile(active.id); toast(t.removed(active.name)); await loadAll(); } catch (e) { toast((e as Error).message, "error"); }
+              }}
               findings={<Findings records={records} />} cta={<UploadCta name={active.name} onFile={startUpload} />} />
             </div>
             <div className="mx-auto max-w-[1240px] px-4 pb-16 pt-8 sm:px-6">
@@ -98,6 +106,7 @@ export function AppShell({ email }: { email: string }) {
                   onFiled={(rec) => { upsert(rec); setUploading(false); setUploadFile(null); toast(t.filed(active.name)); openRec(rec.id); }} />
               )}
               {recordsError ? <ErrorNote message={recordsError} onRetry={() => loadAll(active.id)} retryLabel={t.tryAgain} />
+                : visit ? <VisitSummary profile={active} records={records || []} onBack={() => setVisit(false)} />
                 : selected ? (
                   <RecordDetail record={selected} urls={fileUrls[selected.id]} profiles={profiles || []} active={active} onBack={() => setOpenRecord(null)}
                     onMoved={(rec, to) => { upsert(rec); setOpenRecord(null); toast(t.filed(to.name)); }}
@@ -125,14 +134,30 @@ function HeaderSkeleton() {
   );
 }
 
-function FirstRun({ onDone }: { onDone: () => void }) {
+function FirstRun({ onDone }: { onDone: (select?: string) => void }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   return (
-    <div className="mx-auto mt-[14vh] max-w-md">
-      <Empty title={t.emptyFamily} body={t.emptyFamilyBody} action={
-        <Button variant="primary" loading={busy} onClick={async () => { setBusy(true); try { await api.loadSample(); } finally { setBusy(false); onDone(); } }}>{t.loadSample}</Button>
-      } />
+    <div className="mx-auto max-w-[1240px] px-4 pb-16 pt-10 sm:px-6">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div>
+          <h1 className="display text-[40px] font-semibold leading-[1] sm:text-[52px]">{t.emptyFamily}</h1>
+          <p className="mt-3 max-w-md text-fg-2">{t.startBody}</p>
+          <div className="panel mt-6 max-w-md p-2">
+            <p className="px-3 pt-2 text-sm font-medium">{t.addYourself}</p>
+            <MemberForm initialRelation="Self" onDone={(p) => { if (p) onDone(p.id); }} hideCancel />
+          </div>
+          <Button variant="ghost" className="mt-3" loading={busy} onClick={async () => { setBusy(true); try { await api.loadSample(); } finally { setBusy(false); onDone(); } }}>{t.loadSample}</Button>
+        </div>
+        <ol className="grid gap-3 self-start">
+          {t.steps.map(([title, body], i) => (
+            <li key={i} className="panel flex gap-4 p-5">
+              <span className="display grid h-9 w-9 shrink-0 place-items-center rounded-full bg-subtle text-[17px] font-semibold">{i + 1}</span>
+              <span><span className="block font-medium">{title}</span><span className="mt-1 block text-sm leading-relaxed text-fg-3">{body}</span></span>
+            </li>
+          ))}
+        </ol>
+      </div>
     </div>
   );
 }

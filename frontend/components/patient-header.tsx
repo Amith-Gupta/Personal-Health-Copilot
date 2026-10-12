@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
-import { ArrowUpRight, DownloadSimple, IdentificationCard } from "@phosphor-icons/react";
+import { ArrowUpRight, DownloadSimple, IdentificationCard, Printer, UserMinus } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { ageLabel, relationLabel, useI18n } from "@/lib/i18n";
 import type { Profile } from "@/lib/types";
 import type { Tab } from "./app-shell";
 import { Badge, Button, cx, useToast } from "./ui";
 
-export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onProfile, findings, cta }: {
-  profile: Profile; tab: Tab; onTab: (t: Tab) => void; recordCount?: number; onUpload: () => void; onProfile: (p: Profile) => void; findings?: React.ReactNode; cta?: React.ReactNode;
+export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onProfile, findings, cta, onVisit, onRemove }: {
+  profile: Profile; tab: Tab; onTab: (t: Tab) => void; recordCount?: number; onUpload: () => void; onProfile: (p: Profile) => void; findings?: React.ReactNode; cta?: React.ReactNode; onVisit?: () => void; onRemove?: () => void;
 }) {
   const { t, lang } = useI18n();
   const toast = useToast();
@@ -42,6 +42,8 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
                 try { await api.exportFhir(profile.id, profile.name); } catch (e) { toast((e as Error).message, "error"); }
                 setExporting(false);
               }}>{t.exportAbdm}</Button>
+              {onVisit && <Button size="sm" className="h-9" icon={<Printer size={15} />} onClick={onVisit}>{t.visitSummary}</Button>}
+              {onRemove && <Button size="sm" variant="ghost" className="h-9 text-fg-3" icon={<UserMinus size={15} />} onClick={onRemove} aria-label={t.removeMember} title={t.removeMember} />}
             </div>
           </div>
           {findings}

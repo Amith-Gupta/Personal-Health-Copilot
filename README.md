@@ -13,7 +13,9 @@ Built for the Altrix Labs "AI-Powered Personal Health Copilot" challenge.
 - **Refuses what it should.** Non-medical uploads are rejected. If extraction fails nothing is saved; there is no invented fallback data.
 - **Shows the source.** Each record opens beside the original document so every value can be checked.
 - **Answers questions.** A per-person assistant answers only from that person's records, cites the records it used, and routes self-harm or emergency questions to 112 / 108 / Tele-MANAS before any model is called.
-- **ABDM-ready.** Each document becomes an NRCES-profile FHIR R4 document bundle (Composition, Patient with ABHA identifier, Practitioner, Organization, Condition, MedicationRequest, Observation, DiagnosticReport). ABHA linking is a format-validated mock; a person's full record exports as a FHIR collection.
+- **ABDM-ready.** Each document becomes an NRCES-profile FHIR R4 document bundle (Composition, Patient with ABHA identifier, Practitioner, Organization, Condition, MedicationRequest, Observation, DiagnosticReport). ABHA linking is a format-validated mock. A person's full record exports as a FHIR collection, and an ABDM FHIR bundle can be imported back through the same upload box; it runs through the same reading and checking pipeline.
+- **Visit summary.** One printable page per person for the next doctor visit: conditions, current medicines, out-of-range values with printed ranges, and the questions to ask.
+- **Fast viewing.** A downscaled preview is stored for every image upload; links for the whole family are fetched in one call and previews are prefetched, so opening a record is instant.
 
 ## Architecture
 
@@ -99,7 +101,8 @@ A demo account with the sample family is created in Supabase Auth; its login is 
 3. Ask: "Which results are not normal?" The answer cites the lab report.
 4. Upload `docs/sample-documents/live-demo_suresh_yadav_hindi_prescription.png` to Venkata Rao. The app reads the Hindi, flags that the document names Suresh Yadav, and adds him to the family in one click.
 5. Upload `live-demo_not_a_medical_document.png`. It is refused and nothing is saved.
-6. Link an ABHA number and export the FHIR R4 record.
+6. Link an ABHA number and export the FHIR R4 record. Upload that exported file back in to show ABDM import.
+7. Open "Visit summary" and print it.
 
 ## Safety
 

@@ -41,6 +41,7 @@ const json = (b: unknown): RequestInit => ({ method: "POST", headers: { "Content
 export const api = {
   profiles: () => call<Profile[]>("/profiles"),
   createProfile: (p: { name: string; relation: string; age?: string; sex?: string }) => call<Profile>("/profiles", json(p)),
+  deleteProfile: (id: string) => call<void>(`/profiles/${id}`, { method: "DELETE" }),
   linkAbha: (id: string, b: { abha_number?: string; abha_address?: string }) => call<Profile>(`/profiles/${id}/abha`, json(b)),
   unlinkAbha: (id: string) => call<Profile>(`/profiles/${id}/abha`, { method: "DELETE" }),
   records: (profileId?: string) => call<HealthRecord[]>(profileId ? `/health-records?profile_id=${profileId}` : "/health-records"),

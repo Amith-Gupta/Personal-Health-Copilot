@@ -3,6 +3,10 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Lang } from "./types";
 
 const en = {
+  addYourself: "Add yourself", startBody: "Add the first person, then scan a document. You can add parents, a spouse or children later.",
+  removeMember: "Remove from family", confirmRemove: (n: string) => `Remove ${n} and all their records? This cannot be undone.`, removed: (n: string) => `${n} removed`,
+  visitSummary: "Visit summary", visitIntro: "One page to take to the doctor.", printPage: "Print or save as PDF", preparedOn: "Prepared on", outOfRangeTitle: "Values outside the printed range", recentDocs: "Recent documents", noneRecorded: "None recorded",
+  importAbdm: "or an ABDM FHIR file",
   switchMember: "Switch family member", familyOf: "Family",
   profileTitle: "Health profile", conditions: "Conditions", careTeam: "Doctors & clinics", lastUpdated: "Last updated", nowMeds: "Current medicines",
   timelineTab: "Timeline", seeTimeline: "Full timeline", journey: "Health timeline",
@@ -45,7 +49,7 @@ const en = {
   noneYet: "Nothing yet", allInRange: "All latest values are inside their printed ranges",
   ledger: "Records", date: "Date", entry: "Entry", particulars: "Particulars", check: "Check",
   addPage: "Add a document", dropHere: "Drop a photo or PDF of a prescription, lab report or discharge summary",
-  chooseFile: "Choose file", fileHint: "JPG, PNG, HEIC or PDF, up to 15 MB",
+  chooseFile: "Choose file", fileHint: "JPG, PNG, HEIC, PDF or ABDM FHIR JSON, up to 15 MB",
   reading: "Reading the document", readingSteps: ["Reading every line of the page", "Finding medicines, tests and dates", "Checking each value against its printed range", "Writing the explanation in English, Hindi and Telugu"],
   takesTime: "This usually takes 10 to 40 seconds.",
   notFiled: "Not filed", tryAgain: "Try again",
@@ -78,6 +82,10 @@ type Dict = typeof en;
 
 const hi: Dict = {
   ...en,
+  addYourself: "खुद को जोड़ें", startBody: "पहले व्यक्ति को जोड़ें, फिर दस्तावेज़ स्कैन करें। माता-पिता, जीवनसाथी या बच्चों को बाद में जोड़ सकते हैं।",
+  removeMember: "परिवार से हटाएं", confirmRemove: (n: string) => `${n} और उनके सभी रिकॉर्ड हटाएं? इसे वापस नहीं किया जा सकता।`, removed: (n: string) => `${n} हटाए गए`,
+  visitSummary: "डॉक्टर के लिए सारांश", visitIntro: "डॉक्टर के पास ले जाने के लिए एक पन्ना।", printPage: "प्रिंट करें या PDF सहेजें", preparedOn: "तैयार किया गया", outOfRangeTitle: "छपी सीमा से बाहर मान", recentDocs: "हाल के दस्तावेज़", noneRecorded: "कुछ दर्ज नहीं",
+  importAbdm: "या ABDM FHIR फ़ाइल",
   switchMember: "परिवार का सदस्य बदलें", familyOf: "परिवार",
   profileTitle: "स्वास्थ्य प्रोफ़ाइल", conditions: "बीमारियां", careTeam: "डॉक्टर और क्लिनिक", lastUpdated: "अंतिम अपडेट", nowMeds: "वर्तमान दवाएं",
   timelineTab: "टाइमलाइन", seeTimeline: "पूरी टाइमलाइन", journey: "स्वास्थ्य टाइमलाइन",
@@ -120,7 +128,7 @@ const hi: Dict = {
   noneYet: "अभी कुछ नहीं", allInRange: "सभी नवीनतम मान अपनी छपी सीमा के अंदर हैं",
   ledger: "प्रविष्टियां", date: "तारीख", entry: "प्रविष्टि", particulars: "विवरण", check: "जांच",
   addPage: "दस्तावेज़ जोड़ें", dropHere: "पर्चे, जांच रिपोर्ट या डिस्चार्ज सारांश की फ़ोटो या PDF यहां छोड़ें",
-  chooseFile: "फ़ाइल चुनें", fileHint: "JPG, PNG, HEIC या PDF, 15 MB तक",
+  chooseFile: "फ़ाइल चुनें", fileHint: "JPG, PNG, HEIC, PDF या ABDM FHIR JSON, 15 MB तक",
   reading: "दस्तावेज़ पढ़ा जा रहा है", readingSteps: ["पन्ने की हर पंक्ति पढ़ी जा रही है", "दवाएं, जांच और तारीखें खोजी जा रही हैं", "हर मान को छपी सीमा से मिलाया जा रहा है", "अंग्रेज़ी, हिंदी और तेलुगु में समझाया जा रहा है"],
   takesTime: "आमतौर पर 10 से 40 सेकंड लगते हैं।",
   notFiled: "दर्ज नहीं हुआ", tryAgain: "फिर कोशिश करें",
@@ -152,6 +160,10 @@ const hi: Dict = {
 
 const te: Dict = {
   ...en,
+  addYourself: "మిమ్మల్ని జోడించండి", startBody: "మొదటి వ్యక్తిని జోడించి, పత్రం స్కాన్ చేయండి. తల్లిదండ్రులు, భాగస్వామి లేదా పిల్లలను తర్వాత జోడించవచ్చు.",
+  removeMember: "కుటుంబం నుండి తీసివేయండి", confirmRemove: (n: string) => `${n}ని, వారి రికార్డులన్నింటినీ తీసివేయాలా? దీన్ని వెనక్కి తీసుకోలేరు.`, removed: (n: string) => `${n} తీసివేయబడ్డారు`,
+  visitSummary: "డాక్టర్ కోసం సారాంశం", visitIntro: "డాక్టర్ దగ్గరకు తీసుకెళ్ళడానికి ఒక పేజీ.", printPage: "ప్రింట్ లేదా PDFగా సేవ్", preparedOn: "తయారు చేసిన తేదీ", outOfRangeTitle: "ముద్రించిన పరిధి దాటిన విలువలు", recentDocs: "ఇటీవలి పత్రాలు", noneRecorded: "ఏమీ నమోదు కాలేదు",
+  importAbdm: "లేదా ABDM FHIR ఫైల్",
   switchMember: "కుటుంబ సభ్యుడిని మార్చండి", familyOf: "కుటుంబం",
   profileTitle: "ఆరోగ్య ప్రొఫైల్", conditions: "వ్యాధులు", careTeam: "డాక్టర్లు & క్లినిక్‌లు", lastUpdated: "చివరి అప్‌డేట్", nowMeds: "ప్రస్తుత మందులు",
   timelineTab: "టైమ్‌లైన్", seeTimeline: "పూర్తి టైమ్‌లైన్", journey: "ఆరోగ్య టైమ్‌లైన్",
@@ -194,7 +206,7 @@ const te: Dict = {
   noneYet: "ఇంకా ఏమీ లేదు", allInRange: "తాజా విలువలన్నీ ముద్రించిన పరిధిలోనే ఉన్నాయి",
   ledger: "నమోదులు", date: "తేదీ", entry: "నమోదు", particulars: "వివరాలు", check: "తనిఖీ",
   addPage: "పత్రం జోడించండి", dropHere: "ప్రిస్క్రిప్షన్, ల్యాబ్ రిపోర్ట్ లేదా డిశ్చార్జ్ సారాంశం ఫోటో లేదా PDF ఇక్కడ వదలండి",
-  chooseFile: "ఫైల్ ఎంచుకోండి", fileHint: "JPG, PNG, HEIC లేదా PDF, 15 MB వరకు",
+  chooseFile: "ఫైల్ ఎంచుకోండి", fileHint: "JPG, PNG, HEIC, PDF లేదా ABDM FHIR JSON, 15 MB వరకు",
   reading: "పత్రం చదువుతోంది", readingSteps: ["పేజీలోని ప్రతి పంక్తి చదువుతోంది", "మందులు, పరీక్షలు, తేదీలు వెతుకుతోంది", "ప్రతి విలువను ముద్రించిన పరిధితో పోలుస్తోంది", "ఇంగ్లీష్, హిందీ, తెలుగులో వివరణ రాస్తోంది"],
   takesTime: "సాధారణంగా 10 నుండి 40 సెకన్లు పడుతుంది.",
   notFiled: "నమోదు కాలేదు", tryAgain: "మళ్ళీ ప్రయత్నించండి",

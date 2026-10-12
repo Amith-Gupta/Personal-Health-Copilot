@@ -75,7 +75,7 @@ export function UploadPanel({ profile, file, onClose, onFiled }: { profile: Prof
             <span className="mt-2 text-[14px] font-medium">{t.dropHere}</span>
             <span className="mt-0.5 text-xs text-fg-3">{t.fileHint}</span>
             <span className="mt-4 inline-flex h-8 items-center rounded border border-line bg-surface px-3 text-sm font-medium shadow-card">{t.chooseFile}</span>
-            <input ref={input} type="file" className="sr-only" accept="image/*,application/pdf"
+            <input ref={input} type="file" className="sr-only" accept="image/*,application/pdf,application/json,.json"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) send(f); e.target.value = ""; }} />
           </label>
           {state.kind === "error" && (

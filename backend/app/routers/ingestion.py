@@ -12,7 +12,7 @@ from app.services.ocr_engine import ExtractionFailed, NotMedicalDocument, extrac
 
 router = APIRouter(prefix="/health-records", tags=["Health records"])
 
-ALLOWED = {"image/png", "image/jpeg", "image/webp", "image/heic", "image/heif", "application/pdf"}
+ALLOWED = {"image/png", "image/jpeg", "image/webp", "image/heic", "image/heif", "application/pdf", "application/json", "application/fhir+json"}
 MAX_BYTES = 15 * 1024 * 1024
 TITLES = {"Prescription": "Prescription", "DiagnosticReport": "Lab report", "DischargeSummary": "Discharge summary"}
 
@@ -48,8 +48,12 @@ async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owne
     mime = (file.content_type or "").lower()
     if content[:4] == b"%PDF":
         mime = "application/pdf"
+    if mime in ("application/fhir+json", "text/json", "application/octet-stream", "") and content.lstrip()[:1] == b"{":
+        mime = "application/json"
+    if mime == "application/fhir+json":
+        mime = "application/json"
     if mime not in ALLOWED:
-        raise HTTPException(415, "Upload a photo (JPG, PNG, WEBP, HEIC) or a PDF.")
+        raise HTTPException(415, "Upload a photo (JPG, PNG, WEBP, HEIC), a PDF, or an ABDM FHIR JSON file.")
     try:
         extracted, meta = await asyncio.to_thread(extract_document, content, mime, file.filename or "document")
     except NotMedicalDocument as e:

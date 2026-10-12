@@ -27,7 +27,7 @@ export function UploadCta({ name, onFile, compact }: { name: string; onFile: (f:
         </button>
         <span className="text-xs opacity-60">{t.fileHint}</span>
       </div>
-      <input ref={input} type="file" className="sr-only" accept="image/*,application/pdf"
+      <input ref={input} type="file" className="sr-only" accept="image/*,application/pdf,application/json,.json"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ""; }} />
     </div>
   );
