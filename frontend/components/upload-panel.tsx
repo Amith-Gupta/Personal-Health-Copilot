@@ -21,7 +21,11 @@ export function UploadPanel({ profile, file, onClose, onFiled }: { profile: Prof
     return () => clearInterval(id);
   }, [state.kind]);
 
-  useEffect(() => { if (file) send(file); // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Strict mode mounts effects twice in development; without this guard the same file was uploaded twice at once.
+  const sent = useRef<File | null>(null);
+  useEffect(() => {
+    if (file && sent.current !== file) { sent.current = file; send(file); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   async function send(file: File) {

@@ -2,6 +2,7 @@
 medications, lab observations and conditions) and a private Storage bucket for
 the original documents. Every query is scoped by the verified owner id."""
 import json
+import logging
 import uuid
 from datetime import datetime, timezone
 from functools import lru_cache
@@ -11,11 +12,14 @@ from typing import List, Optional
 import io
 from concurrent.futures import ThreadPoolExecutor
 
+import httpx
 from supabase import Client, create_client
 
 from app.config import settings
 from app.schemas.payloads import HealthRecord, Profile
 from app.services.regex_cleaner import parse_number, parse_reference_range
+
+logger = logging.getLogger(__name__)
 
 BUCKET = "documents"
 SEED_DIR = Path(__file__).resolve().parents[1] / "seed"
@@ -124,9 +128,18 @@ def save_record(owner: str, rec: HealthRecord, storage_path: Optional[str] = Non
     meds, labs, conds = _derived_rows(owner, rec)
 
     def refresh(table: str, rows: list) -> None:
-        db().table(table).delete().eq("record_id", rec.id).execute()
-        if rows:
-            db().table(table).insert(rows).execute()
+        # The shared client's pooled connection can be stale when several threads reuse it ("Server disconnected");
+        # one retry is enough, and delete-then-insert is safe to repeat.
+        for attempt in (1, 2):
+            try:
+                db().table(table).delete().eq("record_id", rec.id).execute()
+                if rows:
+                    db().table(table).insert(rows).execute()
+                return
+            except httpx.TransportError as e:
+                if attempt == 2:
+                    raise
+                logger.warning(f"Retrying {table} refresh for {rec.id} after transport error: {e}")
 
     # The three derived tables are independent; write them in parallel (each is two round trips).
     with ThreadPoolExecutor(max_workers=3) as pool:

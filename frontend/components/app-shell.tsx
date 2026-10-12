@@ -70,8 +70,8 @@ export function AppShell({ email }: { email: string }) {
   const selected = records?.find((r) => r.id === openRecord) || null;
 
   function select(id: string) { setActiveId(id); setOpenRecord(null); setUploading(false); setVisit(false); setTab("overview"); }
-  function openRec(id: string) { setOpenRecord(id); setTab("records"); window.scrollTo({ top: 0 }); }
-  function startUpload(f: File) { setUploadFile(f); setUploading(true); setOpenRecord(null); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function openRec(id: string) { setOpenRecord(id); setVisit(false); setTab("records"); window.scrollTo({ top: 0 }); }
+  function startUpload(f: File) { setUploadFile(f); setUploading(true); setOpenRecord(null); setVisit(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function upsert(rec: HealthRecord) {
     setAllRecords((rs) => [rec, ...(rs || []).filter((r) => r.id !== rec.id)].sort(byDate));
     refreshUrls();
@@ -90,10 +90,10 @@ export function AppShell({ email }: { email: string }) {
         {active && (
           <>
             <div>
-            <PatientHeader profile={active} tab={tab} onTab={(x) => { setTab(x); setOpenRecord(null); }}
-              recordCount={records?.length} onUpload={() => { setUploadFile(null); setUploading(true); setOpenRecord(null); }}
+            <PatientHeader profile={active} tab={tab} onTab={(x) => { setTab(x); setOpenRecord(null); setVisit(false); }}
+              recordCount={records?.length} onUpload={() => { setUploadFile(null); setUploading(true); setOpenRecord(null); setVisit(false); }}
               onProfile={(p) => setProfiles((ps) => (ps || []).map((x) => (x.id === p.id ? p : x)))}
-              onVisit={() => { setVisit(true); setOpenRecord(null); }}
+              onVisit={() => { setVisit(true); setOpenRecord(null); setUploading(false); setTab("overview"); }}
               onRemove={async () => {
                 if (!window.confirm(t.confirmRemove(active.name))) return;
                 try { await api.deleteProfile(active.id); toast(t.removed(active.name)); await loadAll(); } catch (e) { toast((e as Error).message, "error"); }
@@ -113,7 +113,7 @@ export function AppShell({ email }: { email: string }) {
                     onDeleted={(id) => { setAllRecords((rs) => (rs || []).filter((r) => r.id !== id)); setOpenRecord(null); }}
                     onProfileCreated={() => loadProfiles(active.id)} />
                 ) : tab === "overview" ? <Overview records={records} profile={active} onOpen={openRec} onTab={setTab} onFile={startUpload} />
-                : tab === "records" ? <RecordsView records={records} profile={active} onOpen={openRec} onFile={startUpload} />
+                : tab === "records" ? <RecordsView records={records} onOpen={openRec} />
                 : tab === "medicines" ? <MedicinesView records={records} onOpen={openRec} />
                 : <AskView profile={active} records={records || []} onOpen={openRec} />}
               <p className="mt-16 flex flex-wrap justify-between gap-2 border-t border-line pt-5 text-xs text-fg-3"><span>{t.disclaimer}</span><span className="font-medium text-fg-2">{t.emergency}</span></p>

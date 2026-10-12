@@ -7,7 +7,6 @@ import type { Tab } from "./app-shell";
 import { RangeBar } from "./range-bar";
 import { DocIcon } from "./doc-icon";
 import { Timeline } from "./timeline";
-import { UploadCta } from "./upload-cta";
 import { highlight, termVariants } from "@/lib/highlight";
 import { Badge, Button, Empty, Skeleton, cx } from "./ui";
 
