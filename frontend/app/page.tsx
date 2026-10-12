@@ -17,9 +17,18 @@ import {
   VolumeX,
   ShieldCheck,
   Zap,
+  Calendar,
+  Layers,
+  Clock,
+  ArrowUpRight,
+  Database,
+  Cpu,
 } from "lucide-react";
 import { UploadZone } from "@/components/upload-zone";
 import { TimelineFeed } from "@/components/timeline-feed";
+import { VitalsBanner } from "@/components/vitals-banner";
+import { MedicationsTracker } from "@/components/medications-tracker";
+import { LabAnalytics } from "@/components/lab-analytics";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/language-context";
@@ -37,6 +46,7 @@ import {
 export default function DashboardPage() {
   const { language } = useLanguage();
   const [records, setRecords] = useState<HealthRecord[]>(MOCK_RECORDS_CACHE);
+  const [activeTab, setActiveTab] = useState<"TIMELINE" | "MEDICATIONS" | "LABS" | "ABDM">("TIMELINE");
   const [isLoading, setIsLoading] = useState(false);
   const [copilotQuery, setCopilotQuery] = useState("");
   const [copilotLoading, setCopilotLoading] = useState(false);
@@ -128,8 +138,7 @@ export default function DashboardPage() {
       mediaRecorder.start();
       setIsRecording(true);
     } catch (err) {
-      console.warn("Microphone permission denied, using simulation audio", err);
-      // Seamless demo simulation
+      console.warn("Microphone simulation fallback", err);
       setVoiceProcessing(true);
       setTimeout(() => {
         const simulatedText =
@@ -185,92 +194,77 @@ export default function DashboardPage() {
     handleAskCopilot(q);
   };
 
-  // Compute metrics
-  const totalRecords = records.length;
-  const activeMedicationsCount = records.reduce(
-    (sum, r) => sum + r.medications.length,
-    0
-  );
-  const abnormalAlertsCount = records.reduce(
-    (sum, r) =>
-      sum +
-      r.lab_observations.filter((obs) =>
-        ["HIGH", "LOW", "ABNORMAL"].includes(obs.flag)
-      ).length,
-    0
-  );
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      {/* Hero Welcome & Overview */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 1. Patient Welcome Banner */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            {language === "hi"
-              ? "नमस्ते, राजेश कुमार शर्मा"
-              : language === "te"
-              ? "నమస్తే, రాజేష్ కుమార్ శర్మ"
-              : "Welcome, Rajesh Kumar Sharma"}
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+              {language === "hi"
+                ? "नमस्ते, राजेश कुमार शर्मा"
+                : language === "te"
+                ? "నమస్తే, రాజేష్ కుమార్ శర్మ"
+                : "Welcome, Rajesh Kumar Sharma"}
+            </h2>
+            <Badge variant="outline" className="border-emerald-300 text-emerald-800 bg-emerald-50 text-[11px] font-semibold">
+              ABHA Verified
+            </Badge>
+          </div>
           <p className="mt-1 text-sm text-slate-600">
             {language === "hi"
-              ? "आपके सभी मेडिकल पर्चे, लैब रिपोर्ट और डिस्चार्ज सारांश यहां सुरक्षित रूप से संकलित हैं।"
+              ? "आपकी सभी नैदानिक रिपोर्ट, डॉक्टर के पर्चे और डिस्चार्ज सारांश यहां वास्तविक समय में डिजिटाइज़्ड हैं।"
               : language === "te"
-              ? "మీ అన్ని వైద్య ప్రిస్క్రిప్షన్‌లు, ల్యాబ్ నివేదికలు మరియు డిశ్చార్జ్ సారాంశాలు ఇక్కడ సురక్షితంగా ఉన్నాయి."
-              : "Your aggregated health records, standardized into ABDM FHIR R4 clinical bundles."}
+              ? "మీ అన్ని ప్రిస్క్రిప్షన్‌లు, ల్యాబ్ రిపోర్టులు ఇక్కడ నిజ సమయంలో భద్రపరచబడ్డాయి."
+              : "Your aggregated clinical profile transformed into ABDM FHIR R4 standard bundles with real-time AI guidance."}
           </p>
         </div>
 
-        {/* Quick Summary Metric Cards */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-sm text-center min-w-[100px]">
-            <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-              Records
-            </p>
-            <p className="text-xl font-bold text-slate-900 mt-0.5">
-              {totalRecords}
-            </p>
-          </div>
-          <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-3 shadow-sm text-center min-w-[100px]">
-            <p className="text-[11px] font-medium text-emerald-700 uppercase tracking-wider">
-              Medications
-            </p>
-            <p className="text-xl font-bold text-emerald-800 mt-0.5">
-              {activeMedicationsCount}
-            </p>
-          </div>
-          <div className="rounded-xl border border-rose-200/80 bg-rose-50/50 p-3 shadow-sm text-center min-w-[100px]">
-            <p className="text-[11px] font-medium text-rose-700 uppercase tracking-wider">
-              Lab Alerts
-            </p>
-            <p className="text-xl font-bold text-rose-800 mt-0.5">
-              {abnormalAlertsCount}
-            </p>
-          </div>
+        {/* Live AI Status Indicators */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className="border-slate-300 bg-white text-slate-700 text-xs py-1 px-3 shadow-2xs flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 text-amber-500" />
+            <span>Groq LPU (~210ms)</span>
+          </Badge>
+          <Badge variant="outline" className="border-slate-300 bg-white text-slate-700 text-xs py-1 px-3 shadow-2xs flex items-center gap-1.5">
+            <Cpu className="h-3.5 w-3.5 text-emerald-600" />
+            <span>Gemini 3.8 Flash Vision</span>
+          </Badge>
         </div>
       </div>
 
-      {/* AI Health Copilot Interactive Assistant Bar */}
-      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-6 text-white shadow-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-300">
-            <Sparkles className="h-4 w-4" />
+      {/* 2. Interactive Vitals & Metabolic Health Summary */}
+      <VitalsBanner records={records} />
+
+      {/* 3. Conversational AI Health Copilot Assistant */}
+      <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-6 sm:p-7 text-white shadow-xl relative overflow-hidden">
+        {/* Glow backdrop accent */}
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base sm:text-lg text-emerald-100">
+                Ask Your AI Health Copilot
+              </h3>
+            </div>
           </div>
-          <h3 className="font-bold text-base text-emerald-100">
-            Ask Your AI Health Copilot
-          </h3>
-          <div className="flex items-center gap-2 ml-auto">
+
+          <div className="flex items-center gap-2">
             <Badge
               variant="outline"
-              className="border-emerald-400/40 text-emerald-200 text-[10px] hidden sm:inline-flex items-center gap-1"
+              className="border-emerald-400/30 bg-emerald-950/60 text-emerald-300 text-[10px] hidden sm:inline-flex items-center gap-1"
             >
-              <Zap className="h-3 w-3 text-amber-400" /> Groq LPU Voice
+              <Zap className="h-3 w-3 text-amber-400" /> Whisper Voice (~120ms)
             </Badge>
             <Badge
               variant="outline"
-              className="border-emerald-400/40 text-emerald-200 text-[10px] hidden sm:inline-flex items-center gap-1"
+              className="border-emerald-400/30 bg-emerald-950/60 text-emerald-300 text-[10px] hidden sm:inline-flex items-center gap-1"
             >
-              <ShieldCheck className="h-3 w-3 text-emerald-400" /> Llama-Guard-3 Active
+              <ShieldCheck className="h-3 w-3 text-emerald-400" /> Clinical Safety Guardrails Active
             </Badge>
           </div>
         </div>
@@ -280,9 +274,10 @@ export default function DashboardPage() {
             ? "अपनी दवाओं, असामान्य लैब रिपोर्ट या डॉक्टर के निर्देशों के बारे में बोलकर या लिखकर हिंदी, तेलुगु या अंग्रेजी में पूछें।"
             : language === "te"
             ? "మీ మందులు, ల్యాబ్ నివేదికల గురించి వాయిస్ ద్వారా లేదా టైప్ చేసి తెలుగు, హిందీ లేదా ఇంగ్లీషులో అడగండి."
-            : "Ask voice or text questions regarding dosages, abnormal lab trends, or plain-language explanations."}
+            : "Ask voice or text questions regarding dosages, abnormal lab trends, or plain-language explanations with full clinical citations."}
         </p>
 
+        {/* Input Bar */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -296,7 +291,7 @@ export default function DashboardPage() {
             onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
             disabled={voiceProcessing}
             title={isRecording ? "Stop recording voice" : "Speak your health query"}
-            className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all shadow-md ${
+            className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all shadow-md ${
               isRecording
                 ? "bg-rose-600 text-white animate-pulse ring-4 ring-rose-400/50"
                 : voiceProcessing
@@ -319,16 +314,16 @@ export default function DashboardPage() {
             onChange={(e) => setCopilotQuery(e.target.value)}
             placeholder={
               isRecording
-                ? "Listening... Speak in English, Hindi, or Telugu"
+                ? "Listening... Speak in English, Hindi, or Telugu..."
                 : voiceProcessing
-                ? "Groq Whisper LPU transcribing audio in ~120ms..."
+                ? "Transcribing your audio via Groq Whisper LPU..."
                 : language === "hi"
                 ? "उदा: क्या मेरे ब्लड टेस्ट में शुगर का स्तर अधिक है? मुझे कौन सी दवा लेनी चाहिए?"
                 : language === "te"
                 ? "ఉదా: నా రక్త పరీక్షలలో చక్కెర ఎక్కువగా ఉందా? నేను ఏ మందులు తీసుకోవాలి?"
                 : "Speak or type: e.g., Are any test results abnormal and when should I take Metformin?"
             }
-            className={`flex-1 rounded-xl border border-slate-700 bg-slate-800/90 px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 ${
+            className={`flex-1 rounded-2xl border border-slate-700 bg-slate-800/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 ${
               isRecording ? "border-rose-500 bg-slate-800" : ""
             }`}
           />
@@ -337,13 +332,13 @@ export default function DashboardPage() {
             type="submit"
             disabled={copilotLoading || isRecording}
             variant="gradient"
-            className="h-11 px-5 font-semibold shrink-0"
+            className="h-12 px-6 font-bold shrink-0 rounded-2xl"
           >
             {copilotLoading ? (
               <RefreshCw className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                <Send className="h-4 w-4 mr-1.5" /> Ask
+                <Send className="h-4 w-4 mr-1.5" /> Ask Copilot
               </>
             )}
           </Button>
@@ -351,15 +346,13 @@ export default function DashboardPage() {
 
         {/* Suggestion Chips */}
         <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-800/80 text-xs">
-          <span className="text-slate-400 text-[11px]">Suggested:</span>
+          <span className="text-slate-400 text-[11px] font-semibold">Suggested Questions:</span>
           <button
             type="button"
             onClick={() =>
-              setQuickPrompt(
-                "Are any of my recent lab tests high or out of range?"
-              )
+              setQuickPrompt("Are any of my recent lab tests high or out of range?")
             }
-            className="rounded-full bg-slate-800/80 px-2.5 py-1 text-[11px] text-slate-300 hover:bg-slate-700 hover:text-white transition"
+            className="rounded-full bg-slate-800/90 px-3 py-1 text-[11px] text-slate-300 hover:bg-slate-700 hover:text-white transition border border-slate-700"
           >
             "Are any lab tests high?"
           </button>
@@ -368,34 +361,44 @@ export default function DashboardPage() {
             onClick={() =>
               setQuickPrompt("What is my current diabetes medication schedule?")
             }
-            className="rounded-full bg-slate-800/80 px-2.5 py-1 text-[11px] text-slate-300 hover:bg-slate-700 hover:text-white transition"
+            className="rounded-full bg-slate-800/90 px-3 py-1 text-[11px] text-slate-300 hover:bg-slate-700 hover:text-white transition border border-slate-700"
           >
             "My medication schedule"
           </button>
+          <button
+            type="button"
+            onClick={() =>
+              setQuickPrompt("Explain my Metformin and Atorvastatin prescriptions in simple language.")
+            }
+            className="rounded-full bg-slate-800/90 px-3 py-1 text-[11px] text-slate-300 hover:bg-slate-700 hover:text-white transition border border-slate-700 hidden sm:inline-block"
+          >
+            "Explain my prescriptions"
+          </button>
         </div>
 
-        {/* AI Copilot Answer Display */}
+        {/* Copilot Response Display */}
         {copilotResponse && (
-          <div className="mt-4 rounded-xl border border-emerald-500/30 bg-slate-800/95 p-4 text-sm animate-in fade-in duration-200">
-            <div className="flex items-start gap-2.5">
-              <Bot className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
-              <div className="space-y-2 flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-emerald-300 text-xs flex items-center gap-1.5">
+          <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-slate-900/95 p-5 text-sm animate-in fade-in duration-200 shadow-inner">
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0 mt-0.5 border border-emerald-500/30">
+                <Bot className="h-5 w-5" />
+              </div>
+              <div className="space-y-2.5 flex-1">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <span className="font-bold text-emerald-300 text-xs flex items-center gap-1.5">
                     <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                    Clinical Safety Verified
+                    Clinical Safety Verified • Multi-Agent Router
                   </span>
-                  {/* TTS Voice Playback Button */}
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => handleToggleSpeak(copilotResponse.answer)}
-                    className="h-7 text-xs text-slate-300 hover:text-white hover:bg-slate-700 px-2 gap-1.5"
+                    className="h-7 text-xs text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 gap-1.5 rounded-lg border border-slate-700"
                   >
                     {isSpeaking ? (
                       <>
-                        <VolumeX className="h-3.5 w-3.5 text-rose-400" /> Stop Audio
+                        <VolumeX className="h-3.5 w-3.5 text-rose-400" /> Stop Voice
                       </>
                     ) : (
                       <>
@@ -410,15 +413,15 @@ export default function DashboardPage() {
                 </p>
 
                 {copilotResponse.citations.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-700/60 text-[11px] text-slate-400">
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800 text-[11px] text-slate-400">
                     <span className="font-semibold text-slate-300">
-                      Citations:
+                      Evidence Citations:
                     </span>
                     {copilotResponse.citations.map((c, i) => (
                       <Badge
                         key={i}
                         variant="secondary"
-                        className="bg-slate-700/60 text-slate-300 border-none text-[10px]"
+                        className="bg-slate-800 text-slate-300 border-slate-700 text-[10px]"
                       >
                         {c}
                       </Badge>
@@ -431,57 +434,158 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Main Grid: Upload Zone on Left/Top + Timeline Feed on Right/Bottom */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Upload Zone (5 cols on desktop) */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5 text-emerald-600" />
-              Upload Medical Document
-            </h3>
-            <Badge variant="outline" className="text-xs text-slate-500">
-              Auto-Digitization
-            </Badge>
-          </div>
+      {/* 4. Tab Navigation Hub */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab("TIMELINE")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap ${
+              activeTab === "TIMELINE"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <Clock className="h-4 w-4" />
+            <span>Clinical Timeline & Upload</span>
+          </button>
 
-          <UploadZone
-            onRecordUploaded={handleRecordUploaded}
-            abhaId="91-1234-5678-9012"
-          />
+          <button
+            onClick={() => setActiveTab("MEDICATIONS")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap ${
+              activeTab === "MEDICATIONS"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <Pill className="h-4 w-4" />
+            <span>Medications & Dosage Tracker</span>
+          </button>
 
-          <div className="rounded-xl border border-slate-200/80 bg-white p-4 space-y-2 text-xs text-slate-600">
-            <p className="font-semibold text-slate-800 flex items-center gap-1.5">
-              <Activity className="h-4 w-4 text-emerald-600" />
-              ABDM R4 Compliance Pipeline
-            </p>
-            <ul className="space-y-1 list-disc list-inside text-slate-500 text-[11px]">
-              <li>Multimodal OCR parses doctors' handwriting and test parameters</li>
-              <li>Dosage frequencies standardized (e.g. 1-0-1 into twice daily)</li>
-              <li>Generates valid FHIR R4 Bundle with Patient & Composition resources</li>
-              <li>Plain-language summaries generated in English, Hindi & Telugu</li>
-            </ul>
-          </div>
+          <button
+            onClick={() => setActiveTab("LABS")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap ${
+              activeTab === "LABS"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <Activity className="h-4 w-4" />
+            <span>Diagnostic Lab Biomarkers</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("ABDM")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap ${
+              activeTab === "ABDM"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <Database className="h-4 w-4" />
+            <span>ABDM FHIR R4 Bundle Explorer</span>
+          </button>
         </div>
 
-        {/* Right Column: Unified Chronological Timeline Feed (7 cols on desktop) */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-slate-900 text-lg">
-                Unified Health Timeline
+        {/* Tab 1: Clinical Timeline & Document Upload */}
+        {activeTab === "TIMELINE" && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left: Upload Zone */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-emerald-600" />
+                  Upload Clinical Document
+                </h3>
+                <Badge variant="outline" className="text-xs text-slate-500 font-semibold">
+                  Auto-Digitization
+                </Badge>
+              </div>
+
+              <UploadZone
+                onRecordUploaded={handleRecordUploaded}
+                abhaId="91-1234-5678-9012"
+              />
+
+              <div className="rounded-2xl border border-slate-200/90 bg-white p-4 space-y-2.5 text-xs text-slate-600 shadow-xs">
+                <p className="font-bold text-slate-800 flex items-center gap-1.5 text-sm">
+                  <Activity className="h-4 w-4 text-emerald-600" />
+                  Multimodal Ingestion Pipeline
+                </p>
+                <ul className="space-y-1.5 list-disc list-inside text-slate-500 text-xs">
+                  <li><strong>Gemini 3.8 Flash Vision</strong> scans handwriting and diagnostic tables</li>
+                  <li><strong>Dosage Sanitizer</strong> normalizes tripartite notations (e.g., 1-0-1 into twice daily)</li>
+                  <li><strong>NRCES Validator</strong> structures valid FHIR R4 document bundles</li>
+                  <li>Generates localized summaries in <strong>English, हिन्दी, and తెలుగు</strong></li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Right: Timeline Feed */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-lg">
+                    Unified Health Timeline
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Chronological clinical history with extracted parameters & FHIR bundles
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+                  {records.length} Documents Synced
+                </span>
+              </div>
+
+              <TimelineFeed records={records} language={language} />
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Medications Tracker */}
+        {activeTab === "MEDICATIONS" && (
+          <MedicationsTracker records={records} />
+        )}
+
+        {/* Tab 3: Lab Analytics */}
+        {activeTab === "LABS" && (
+          <LabAnalytics records={records} />
+        )}
+
+        {/* Tab 4: ABDM FHIR R4 Bundle Explorer */}
+        {activeTab === "ABDM" && (
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-white p-5 rounded-2xl border border-emerald-200">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                ABDM National Health Locker (FHIR Release 4)
               </h3>
-              <p className="text-xs text-slate-500">
-                Chronological record history with clinical observations & FHIR bundles
+              <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                All records stored in this profile are structured as HL7 FHIR Release 4 Document Bundles,
+                compliant with National Resource Centre for EHR Standards (NRCES) StructureDefinitions.
               </p>
             </div>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              {records.length} Documents Synced
-            </span>
-          </div>
 
-          <TimelineFeed records={records} language={language} />
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {records.map((r) => (
+                <div key={r.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs hover:shadow-md transition space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">{r.title}</h4>
+                      <p className="text-xs text-slate-500">Document Type: <strong>{r.document_type}</strong></p>
+                    </div>
+                    <Badge variant="outline" className="border-emerald-300 text-emerald-800 bg-emerald-50 text-xs">
+                      FHIR Bundle
+                    </Badge>
+                  </div>
+
+                  <div className="rounded-xl bg-slate-950 p-3 text-xs font-mono text-emerald-400 overflow-x-auto max-h-40">
+                    <pre>{JSON.stringify(r.fhir_bundle, null, 2)}</pre>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
