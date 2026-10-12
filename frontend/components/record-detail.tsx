@@ -10,6 +10,7 @@ import { RangeBar } from "./range-bar";
 import { ScheduleCells } from "./med-schedule";
 import { MemberForm } from "./sidebar";
 import { useSpeech } from "./use-speech";
+import { highlight, termVariants } from "@/lib/highlight";
 import { Badge, Button, Card, CardHeader, Skeleton, cx, useToast } from "./ui";
 
 export function RecordDetail({ record, profiles, active, onBack, onMoved, onDeleted, onProfileCreated }: {
@@ -115,7 +116,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
               <Button size="sm" variant="ghost" icon={speech.speaking ? <SpeakerSlash size={15} /> : <SpeakerHigh size={15} />}
                 onClick={() => speech.speaking ? speech.stop() : speech.speak(summary, lang)}>{speech.speaking ? t.stop : t.readAloud}</Button>
             )} />
-            <p className="px-4 py-3.5 text-[15px] leading-[1.65]">{summary}</p>
+            <p className="px-5 py-3.5 text-[16px] leading-[1.7]">{highlight(summary, [...e.lab_observations.filter((o) => isOut(o.flag)).flatMap((o) => termVariants(o.test_name)), ...e.diagnoses.map((d) => d.replace(/\s*\[.*\]/, "")), ...e.medications.map((m) => m.name)])}</p>
             {e.diagnoses.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 border-t border-line px-5 py-3">
                 <span className="mr-1 text-xs font-medium text-fg-3">{t.diagnoses}</span>
@@ -139,7 +140,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
                         {o.uncertain && <p className="mt-1 text-xs text-warn">{t.hardToRead}</p>}
                       </div>
                       <div className="text-right sm:text-left">
-                        <span className={cx("num whitespace-nowrap text-[15px] font-semibold", bad ? (o.flag === "LOW" ? "text-low" : "text-high") : "text-fg")}>{o.observed_value}</span>
+                        <span className={cx("num whitespace-nowrap text-[15px] font-semibold", bad ? "text-high" : "text-fg")}>{o.observed_value}</span>
                         <span className="ml-1 whitespace-nowrap text-xs text-fg-3">{o.unit}</span>
                         <div className="mt-1"><Badge tone={tone as "low" | "high" | "ok"}>{bad ? (o.flag === "LOW" ? "↓ " : "↑ ") : ""}{t[o.flag]}</Badge></div>
                       </div>

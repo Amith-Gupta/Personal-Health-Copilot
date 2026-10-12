@@ -8,6 +8,7 @@ import { RangeBar } from "./range-bar";
 import { DocIcon } from "./doc-icon";
 import { Timeline } from "./timeline";
 import { UploadCta } from "./upload-cta";
+import { highlight, termVariants } from "@/lib/highlight";
 import { Badge, Button, Empty, Skeleton, cx } from "./ui";
 
 const SLOTS: { slot: Slot; Icon: typeof Sun }[] = [{ slot: "morning", Icon: SunHorizon }, { slot: "afternoon", Icon: Sun }, { slot: "night", Icon: Moon }];
@@ -19,9 +20,8 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
   if (!records) return <OverviewSkeleton />;
   if (records.length === 0) {
     return (
-      <div className="stagger grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-        <UploadCta name={profile.name} onFile={onFile} />
-        <ol className="grid gap-3">
+      <div className="stagger">
+        <ol className="grid gap-3 md:grid-cols-3">
           {t.steps.map(([title, body], i) => (
             <li key={i} className="flex gap-4 rounded-xl border border-line bg-surface p-5">
               <span className="display grid h-9 w-9 shrink-0 place-items-center rounded-full bg-subtle text-[17px] font-semibold">{i + 1}</span>
@@ -44,16 +44,6 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
 
   return (
     <div className="stagger space-y-14">
-      {/* Statement + primary action */}
-      <section className="grid items-stretch gap-6 lg:grid-cols-[1.25fr_1fr]">
-        <div className="flex flex-col justify-end">
-          <span className={cx("display text-[110px] font-semibold leading-[0.8] sm:text-[150px]", out.length ? "text-fg" : "text-ok")}>{out.length || "✓"}</span>
-          <h2 className="display mt-4 text-[30px] font-semibold leading-tight sm:text-[40px]">{tests.length === 0 ? t.heroEmpty : out.length ? t.heroOut(out.length) : t.heroClear}</h2>
-          <p className="num mt-2 text-sm text-fg-3">{t.heroSub(tests.length, meds.length, records.length)}</p>
-        </div>
-        <UploadCta name={profile.name} onFile={onFile} />
-      </section>
-
       {/* Unified health profile */}
       <section aria-label={t.profileTitle}>
         <p className="eyebrow mb-4">{t.profileTitle}</p>
@@ -89,12 +79,10 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
                   className="group relative flex flex-col rounded-xl border border-line bg-surface p-5 text-left transition-all hover:-translate-y-0.5 hover:border-fg/30">
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-[15px] font-medium leading-snug">{o.test_name}</p>
-                    <span className={cx("flex shrink-0 items-center gap-1.5 text-xs font-semibold uppercase tracking-wide", low ? "text-low" : "text-high")}>
-                      <span className={cx("h-2 w-2 rounded-full", low ? "bg-low" : "bg-high")} />{t[o.flag]}
-                    </span>
+                    <span className="shrink-0 rounded-full bg-high-soft px-2.5 py-0.5 text-xs font-semibold text-high">{low ? "↓" : "↑"} {t[o.flag]}</span>
                   </div>
                   <p className="mt-6 flex items-baseline gap-2">
-                    <span className="display text-[56px] font-semibold leading-none">{o.observed_value}</span>
+                    <span className="display text-[56px] font-semibold leading-none text-high">{o.observed_value}</span>
                     <span className="text-sm text-fg-3">{o.unit}</span>
                   </p>
                   <RangeBar o={o} className="mt-6" />
@@ -102,7 +90,7 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
                     <span>{t.normal} <span className="num">{o.reference_range}</span></span>
                     <span>{formatDate(r.record_date, lang)}</span>
                   </div>
-                  {o.explanation && <p className="mt-4 border-t border-line pt-4 text-sm leading-relaxed text-fg-2">{pick(o.explanation, lang)}</p>}
+                  {o.explanation && <p className="mt-4 border-t border-line pt-4 text-sm leading-relaxed text-fg-2">{highlight(pick(o.explanation, lang), ["low", "high", "lower", "higher", "anaemia", "deficiency", "underactive", "infection", "inflammation"])}</p>}
                   <ArrowUpRight size={16} className="absolute right-4 top-14 text-fg-3 opacity-0 transition-opacity group-hover:opacity-100" />
                 </button>
               );
@@ -130,7 +118,7 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
                   <ul className="mt-4 space-y-3">
                     {here.length === 0 ? <li className="text-sm text-fg-3">–</li> : here.map(({ m, r }, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-signal ring-2 ring-signal/30" />
+                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent" />
                         <span className="min-w-0">
                           <span className="block font-medium">{m.name} <span className="num text-sm font-normal text-fg-3">{m.dosage}</span></span>
                           <span className="block text-xs text-fg-3">{(lang !== "en" && m.instructions ? pick(m.instructions, lang) : m.timing) || formatDate(r.record_date, lang)}</span>
@@ -198,5 +186,37 @@ function OverviewSkeleton() {
       <div className="grid gap-3 sm:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-60 rounded-xl" />)}</div>
       <Skeleton className="h-40 rounded-xl" />
     </div>
+  );
+}
+
+function findingsSentence(obs: { test_name: string; flag: string }[]) {
+  const short = (n: string) => n.replace(/\s*\(.*?\)\s*/g, " ").replace(/^(25-OH|Total|Serum)\s+/i, "").trim();
+  const group = (flag: string) => obs.filter((o) => (flag === "LOW" ? o.flag === "LOW" : o.flag !== "LOW")).map((o) => short(o.test_name));
+  const join = (xs: string[]) => (xs.length <= 1 ? xs[0] : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
+  const lows = group("LOW"), highs = group("HIGH");
+  const part = (xs: string[], word: string) => xs.length ? (
+    <span>{xs.map((x, i) => <span key={x}><mark className="hl">{x}</mark>{i < xs.length - 2 ? ", " : i === xs.length - 2 ? " and " : ""}</span>)} {xs.length === 1 ? "is" : "are"} <span className="text-high">{word}</span>. </span>
+  ) : null;
+  void join;
+  return <>{part(lows, "low")}{part(highs, "high")}</>;
+}
+
+/** Top-of-page summary: what stands out, plus the one primary action. Sits in the dark band. */
+export function PatientHero({ records, profile, onFile }: { records: HealthRecord[] | null; profile: Profile; onFile: (f: File) => void }) {
+  const { t, lang } = useI18n();
+  if (!records) return <div className="grid gap-6 pb-8 pt-2 lg:grid-cols-[1.25fr_1fr]"><Skeleton className="h-40" /><Skeleton className="h-56 rounded-xl" /></div>;
+  const tests = latestTests(records);
+  const out = tests.filter(({ o }) => isOut(o.flag));
+  const meds = currentMedicines(records);
+  return (
+    <section className="grid items-stretch gap-6 pb-10 pt-2 lg:grid-cols-[1.25fr_1fr]">
+      <div className="flex flex-col justify-end">
+        <p className="text-sm font-medium text-fg-3">{t.heroSub(tests.length, meds.length, records.length)}</p>
+        <h2 className="display mt-3 max-w-[18ch] text-[34px] font-semibold leading-[1.08] sm:text-[48px]">
+          {records.length === 0 || tests.length === 0 ? (records.length === 0 ? t.heroEmpty : t.heroClear) : out.length === 0 ? t.heroClear : lang === "en" ? findingsSentence(out.map(({ o }) => o)) : <><span className="text-high">{out.length}</span> {t.heroOut(out.length)}</>}
+        </h2>
+      </div>
+      <UploadCta name={profile.name} onFile={onFile} />
+    </section>
   );
 }

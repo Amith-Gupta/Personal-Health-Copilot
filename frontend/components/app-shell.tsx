@@ -6,7 +6,7 @@ import type { HealthRecord, Profile } from "@/lib/types";
 import { TopBar } from "./top-bar";
 import { FamilyRow } from "./family-row";
 import { PatientHeader } from "./patient-header";
-import { Overview } from "./overview";
+import { Overview, PatientHero } from "./overview";
 import { RecordsView } from "./records-view";
 import { MedicinesView } from "./medicines-view";
 import { AskView } from "./ask-view";
@@ -59,17 +59,22 @@ export function AppShell({ email }: { email: string }) {
 
   return (
     <div className="min-h-[100dvh]">
-      <TopBar email={email} />
-      {profiles?.length !== 0 && <FamilyRow profiles={profiles} activeId={activeId} onSelect={select} onProfilesChanged={loadProfiles} />}
+      <div className="band">
+        <TopBar email={email} />
+        {profiles?.length !== 0 && <FamilyRow profiles={profiles} activeId={activeId} onSelect={select} onProfilesChanged={loadProfiles} />}
+        {!profiles && !loadError && <HeaderSkeleton />}
+      </div>
       <main className="min-w-0">
         {loadError && <div className="p-6"><ErrorNote message={loadError} onRetry={() => loadProfiles()} retryLabel={t.tryAgain} /></div>}
-        {!profiles && !loadError && <HeaderSkeleton />}
         {profiles && profiles.length === 0 && <FirstRun onDone={() => loadProfiles()} />}
         {active && (
           <>
+            <div className="band">
             <PatientHeader profile={active} tab={tab} onTab={(x) => { setTab(x); setOpenRecord(null); }}
               recordCount={records?.length} onUpload={() => { setUploadFile(null); setUploading(true); setOpenRecord(null); }}
-              onProfile={(p) => setProfiles((ps) => (ps || []).map((x) => (x.id === p.id ? p : x)))} />
+              onProfile={(p) => setProfiles((ps) => (ps || []).map((x) => (x.id === p.id ? p : x)))}
+              hero={<PatientHero records={records} profile={active} onFile={startUpload} />} />
+            </div>
             <div className="mx-auto max-w-[1240px] px-4 pb-16 pt-8 sm:px-6">
               {uploading && (
                 <UploadPanel profile={active} file={uploadFile} onClose={() => { setUploading(false); setUploadFile(null); }}
@@ -96,7 +101,7 @@ export function AppShell({ email }: { email: string }) {
 
 function HeaderSkeleton() {
   return (
-    <div className="mx-auto max-w-[1240px] px-6 pt-12">
+    <div className="mx-auto max-w-[1240px] px-6 pb-10 pt-12">
       <Skeleton className="h-14 w-80" /><Skeleton className="mt-3 h-4 w-64" />
       <div className="mt-8 flex gap-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-9 w-24 rounded-full" />)}</div>
     </div>

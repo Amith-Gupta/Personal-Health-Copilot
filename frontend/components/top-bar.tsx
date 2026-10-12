@@ -23,7 +23,7 @@ export function TopBar({ email }: { email: string }) {
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-canvas/80 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-[1240px] items-center gap-3 px-4 sm:px-6">
-        <span className="display text-[20px] font-bold">copilot<span className="text-signal">.</span></span>
+        <span className="display text-[20px] font-bold">copilot<span className="text-high">.</span></span>
         <div className="flex-1" />
         <div className="hidden items-center rounded-full border border-line p-0.5 sm:flex" role="radiogroup" aria-label="Language">
           {LANGS.map((l) => (

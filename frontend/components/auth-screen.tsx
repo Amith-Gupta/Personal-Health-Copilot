@@ -35,7 +35,7 @@ export function AuthScreen() {
   return (
     <main className="flex min-h-[100dvh] flex-col">
       <div className="flex items-center justify-between px-5 py-4">
-        <span className="display text-[20px] font-bold">copilot<span className="text-signal">.</span></span>
+        <span className="display text-[20px] font-bold">copilot<span className="text-high">.</span></span>
         <div className="flex items-center gap-2"><div className="w-48"><LangSwitch /></div><ThemeToggle /></div>
       </div>
       <div className="mx-auto grid w-full max-w-[1240px] flex-1 items-center gap-12 px-5 pb-16 md:grid-cols-2">

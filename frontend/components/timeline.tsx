@@ -4,6 +4,7 @@ import { isOut, tidyName } from "@/lib/clinical";
 import { formatDate, useI18n } from "@/lib/i18n";
 import { pick, type HealthRecord } from "@/lib/types";
 import { DocIcon } from "./doc-icon";
+import { highlight, termVariants } from "@/lib/highlight";
 import { Badge } from "./ui";
 
 /** Chronological health journey grouped by month, newest first. */
@@ -37,7 +38,7 @@ export function Timeline({ records, onOpen, limit }: { records: HealthRecord[]; 
                       <p className="text-[15px] font-medium">{t.types[r.document_type]} <span className="font-normal text-fg-3">· {tidyName(e.facility_name) || e.doctor_name || r.source_filename}</span></p>
                       <span className="num flex items-center gap-1.5 text-xs text-fg-3">{r.record_date ? formatDate(r.record_date, lang) : t.noDate}<ArrowUpRight size={13} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></span>
                     </div>
-                    <p className="mt-2 line-clamp-2 max-w-[75ch] text-sm leading-relaxed text-fg-2">{pick(e.summary, lang)}</p>
+                    <p className="mt-2 line-clamp-2 max-w-[75ch] text-sm leading-relaxed text-fg-2">{highlight(pick(e.summary, lang), [...e.lab_observations.filter((o) => isOut(o.flag)).flatMap((o) => termVariants(o.test_name)), ...e.diagnoses.map((d) => d.replace(/\s*\[.*\]/, ""))])}</p>
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {r.name_check === "mismatch" && <Badge tone="warn">{t.nameDiffers}</Badge>}
                       {e.diagnoses.slice(0, 3).map((d, i) => <Badge key={i} tone="accent">{d.replace(/\s*\[.*\]/, "")}</Badge>)}

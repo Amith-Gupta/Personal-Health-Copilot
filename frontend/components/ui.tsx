@@ -36,7 +36,7 @@ export function Button({ variant = "secondary", size = "md", loading, icon, clas
 
 export function Badge({ tone = "neutral", children, className }: { tone?: "neutral" | "accent" | "high" | "low" | "ok" | "warn"; children: ReactNode; className?: string }) {
   const t = {
-    neutral: "bg-subtle text-fg-2 ring-transparent", accent: "bg-signal/25 text-fg ring-signal/40",
+    neutral: "bg-subtle text-fg-2 ring-transparent", accent: "bg-accent-soft text-accent ring-accent/15",
     high: "bg-high-soft text-high ring-high/20", low: "bg-low-soft text-low ring-low/20",
     ok: "bg-ok-soft text-ok ring-ok/20", warn: "bg-warn-soft text-warn ring-warn/25",
   }[tone];

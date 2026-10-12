@@ -4,53 +4,71 @@
 
 /* Light (default) */
 :root {
-  --canvas: 246 246 243; --surface: 255 255 255; --subtle: 238 238 234; --hover: 232 232 228;
-  --line: 226 226 221; --line-strong: 205 205 199;
-  --fg: 12 12 12; --fg-2: 78 78 76; --fg-3: 125 125 120;
-  --accent: 12 12 12; --accent-fg: 250 250 247; --accent-soft: 236 236 231;
-  --signal: 196 245 66; --signal-fg: 12 12 12;
-  --high: 232 64 36; --high-soft: 253 235 230; --low: 44 104 240; --low-soft: 232 239 254;
-  --ok: 30 140 82; --ok-soft: 228 245 235; --warn: 176 110 8; --warn-soft: 252 243 222;
+  --canvas: 244 245 247; --surface: 255 255 255; --subtle: 241 242 244; --hover: 235 237 240;
+  --line: 225 228 233; --line-strong: 203 208 216;
+  --fg: 22 27 41; --fg-2: 72 79 96; --fg-3: 112 119 134;
+  --accent: 29 59 168; --accent-fg: 255 255 255; --accent-soft: 232 238 252;
+  --signal: 255 233 92; --signal-fg: 22 27 41;
+  --high: 210 38 38; --high-soft: 253 236 236; --low: 210 38 38; --low-soft: 253 236 236;
+  --ok: 26 127 80; --ok-soft: 229 244 236; --warn: 168 100 6; --warn-soft: 252 243 222;
   color-scheme: light;
 }
 /* Dark: explicit choice, or system preference when no choice was made */
 :root[data-theme="dark"] {
-  --canvas: 8 8 9; --surface: 17 17 19; --subtle: 24 24 27; --hover: 31 31 35;
-  --line: 36 36 40; --line-strong: 58 58 64;
-  --fg: 245 245 242; --fg-2: 176 176 172; --fg-3: 118 118 116;
-  --accent: 245 245 242; --accent-fg: 8 8 9; --accent-soft: 34 34 38;
-  --signal: 196 245 66; --signal-fg: 8 8 9;
-  --high: 255 104 74; --high-soft: 52 22 18; --low: 104 152 255; --low-soft: 20 30 56;
-  --ok: 92 214 140; --ok-soft: 16 42 28; --warn: 244 184 80; --warn-soft: 48 36 12;
+  --canvas: 12 14 20; --surface: 19 22 30; --subtle: 26 30 40; --hover: 33 38 50;
+  --line: 39 44 57; --line-strong: 60 67 84;
+  --fg: 236 239 245; --fg-2: 178 185 199; --fg-3: 124 132 150;
+  --accent: 120 154 255; --accent-fg: 10 14 30; --accent-soft: 28 36 66;
+  --signal: 250 224 80; --signal-fg: 12 14 20;
+  --high: 255 112 104; --high-soft: 58 22 24; --low: 255 112 104; --low-soft: 58 22 24;
+  --ok: 92 206 140; --ok-soft: 16 42 30; --warn: 244 184 80; --warn-soft: 48 36 12;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --canvas: 8 8 9; --surface: 17 17 19; --subtle: 24 24 27; --hover: 31 31 35;
-    --line: 36 36 40; --line-strong: 58 58 64;
-    --fg: 245 245 242; --fg-2: 176 176 172; --fg-3: 118 118 116;
-    --accent: 245 245 242; --accent-fg: 8 8 9; --accent-soft: 34 34 38;
-    --high: 255 104 74; --high-soft: 52 22 18; --low: 104 152 255; --low-soft: 20 30 56;
-    --ok: 92 214 140; --ok-soft: 16 42 28; --warn: 244 184 80; --warn-soft: 48 36 12;
+    --canvas: 12 14 20; --surface: 19 22 30; --subtle: 26 30 40; --hover: 33 38 50;
+    --line: 39 44 57; --line-strong: 60 67 84;
+    --fg: 236 239 245; --fg-2: 178 185 199; --fg-3: 124 132 150;
+    --accent: 120 154 255; --accent-fg: 10 14 30; --accent-soft: 28 36 66;
+    --signal: 250 224 80; --signal-fg: 12 14 20;
+    --high: 255 112 104; --high-soft: 58 22 24; --low: 255 112 104; --low-soft: 58 22 24;
+    --ok: 92 206 140; --ok-soft: 16 42 30; --warn: 244 184 80; --warn-soft: 48 36 12;
     color-scheme: dark;
   }
 }
 
 html { -webkit-text-size-adjust: 100%; }
 body { background: rgb(var(--canvas)); color: rgb(var(--fg)); font-feature-settings: "cv11", "ss01"; transition: background-color .25s ease, color .25s ease; }
-/* Faint grain so flat surfaces feel printed, fixed and inert */
-body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: .035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-::selection { background: rgb(var(--signal)); color: rgb(var(--signal-fg)); }
+::selection { background: rgb(var(--signal) / .7); color: rgb(var(--fg)); }
 input, textarea { caret-color: rgb(var(--fg)); }
 :focus-visible { outline: none; box-shadow: 0 0 0 2px rgb(var(--canvas)), 0 0 0 4px rgb(var(--fg) / .7); border-radius: 8px; }
 * { scrollbar-width: thin; scrollbar-color: rgb(var(--line-strong)) transparent; }
 .num { font-family: var(--font-geist-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .display { font-family: var(--font-display), var(--font-geist), sans-serif; font-variation-settings: "opsz" 96; letter-spacing: -0.035em; }
-.eyebrow { font-family: var(--font-geist-mono), monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgb(var(--fg-3)); }
+.eyebrow { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: rgb(var(--fg)); }
+/* Highlighter stroke for key terms, the way people mark a report */
+mark.hl { color: inherit; background: linear-gradient(104deg, rgb(var(--signal) / 0) 0.9%, rgb(var(--signal) / .85) 2.4%, rgb(var(--signal) / .6) 5.8%, rgb(var(--signal) / .3) 93%, rgb(var(--signal) / .75) 96%, rgb(var(--signal) / 0) 98%); border-radius: 3px; padding: 0 .15em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+:root[data-theme="dark"] mark.hl { background: rgb(var(--signal) / .22); color: rgb(var(--fg)); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) mark.hl { background: rgb(var(--signal) / .22); } }
+/* Red-pen circle drawn around an out-of-range value */
+@keyframes pen { from { stroke-dashoffset: 1 } to { stroke-dashoffset: 0 } }
+.pen path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: pen .7s .25s cubic-bezier(.65,0,.35,1) forwards; }
 .skeleton { background: linear-gradient(90deg, rgb(var(--subtle)) 0%, rgb(var(--hover)) 50%, rgb(var(--subtle)) 100%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; border-radius: 8px; }
 .stagger > * { animation: fade-up .5s cubic-bezier(.16,1,.3,1) both; }
 .stagger > *:nth-child(2) { animation-delay: .05s } .stagger > *:nth-child(3) { animation-delay: .1s } .stagger > *:nth-child(4) { animation-delay: .15s } .stagger > *:nth-child(5) { animation-delay: .2s }
 @keyframes fade-up { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
 @keyframes shimmer { from { background-position: -200% 0 } to { background-position: 200% 0 } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; } }
+
+/* The dark band at the top of the app: scoped dark tokens, so every child adapts. */
+.band {
+  --canvas: 13 13 15; --surface: 23 24 29; --subtle: 30 32 38; --hover: 36 38 45;
+  --line: 40 42 50; --line-strong: 62 65 76;
+  --fg: 245 245 242; --fg-2: 182 184 192; --fg-3: 128 131 142;
+  --accent: 245 245 242; --accent-fg: 13 13 15; --accent-soft: 34 36 44;
+  --signal: 196 245 66; --signal-fg: 13 13 15;
+  --high: 255 110 96; --high-soft: 60 22 22; --low: 255 110 96; --low-soft: 60 22 22;
+  --ok: 120 214 150; --ok-soft: 18 44 30;
+  background: rgb(var(--canvas)); color: rgb(var(--fg)); color-scheme: dark;
+}
+.band mark.hl { background: rgb(var(--signal) / .9); color: rgb(13 13 15); }

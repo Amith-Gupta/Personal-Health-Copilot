@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
-import { ArrowUpRight, DownloadSimple, IdentificationCard, Plus } from "@phosphor-icons/react";
+import { ArrowUpRight, DownloadSimple, IdentificationCard } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { ageLabel, relationLabel, useI18n } from "@/lib/i18n";
 import type { Profile } from "@/lib/types";
 import type { Tab } from "./app-shell";
 import { Badge, Button, cx, useToast } from "./ui";
 
-export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onProfile }: {
-  profile: Profile; tab: Tab; onTab: (t: Tab) => void; recordCount?: number; onUpload: () => void; onProfile: (p: Profile) => void;
+export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onProfile, hero }: {
+  profile: Profile; tab: Tab; onTab: (t: Tab) => void; recordCount?: number; onUpload: () => void; onProfile: (p: Profile) => void; hero?: React.ReactNode;
 }) {
   const { t, lang } = useI18n();
   const toast = useToast();
@@ -27,7 +27,7 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
           <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
             {profile.abha_linked ? (
               <button onClick={() => setAbhaOpen((v) => !v)} className="group flex items-center gap-2 rounded-full border border-line py-1 pl-1 pr-3 hover:border-fg/40">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-signal text-signal-fg"><IdentificationCard size={13} weight="fill" /></span>
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-ok-soft text-ok"><IdentificationCard size={13} weight="fill" /></span>
                 <span className="num text-fg">{profile.abha_number || profile.abha_address}</span>
                 <span className="text-fg-3">ABHA</span>
               </button>
@@ -44,11 +44,12 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
             try { await api.exportFhir(profile.id, profile.name); } catch (e) { toast((e as Error).message, "error"); }
             setExporting(false);
           }}>{t.exportAbdm}</Button>
-          {(tab === "medicines" || tab === "ask") && <Button variant="primary" icon={<Plus size={15} weight="bold" />} onClick={onUpload}>{t.ctaButton}</Button>}
+          
         </div>
       </div>
       {abhaOpen && <AbhaForm profile={profile} onDone={(p) => { if (p) onProfile(p); setAbhaOpen(false); }} />}
-      <nav className="mt-8 flex gap-1 overflow-x-auto border-b border-line" aria-label="Sections">
+      <div className="mt-8">{hero}</div>
+      <nav className="flex gap-1 overflow-x-auto" aria-label="Sections">
         {tabs.map((x) => (
           <button key={x} onClick={() => onTab(x)} aria-current={tab === x ? "page" : undefined}
             className={cx("relative -mb-px whitespace-nowrap border-b-2 px-3 pb-3 pt-1 text-[15px] transition-colors",
