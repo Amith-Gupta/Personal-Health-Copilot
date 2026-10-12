@@ -89,7 +89,7 @@ body::after {
   filter: grayscale(1) blur(22px) contrast(1.2);
   opacity: .5; mix-blend-mode: multiply;
 }
-:root[data-theme="dark"] body::after { display: none; }
+:root[data-theme="dark"] body::after, :root[data-page="auth"] body::after { display: none; }
 
 /* Frosted panel with real depth, like a sheet resting on the wall. */
 .panel {

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "./lang-switch";
@@ -14,6 +14,10 @@ export function AuthScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    document.documentElement.dataset.page = "auth";
+    return () => { delete document.documentElement.dataset.page; };
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
