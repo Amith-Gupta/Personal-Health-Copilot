@@ -89,8 +89,10 @@ Frontend:
 cd frontend
 npm install
 # .env.local: NEXT_PUBLIC_BACKEND_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-npx next dev -p 3010
+npm run dev   # http://localhost:3000; use -p 3010 if 3000 is busy
 ```
+
+To put it online (Vercel + Render, or AWS), follow [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 A demo account with the sample family is created in Supabase Auth; its login is shared with the team separately, not stored in the repo.
 
