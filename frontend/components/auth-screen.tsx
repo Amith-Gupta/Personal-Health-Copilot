@@ -1,8 +1,6 @@
 "use client";
 import { useState } from "react";
-import { UsersThree } from "@phosphor-icons/react";
 import { supabase } from "@/lib/supabase";
-import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "./lang-switch";
 import { Logo } from "./logo";
@@ -13,7 +11,7 @@ export function AuthScreen() {
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState<"form" | "demo" | null>(null);
+  const [busy, setBusy] = useState<"form" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -31,14 +29,6 @@ export function AuthScreen() {
     setBusy(null);
   }
 
-  async function demo() {
-    setBusy("demo"); setError(null);
-    try {
-      const { error } = await supabase().auth.setSession(await api.demoSession());
-      if (error) setError(error.message);
-    } catch (e) { setError((e as Error).message); }
-    setBusy(null);
-  }
 
   const input = "h-10 w-full rounded border border-line bg-surface px-3 text-[14px] text-fg shadow-card placeholder:text-fg-3 focus:border-accent focus:shadow-focus focus:outline-none";
 
@@ -53,15 +43,8 @@ export function AuthScreen() {
           <h1 className="text-[22px] font-semibold tracking-[-0.02em]">{mode === "in" ? t.signIn : t.signUp}</h1>
           <p className="mt-1 text-[14px] text-fg-3">{t.tagline}</p>
 
-          <Button variant="secondary" className="mt-6 h-10 w-full" onClick={demo} loading={busy === "demo"} disabled={!!busy}
-            icon={<UsersThree size={18} weight="duotone" className="text-accent" />}>
-            {t.useDemo}
-          </Button>
-          <p className="mt-1.5 text-center text-xs text-fg-3">{t.demoNote}</p>
 
-          <div className="my-6 flex items-center gap-3 text-xs text-fg-3"><span className="h-px flex-1 bg-line" />or<span className="h-px flex-1 bg-line" /></div>
-
-          <form onSubmit={submit} className="space-y-3">
+          <form onSubmit={submit} className="mt-6 space-y-3">
             <label className="block space-y-1.5">
               <span className="text-sm font-medium text-fg-2">{t.email}</span>
               <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={input} />

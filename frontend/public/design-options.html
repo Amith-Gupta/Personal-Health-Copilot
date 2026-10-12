@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Design Options</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Figtree:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;600&family=Archivo:wght@400..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body{background:#e9eaee;font-family:Geist,system-ui,sans-serif}
+  .opt{display:none}.opt.on{display:block}
+  .mono{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body class="min-h-screen">
+<header class="sticky top-0 z-50 border-b border-black/10 bg-white/95 backdrop-blur">
+  <div class="mx-auto flex max-w-[1400px] flex-wrap items-center gap-3 px-5 py-3">
+    <p class="mr-2 text-[15px] font-semibold">Pick a design for Health Copilot</p>
+    <nav id="tabs" class="flex flex-wrap gap-1.5 text-[14px]"></nav>
+    <p class="ml-auto text-[13px] text-zinc-500">Same real data (Lakshmi Devi) in each. Tell Claude the letter you want.</p>
+  </div>
+  <p id="desc" class="mx-auto max-w-[1400px] px-5 pb-3 text-[13px] text-zinc-600"></p>
+</header>
+
+<!-- ============ A. CLINIC CLEAN ============ -->
+<section class="opt" data-name="A · Clinic Clean" data-desc="Linear / Stripe style. White, quiet, precise, one indigo accent. Feels like serious, trustworthy software. Best for judges who value polish and density.">
+<div class="mx-auto my-6 max-w-[1400px] overflow-hidden rounded-xl border border-zinc-200 bg-[#fafafb] shadow-xl" style="font-family:'Geist',system-ui,sans-serif">
+  <div class="grid grid-cols-[230px_1fr]">
+    <aside class="min-h-[760px] border-r border-zinc-200 p-3">
+      <div class="flex items-center gap-2 px-2 py-2 text-[14px] font-semibold"><span class="grid h-6 w-6 place-items-center rounded-md bg-indigo-600 text-[11px] text-white">♥</span>Health Copilot</div>
+      <p class="mt-4 px-2 text-xs text-zinc-500">Family</p>
+      <div class="mt-1 space-y-0.5 text-[14px]">
+        <div class="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-zinc-600"><span class="grid h-7 w-7 place-items-center rounded-full bg-emerald-100 text-[11px] font-semibold text-emerald-700">RK</span>Ravi Kumar K.</div>
+        <div class="flex items-center gap-2.5 rounded-md bg-white px-2 py-1.5 font-medium shadow-sm ring-1 ring-zinc-200"><span class="grid h-7 w-7 place-items-center rounded-full bg-fuchsia-100 text-[11px] font-semibold text-fuchsia-700">LD</span>Lakshmi Devi</div>
+        <div class="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-zinc-600"><span class="grid h-7 w-7 place-items-center rounded-full bg-sky-100 text-[11px] font-semibold text-sky-700">VR</span>Venkata Rao K.</div>
+      </div>
+    </aside>
+    <main>
+      <div class="border-b border-zinc-200 bg-white px-8 pt-5">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-full bg-fuchsia-100 text-[13px] font-semibold text-fuchsia-700">LD</span>
+            <div><h1 class="text-[20px] font-semibold tracking-tight">Lakshmi Devi</h1><p class="text-sm text-zinc-500">Wife · 44 y · F · <span class="font-mono">91-4521-7730-2286</span> <span class="rounded bg-emerald-50 px-1.5 text-xs text-emerald-700 ring-1 ring-emerald-200">ABHA linked</span></p></div></div>
+          <div class="flex gap-2"><button class="h-8 rounded-md border border-zinc-200 bg-white px-3 text-sm shadow-sm">Export FHIR R4</button><button class="h-8 rounded-md bg-indigo-600 px-3 text-sm font-medium text-white">Add document</button></div>
+        </div>
+        <div class="mt-4 flex gap-5 text-[14px]"><span class="border-b-2 border-zinc-900 pb-2.5 font-medium">Overview</span><span class="pb-2.5 text-zinc-500">Records 2</span><span class="pb-2.5 text-zinc-500">Medicines</span><span class="pb-2.5 text-zinc-500">Ask</span></div>
+      </div>
+      <div class="grid grid-cols-[7fr_5fr] gap-5 p-8">
+        <div class="rounded-lg border border-zinc-200 bg-white shadow-sm">
+          <div class="border-b border-zinc-200 px-4 py-3"><p class="text-[14px] font-semibold">Needs attention <span class="ml-1 rounded bg-red-50 px-1.5 text-xs text-red-600 ring-1 ring-red-200">3</span></p><p class="text-sm text-zinc-500">Latest values outside the printed range</p></div>
+          <div class="divide-y divide-zinc-100" id="a-rows"></div>
+        </div>
+        <div class="rounded-lg border border-zinc-200 bg-white shadow-sm">
+          <div class="border-b border-zinc-200 px-4 py-3"><p class="text-[14px] font-semibold">Medicine schedule</p></div>
+          <div class="divide-y divide-zinc-100" id="a-meds"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</section>
+
+<!-- ============ B. CARE COMPANION ============ -->
+<section class="opt" data-name="B · Care Companion" data-desc="Consumer health app (Apple Health, Healthify, Ultrahuman). Soft mint canvas, big friendly numbers, rounded cards, warm coral for attention. Feels caring and easy for parents.">
+<div class="mx-auto my-6 max-w-[1400px] overflow-hidden rounded-[28px] bg-[#eef6f3] p-8 shadow-xl" style="font-family:'Figtree',system-ui,sans-serif">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="flex -space-x-2"><span class="grid h-11 w-11 place-items-center rounded-full border-2 border-white bg-[#ffd9c7] font-bold text-[#a14a24]">RK</span><span class="grid h-11 w-11 place-items-center rounded-full border-2 border-[#0f766e] bg-[#ffe4ef] font-bold text-[#a3245c]">LD</span><span class="grid h-11 w-11 place-items-center rounded-full border-2 border-white bg-[#dbeafe] font-bold text-[#1e40af]">VR</span></div>
+      <div><p class="text-sm text-[#4b6b63]">Good evening, Ravi</p><h1 class="text-[28px] font-extrabold leading-tight text-[#11302a]">Lakshmi's health</h1></div>
+    </div>
+    <div class="flex items-center gap-2"><span class="rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#0f766e] shadow-sm">ABHA ✓ linked</span><button class="rounded-full bg-[#0f766e] px-5 py-2.5 font-semibold text-white shadow-lg shadow-teal-900/20">＋ Add report</button></div>
+  </div>
+  <div class="mt-7 grid grid-cols-3 gap-5" id="b-cards"></div>
+  <div class="mt-5 grid grid-cols-[3fr_2fr] gap-5">
+    <div class="rounded-3xl bg-white p-6 shadow-sm">
+      <p class="text-lg font-bold text-[#11302a]">Today's medicines</p>
+      <div class="mt-4 grid grid-cols-3 gap-3" id="b-meds"></div>
+    </div>
+    <div class="rounded-3xl bg-[#11302a] p-6 text-white shadow-sm">
+      <p class="text-lg font-bold">Ask about Lakshmi</p>
+      <p class="mt-1 text-sm text-white/70">In English, हिन्दी or తెలుగు</p>
+      <div class="mt-4 space-y-2 text-sm"><p class="rounded-2xl bg-white/10 px-4 py-2.5">Which results are not normal?</p><p class="rounded-2xl bg-white/10 px-4 py-2.5">When should she take each medicine?</p></div>
+      <div class="mt-4 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[#4b6b63]">🎙 <span class="text-sm">Speak or type…</span></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ C. NIGHT VITALS ============ -->
+<section class="opt" data-name="C · Night Vitals" data-desc="Dark premium wearable-app look (Oura, Whoop). Charcoal surfaces, glowing data colours, large metrics and range gauges. Feels modern and high-tech; strongest wow factor on a projector.">
+<div class="mx-auto my-6 max-w-[1400px] overflow-hidden rounded-2xl bg-[#0b0d10] text-zinc-100 shadow-2xl" style="font-family:'Manrope',system-ui,sans-serif">
+  <div class="grid grid-cols-[76px_1fr]">
+    <aside class="flex min-h-[760px] flex-col items-center gap-4 border-r border-white/5 py-6">
+      <span class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-lime-300 to-emerald-500 font-black text-black">H</span>
+      <span class="mt-6 grid h-10 w-10 place-items-center rounded-full bg-white/5 text-xs font-bold text-zinc-400">RK</span>
+      <span class="grid h-10 w-10 place-items-center rounded-full bg-lime-300 text-xs font-bold text-black ring-4 ring-lime-300/20">LD</span>
+      <span class="grid h-10 w-10 place-items-center rounded-full bg-white/5 text-xs font-bold text-zinc-400">VR</span>
+    </aside>
+    <main class="p-8">
+      <div class="flex items-end justify-between">
+        <div><p class="text-sm uppercase tracking-[0.2em] text-zinc-500">Health record</p><h1 class="mt-1 text-[40px] font-extrabold leading-none tracking-tight">Lakshmi Devi</h1><p class="mt-2 text-sm text-zinc-400">44 · Female · ABHA <span class="font-mono text-lime-300">91-4521-7730-2286</span></p></div>
+        <button class="rounded-xl bg-lime-300 px-5 py-3 font-bold text-black">Scan document</button>
+      </div>
+      <div class="mt-8 grid grid-cols-3 gap-4" id="c-cards"></div>
+      <div class="mt-4 grid grid-cols-[3fr_2fr] gap-4">
+        <div class="rounded-2xl bg-[#14171c] p-6 ring-1 ring-white/5"><p class="font-bold">Medicine timeline</p><div class="mt-5" id="c-meds"></div></div>
+        <div class="rounded-2xl bg-[#14171c] p-6 ring-1 ring-white/5"><p class="font-bold">Records</p><div class="mt-4 space-y-3 text-sm">
+          <div class="flex justify-between rounded-xl bg-white/5 p-3"><span>Prescription · City Care Clinic</span><span class="text-zinc-500">02 Sep</span></div>
+          <div class="flex justify-between rounded-xl bg-white/5 p-3"><span>Lab report · Sri Venkateswara</span><span class="text-rose-400">3 flagged</span></div></div></div>
+      </div>
+    </main>
+  </div>
+</div>
+</section>
+
+<!-- ============ D. BHARAT HEALTH ============ -->
+<section class="opt" data-name="D · Bharat Health" data-desc="Indian public-health identity (ABHA / eSanjeevani / DigiLocker, done beautifully). Deep teal and saffron, bilingual headings, an ABHA health-card, bold and confident. Speaks directly to the ABDM brief.">
+<div class="mx-auto my-6 max-w-[1400px] overflow-hidden rounded-2xl bg-white shadow-xl" style="font-family:'Archivo','Figtree',system-ui,sans-serif">
+  <div class="bg-[#0b4f4a] px-8 py-6 text-white">
+    <div class="flex items-center justify-between">
+      <p class="text-lg font-extrabold tracking-tight">Health Copilot <span class="ml-2 font-normal text-teal-200" style="font-family:'Noto Sans Telugu'">ఆరోగ్య సహాయకుడు</span></p>
+      <div class="flex gap-2 text-sm"><span class="rounded bg-white/10 px-3 py-1.5">EN</span><span class="rounded px-3 py-1.5 text-teal-200">हिन्दी</span><span class="rounded px-3 py-1.5 text-teal-200">తెలుగు</span></div>
+    </div>
+    <div class="mt-6 grid grid-cols-[1fr_360px] items-end gap-6">
+      <div><p class="text-sm text-teal-200">Family member · Wife</p><h1 class="text-[44px] font-black leading-none">Lakshmi Devi</h1>
+        <div class="mt-4 flex gap-2"><span class="rounded-full bg-[#f59e0b] px-4 py-1.5 text-sm font-bold text-[#3b2200]">3 values need attention</span><span class="rounded-full bg-white/10 px-4 py-1.5 text-sm">3 active medicines</span></div></div>
+      <div class="rounded-2xl bg-gradient-to-br from-[#fef3c7] to-[#fde68a] p-5 text-[#3b2200] shadow-lg">
+        <div class="flex justify-between text-xs font-bold uppercase tracking-wider"><span>ABHA Health ID</span><span>✓ Linked</span></div>
+        <p class="mt-3 font-mono text-[22px] font-semibold tracking-wider">91-4521-7730-2286</p>
+        <p class="mt-1 text-sm">Lakshmi Devi · F · 44</p>
+      </div>
+    </div>
+  </div>
+  <div class="grid grid-cols-[2fr_1fr] gap-6 bg-[#f6f7f4] p-8">
+    <div class="rounded-2xl bg-white p-6 ring-1 ring-black/5"><p class="text-lg font-extrabold text-[#0b4f4a]">Test results <span class="text-sm font-normal text-zinc-500">· జాగ్రత్త అవసరం</span></p><div class="mt-3 divide-y" id="d-rows"></div></div>
+    <div class="rounded-2xl bg-white p-6 ring-1 ring-black/5"><p class="text-lg font-extrabold text-[#0b4f4a]">Medicines</p><div class="mt-3 space-y-3" id="d-meds"></div></div>
+  </div>
+</div>
+</section>
+
+<script>
+const tests=[
+ {n:"Haemoglobin",v:"9.6",u:"g/dL",lo:12,hi:15.5,f:"LOW",m:"Carries oxygen in the blood. Low can mean anaemia."},
+ {n:"TSH (Ultrasensitive)",v:"7.9",u:"uIU/mL",lo:0.4,hi:4,f:"HIGH",m:"Thyroid signal. High often means an underactive thyroid."},
+ {n:"25-OH Vitamin D",v:"14",u:"ng/mL",lo:30,hi:100,f:"LOW",m:"Needed for bones and calcium. Low means deficiency."}];
+const meds=[{n:"Levothyroxine",d:"50 mcg",s:[1,0,0],t:"Empty stomach"},{n:"Ferrous Ascorbate",d:"100 mg",s:[0,1,0],t:"After lunch"},{n:"Cholecalciferol",d:"60,000 IU",s:null,t:"Once a week"}];
+const pos=(t)=>{const span=t.hi-t.lo,min=Math.min(t.lo-span*.6,+t.v-span*.15),max=Math.max(t.hi+span*.6,+t.v+span*.15),p=x=>((x-min)/(max-min))*100;return{lo:p(t.lo),hi:p(t.hi),v:p(+t.v)}};
+const $=id=>document.getElementById(id);
+// A
+$("a-rows").innerHTML=tests.map(t=>{const p=pos(t),c=t.f=="LOW"?"#1d63c4":"#c82626";return`<div class="grid grid-cols-[1fr_auto_180px] items-center gap-4 px-4 py-3.5"><div><p class="text-[14px] font-medium">${t.n}</p><p class="text-xs text-zinc-500">14 Aug 2026 · Sri Venkateswara Diagnostics</p></div><p class="whitespace-nowrap"><span class="font-mono text-[17px] font-semibold" style="color:${c}">${t.v}</span> <span class="text-xs text-zinc-500">${t.u}</span> <span class="ml-1 rounded px-1.5 text-xs ring-1" style="color:${c}">${t.f=="LOW"?"↓ Low":"↑ High"}</span></p><div><div class="relative h-1.5 rounded-full bg-zinc-100"><div class="absolute inset-y-0 rounded-full bg-emerald-200" style="left:${p.lo}%;width:${p.hi-p.lo}%"></div><div class="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white" style="left:${p.v}%;background:${c}"></div></div><p class="mt-1 font-mono text-[11px] text-zinc-500">${t.lo} - ${t.hi}</p></div></div>`}).join("");
+$("a-meds").innerHTML=meds.map(m=>`<div class="px-4 py-3"><p class="text-[14px] font-medium">${m.n} <span class="font-mono text-sm font-normal text-zinc-500">${m.d}</span></p><div class="mt-2 flex items-center gap-1">${m.s?m.s.map((x,i)=>`<span class="rounded px-1.5 py-0.5 text-[11px] ${x?"bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200":"bg-zinc-100 text-zinc-400"}">${["☀︎ AM","◐ Noon","☾ PM"][i]}</span>`).join(""):`<span class="rounded bg-zinc-100 px-1.5 py-0.5 text-[11px]">Weekly</span>`}<span class="ml-2 text-xs text-zinc-500">${m.t}</span></div></div>`).join("");
+// B
+$("b-cards").innerHTML=tests.map(t=>{const p=pos(t),c=t.f=="LOW"?"#2563eb":"#e8553d";return`<div class="rounded-3xl bg-white p-6 shadow-sm"><div class="flex items-center justify-between"><p class="font-semibold text-[#4b6b63]">${t.n}</p><span class="rounded-full px-3 py-1 text-xs font-bold text-white" style="background:${c}">${t.f=="LOW"?"Low":"High"}</span></div><p class="mt-3 text-[46px] font-extrabold leading-none text-[#11302a]">${t.v}<span class="ml-1 text-lg font-semibold text-[#7a948d]">${t.u}</span></p><div class="relative mt-5 h-3 rounded-full bg-[#eef3f1]"><div class="absolute inset-y-0 rounded-full bg-[#bfe7d6]" style="left:${p.lo}%;width:${p.hi-p.lo}%"></div><div class="absolute top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white shadow" style="left:${p.v}%;background:${c}"></div></div><p class="mt-2 text-xs text-[#7a948d]">Normal ${t.lo} – ${t.hi}</p><p class="mt-3 text-sm leading-relaxed text-[#35524b]">${t.m}</p></div>`}).join("");
+$("b-meds").innerHTML=["Morning","Afternoon","Night"].map((slot,i)=>`<div class="rounded-2xl bg-[#f4faf7] p-4"><p class="text-sm font-bold text-[#0f766e]">${["🌅","☀️","🌙"][i]} ${slot}</p>${meds.filter(m=>m.s&&m.s[i]).map(m=>`<p class="mt-2 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-[#11302a] shadow-sm">${m.n}<span class="block text-xs font-normal text-[#7a948d]">${m.d} · ${m.t}</span></p>`).join("")||`<p class="mt-2 text-sm text-[#9db3ad]">Nothing</p>`}</div>`).join("");
+// C
+$("c-cards").innerHTML=tests.map(t=>{const p=pos(t),c=t.f=="LOW"?"#60a5fa":"#fb7185";const ang=Math.max(4,Math.min(96,p.v));return`<div class="rounded-2xl bg-[#14171c] p-6 ring-1 ring-white/5"><div class="flex justify-between text-sm"><span class="text-zinc-400">${t.n}</span><span style="color:${c}" class="font-bold">${t.f=="LOW"?"▼ LOW":"▲ HIGH"}</span></div><div class="mt-4 flex items-end gap-2"><span class="text-[54px] font-extrabold leading-none" style="color:${c};text-shadow:0 0 24px ${c}55">${t.v}</span><span class="mb-2 text-zinc-500">${t.u}</span></div><div class="relative mt-6 h-2 rounded-full bg-white/5"><div class="absolute inset-y-0 rounded-full bg-lime-300/30" style="left:${p.lo}%;width:${p.hi-p.lo}%"></div><div class="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full" style="left:${ang}%;background:${c};box-shadow:0 0 14px ${c}"></div></div><p class="mt-2 font-mono text-xs text-zinc-500">REF ${t.lo}–${t.hi}</p></div>`}).join("");
+$("c-meds").innerHTML=`<div class="grid grid-cols-[160px_1fr_1fr_1fr] gap-y-3 text-sm"><span></span><span class="text-zinc-500">AM</span><span class="text-zinc-500">NOON</span><span class="text-zinc-500">PM</span>${meds.map(m=>`<span class="font-semibold">${m.n}</span>${[0,1,2].map(i=>`<span>${m.s?(m.s[i]?'<span class="inline-block h-3 w-10 rounded-full bg-lime-300 shadow-[0_0_10px_#bef264]"></span>':'<span class="inline-block h-3 w-10 rounded-full bg-white/5"></span>'):(i==0?'<span class="text-xs text-zinc-400">weekly</span>':"")}</span>`).join("")}`).join("")}</div>`;
+// D
+$("d-rows").innerHTML=tests.map(t=>{const p=pos(t),c=t.f=="LOW"?"#1d4ed8":"#b91c1c";return`<div class="grid grid-cols-[1fr_140px_200px] items-center gap-4 py-4"><div><p class="font-bold">${t.n}</p><p class="text-sm text-zinc-500">${t.m}</p></div><p><span class="text-[26px] font-black" style="color:${c}">${t.v}</span> <span class="text-sm text-zinc-500">${t.u}</span></p><div><div class="relative h-2.5 rounded bg-zinc-100"><div class="absolute inset-y-0 rounded bg-[#99d5c9]" style="left:${p.lo}%;width:${p.hi-p.lo}%"></div><div class="absolute top-1/2 h-4 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-sm" style="left:${p.v}%;background:${c}"></div></div><p class="mt-1 text-xs font-semibold" style="color:${c}">${t.f=="LOW"?"Below":"Above"} normal (${t.lo}–${t.hi})</p></div></div>`}).join("");
+$("d-meds").innerHTML=meds.map(m=>`<div class="rounded-xl border-l-4 border-[#f59e0b] bg-[#fffbeb] p-3"><p class="font-bold text-[#0b4f4a]">${m.n} <span class="font-normal text-zinc-600">${m.d}</span></p><p class="mt-0.5 text-sm text-zinc-600">${m.s?m.s.join("-")+" · ":""}${m.t}</p></div>`).join("");
+// tabs
+const opts=[...document.querySelectorAll(".opt")];
+const show=i=>{opts.forEach((o,j)=>o.classList.toggle("on",i==j));$("desc").textContent=opts[i].dataset.desc;[...$("tabs").children].forEach((b,j)=>b.className=`rounded-md px-3 py-1.5 font-medium ${i==j?"bg-zinc-900 text-white":"bg-zinc-100 text-zinc-700 hover:bg-zinc-200"}`)};
+opts.forEach((o,i)=>{const b=document.createElement("button");b.textContent=o.dataset.name;b.onclick=()=>show(i);$("tabs").appendChild(b)});
+show(0);
+</script>
+</body>
+</html>

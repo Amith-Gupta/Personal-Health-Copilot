@@ -21,7 +21,7 @@ Built for the Altrix Labs "AI-Powered Personal Health Copilot" challenge.
 flowchart LR
   subgraph Browser["Next.js 15 app"]
     UI["Family sidebar · Overview · Records · Medicines · Ask\nEN / HI / TE"]
-    SBJS["Supabase Auth (email, demo session)"]
+    SBJS["Supabase Auth (email + password)"]
   end
 
   subgraph API["FastAPI"]
@@ -90,11 +90,11 @@ npm install
 npx next dev -p 3010
 ```
 
-Set `DEMO_EMAIL` and `DEMO_PASSWORD` in `backend/.env` to enable the "Use the demo family" button. The password never reaches the browser.
+A demo account with the sample family is created in Supabase Auth; its login is shared with the team separately, not stored in the repo.
 
 ## Demo script
 
-1. Sign in with the demo family. Lakshmi Devi's overview shows three values outside their printed ranges on range bars, and her medicine schedule.
+1. Sign in with the demo account. Lakshmi Devi's overview shows three values outside their printed ranges on range bars, and her medicine schedule.
 2. Open her lab report: original on the left, results with plain-language meanings on the right. Switch to తెలుగు.
 3. Ask: "Which results are not normal?" The answer cites the lab report.
 4. Upload `docs/sample-documents/live-demo_suresh_yadav_hindi_prescription.png` to Venkata Rao. The app reads the Hindi, flags that the document names Suresh Yadav, and adds him to the family in one click.

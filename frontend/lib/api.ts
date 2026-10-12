@@ -61,7 +61,6 @@ export const api = {
     fd.append("language", language);
     return call<{ text: string }>("/voice/transcribe", { method: "POST", body: fd }, 60000);
   },
-  demoSession: () => call<{ access_token: string; refresh_token: string }>("/demo/session", { method: "POST" }),
   loadSample: () => call<{ records: number }>("/sample-family", { method: "POST" }, 120000),
   exportFhir: async (profileId: string, name: string) => {
     const bundle = await call<unknown>(`/profiles/${profileId}/fhir`);
