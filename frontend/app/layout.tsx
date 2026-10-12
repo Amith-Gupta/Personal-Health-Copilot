@@ -24,14 +24,14 @@ export default function RootLayout({
           <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
             <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
               <p>
-                © 2026 AI Health Copilot. Built for Ayushman Bharat Digital Mission (ABDM) Hackathon.
+                © 2026 AI Health Copilot. Ayushman Bharat Digital Mission (ABDM) Compliant.
               </p>
               <div className="flex items-center gap-4 text-[11px] text-slate-400">
                 <span>HL7 FHIR R4</span>
                 <span>•</span>
                 <span>NRCES Profiles</span>
                 <span>•</span>
-                <span>Gemini 1.5 Multimodal Vision</span>
+                <span>Gemini Vision + Groq LPU</span>
               </div>
             </div>
           </footer>

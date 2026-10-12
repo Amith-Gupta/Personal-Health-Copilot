@@ -9,6 +9,7 @@ import {
   Loader2,
   Sparkles,
   Zap,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ export function UploadZone({
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressStage, setProgressStage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fallbackWarning, setFallbackWarning] = useState<boolean>(false);
   const [lastUploadedName, setLastUploadedName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,6 +47,7 @@ export function UploadZone({
     }
 
     setErrorMessage(null);
+    setFallbackWarning(false);
     setIsProcessing(true);
     setLastUploadedName(file.name);
 
@@ -62,6 +65,9 @@ export function UploadZone({
       const { record, isFallback } = await uploadHealthRecord(file, abhaId);
       clearTimeout(t1);
       clearTimeout(t2);
+      if (isFallback) {
+        setFallbackWarning(true);
+      }
       setProgressStage("Timeline updated!");
       setTimeout(() => {
         setIsProcessing(false);
@@ -100,7 +106,7 @@ export function UploadZone({
     }
   };
 
-  // Quick 1-click test button for judges
+  // Quick 1-click test button
   const triggerQuickSample = (type: "lab" | "rx") => {
     const sampleRecord =
       type === "lab" ? MOCK_RECORDS_CACHE[0] : MOCK_RECORDS_CACHE[1];
@@ -175,10 +181,10 @@ export function UploadZone({
             </div>
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <Badge variant="outline" className="text-[11px] text-slate-600 bg-white">
-                Gemini Vision OCR
+                Multimodal Vision AI
               </Badge>
               <Badge variant="outline" className="text-[11px] text-emerald-700 bg-emerald-50 border-emerald-200">
-                Auto ABDM FHIR R4 Mapping
+                ABDM FHIR R4 Compliant
               </Badge>
               <Badge variant="outline" className="text-[11px] text-slate-600 bg-white">
                 Multi-Language Summaries
@@ -188,6 +194,13 @@ export function UploadZone({
         )}
       </div>
 
+      {fallbackWarning && (
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-xs font-medium text-amber-800 border border-amber-200 animate-in fade-in">
+          <Info className="h-4 w-4 shrink-0 text-amber-600" />
+          <span>Note: AI Vision pipeline returned offline sample template. Cloud extraction active on live reload.</span>
+        </div>
+      )}
+
       {errorMessage && (
         <div className="flex items-center gap-2 rounded-lg bg-rose-50 p-3 text-xs font-medium text-rose-700 border border-rose-200">
           <AlertCircle className="h-4 w-4 shrink-0" />
@@ -195,11 +208,11 @@ export function UploadZone({
         </div>
       )}
 
-      {/* Quick 1-Click Judge Demo Buttons */}
+      {/* Quick Sample Records */}
       <div className="flex items-center justify-between text-xs text-slate-500 bg-slate-50/80 px-4 py-2.5 rounded-xl border border-slate-200/70">
         <span className="flex items-center gap-1.5 font-medium text-slate-700">
           <Zap className="h-3.5 w-3.5 text-amber-500" />
-          Hackathon 1-Click Quick Demo:
+          Quick Sample Records:
         </span>
         <div className="flex items-center gap-2">
           <Button

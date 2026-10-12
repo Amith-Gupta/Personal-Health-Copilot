@@ -34,6 +34,50 @@ export function MedicationsTracker({ records }: MedicationsTrackerProps) {
     }))
   );
 
+  // BUG-05 Fix: Parse frequency and time slots dynamically from real uploaded medications
+  const morningMeds = allMeds.filter((m) => {
+    const f = (m.frequency || "").toLowerCase();
+    return (
+      f.includes("morning") ||
+      f.includes("breakfast") ||
+      f.includes("1-0-0") ||
+      f.includes("1-0-1") ||
+      f.includes("1-1-1") ||
+      f.includes("twice daily") ||
+      f.includes("before food") ||
+      f.includes("od") ||
+      f.includes("bd")
+    );
+  });
+
+  const afternoonMeds = allMeds.filter((m) => {
+    const f = (m.frequency || "").toLowerCase();
+    return (
+      f.includes("afternoon") ||
+      f.includes("lunch") ||
+      f.includes("0-1-0") ||
+      f.includes("1-1-1") ||
+      f.includes("weekly") ||
+      f.includes("sunday") ||
+      f.includes("noon")
+    );
+  });
+
+  const nightMeds = allMeds.filter((m) => {
+    const f = (m.frequency || "").toLowerCase();
+    return (
+      f.includes("night") ||
+      f.includes("bedtime") ||
+      f.includes("dinner") ||
+      f.includes("0-0-1") ||
+      f.includes("1-0-1") ||
+      f.includes("1-1-1") ||
+      f.includes("sleep") ||
+      f.includes("twice daily") ||
+      f.includes("hs")
+    );
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -48,7 +92,7 @@ export function MedicationsTracker({ records }: MedicationsTrackerProps) {
               : "Active Medication Timetable & Dosage Tracker"}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Synchronized from ABDM MedicationRequest entries and doctor prescriptions
+            Synchronized with ABDM MedicationRequest profiles and Supabase records
           </p>
         </div>
         <Badge variant="outline" className="border-emerald-300 text-emerald-800 bg-white font-semibold">
@@ -56,7 +100,7 @@ export function MedicationsTracker({ records }: MedicationsTrackerProps) {
         </Badge>
       </div>
 
-      {/* Daily Routine Slots */}
+      {/* Daily Routine Slots (Data-driven) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Morning Slot */}
         <div className="rounded-2xl border border-amber-200/80 bg-amber-50/40 p-4 space-y-3">
@@ -66,24 +110,32 @@ export function MedicationsTracker({ records }: MedicationsTrackerProps) {
               Morning (8:00 AM)
             </span>
             <Badge variant="outline" className="text-[10px] bg-white text-amber-700 border-amber-300">
-              After Breakfast
+              {morningMeds.length} Scheduled
             </Badge>
           </div>
           <div className="space-y-2">
-            <div className="p-3 bg-white rounded-xl border border-amber-100 shadow-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900">Metformin Hydrochloride</h4>
-                  <p className="text-xs font-semibold text-emerald-700">500 mg • Tablet</p>
+            {morningMeds.length > 0 ? (
+              morningMeds.map((med, idx) => (
+                <div key={idx} className="p-3 bg-white rounded-xl border border-amber-100 shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900">{med.name}</h4>
+                      <p className="text-xs font-semibold text-emerald-700">{med.dosage}</p>
+                    </div>
+                    <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+                      Morning
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-600" /> {med.frequency}
+                  </p>
                 </div>
-                <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
-                  1 Tablet
-                </span>
+              ))
+            ) : (
+              <div className="p-4 bg-white/60 rounded-xl border border-dashed border-amber-200 text-center text-xs text-slate-400">
+                No morning doses scheduled
               </div>
-              <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Take immediately after meals
-              </p>
-            </div>
+            )}
           </div>
         </div>
 
@@ -95,24 +147,32 @@ export function MedicationsTracker({ records }: MedicationsTrackerProps) {
               Afternoon (1:00 PM)
             </span>
             <Badge variant="outline" className="text-[10px] bg-white text-sky-700 border-sky-300">
-              Weekly / Routine
+              {afternoonMeds.length} Scheduled
             </Badge>
           </div>
           <div className="space-y-2">
-            <div className="p-3 bg-white rounded-xl border border-sky-100 shadow-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900">Vitamin D3 (Cholecalciferol)</h4>
-                  <p className="text-xs font-semibold text-sky-700">60,000 IU • Capsule</p>
+            {afternoonMeds.length > 0 ? (
+              afternoonMeds.map((med, idx) => (
+                <div key={idx} className="p-3 bg-white rounded-xl border border-sky-100 shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900">{med.name}</h4>
+                      <p className="text-xs font-semibold text-sky-700">{med.dosage}</p>
+                    </div>
+                    <span className="text-xs font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded">
+                      Afternoon
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-sky-600" /> {med.frequency}
+                  </p>
                 </div>
-                <span className="text-xs font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded">
-                  Sunday Only
-                </span>
+              ))
+            ) : (
+              <div className="p-4 bg-white/60 rounded-xl border border-dashed border-sky-200 text-center text-xs text-slate-400">
+                No afternoon doses scheduled
               </div>
-              <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
-                <Clock className="h-3 w-3 text-sky-600" /> Once weekly with milk
-              </p>
-            </div>
+            )}
           </div>
         </div>
 
@@ -124,39 +184,32 @@ export function MedicationsTracker({ records }: MedicationsTrackerProps) {
               Night (9:30 PM)
             </span>
             <Badge variant="outline" className="text-[10px] bg-white text-indigo-700 border-indigo-300">
-              Before Bedtime
+              {nightMeds.length} Scheduled
             </Badge>
           </div>
           <div className="space-y-2">
-            <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900">Atorvastatin Calcium</h4>
-                  <p className="text-xs font-semibold text-indigo-700">10 mg • Tablet</p>
+            {nightMeds.length > 0 ? (
+              nightMeds.map((med, idx) => (
+                <div key={idx} className="p-3 bg-white rounded-xl border border-indigo-100 shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900">{med.name}</h4>
+                      <p className="text-xs font-semibold text-indigo-700">{med.dosage}</p>
+                    </div>
+                    <span className="text-xs font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded">
+                      Night
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3 text-indigo-600" /> {med.frequency}
+                  </p>
                 </div>
-                <span className="text-xs font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded">
-                  1 Tablet
-                </span>
+              ))
+            ) : (
+              <div className="p-4 bg-white/60 rounded-xl border border-dashed border-indigo-200 text-center text-xs text-slate-400">
+                No night doses scheduled
               </div>
-              <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
-                <ShieldCheck className="h-3 w-3 text-indigo-600" /> Lipid lowering • Bedtime
-              </p>
-            </div>
-
-            <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900">Metformin Hydrochloride</h4>
-                  <p className="text-xs font-semibold text-emerald-700">500 mg • Tablet</p>
-                </div>
-                <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
-                  1 Tablet
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Take after dinner
-              </p>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -167,32 +220,40 @@ export function MedicationsTracker({ records }: MedicationsTrackerProps) {
           <span className="font-bold text-xs uppercase tracking-wider text-slate-700">
             Prescription Registry (NRCES FHIR MedicationRequest)
           </span>
-          <span className="text-xs text-slate-500">Refill Status: Healthy (68 days remaining)</span>
+          <span className="text-xs text-slate-500">
+            Active Regimen: {allMeds.length} medications monitored
+          </span>
         </div>
         <div className="divide-y divide-slate-100">
-          {allMeds.map((med, idx) => (
-            <div key={idx} className="p-4 hover:bg-slate-50/60 transition flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-slate-900 text-sm">{med.name}</h4>
-                  <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 text-[10px]">
-                    Verified
-                  </Badge>
+          {allMeds.length > 0 ? (
+            allMeds.map((med, idx) => (
+              <div key={idx} className="p-4 hover:bg-slate-50/60 transition flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-slate-900 text-sm">{med.name}</h4>
+                    <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 text-[10px]">
+                      Verified
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <span>Dose: <strong>{med.dosage}</strong></span>
+                    <span>•</span>
+                    <span>Timing: <strong>{med.frequency}</strong></span>
+                    <span>•</span>
+                    <span>Course: <strong>{med.duration || "Ongoing"}</strong></span>
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                  <span>Dose: <strong>{med.dosage}</strong></span>
-                  <span>•</span>
-                  <span>Timing: <strong>{med.frequency}</strong></span>
-                  <span>•</span>
-                  <span>Course: <strong>{med.duration || "Ongoing"}</strong></span>
+                <div className="text-right">
+                  <p className="text-xs font-medium text-slate-700">{med.sourceTitle}</p>
+                  <p className="text-[11px] text-slate-400">Prescribed: {med.recordDate}</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-xs font-medium text-slate-700">{med.sourceTitle}</p>
-                <p className="text-[11px] text-slate-400">Prescribed: {med.recordDate}</p>
-              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center text-slate-400 text-sm">
+              No medications currently recorded. Upload a prescription to populate your medication timetable.
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

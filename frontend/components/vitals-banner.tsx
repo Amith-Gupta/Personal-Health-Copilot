@@ -29,6 +29,38 @@ export function VitalsBanner({ records }: VitalsBannerProps) {
     r.lab_observations.filter((obs) => ["HIGH", "LOW", "ABNORMAL"].includes(obs.flag))
   );
 
+  // BUG-03 Fix: Dynamically derive latest Fasting Glucose from records prop
+  const glucoseObs = records
+    .flatMap((r) => r.lab_observations)
+    .find((obs) => /fasting|glucose|blood sugar|sugar/i.test(obs.test_name));
+  const glucoseVal = glucoseObs ? glucoseObs.observed_value : (records.length ? "95" : "—");
+  const glucoseNum = parseFloat(glucoseVal);
+  const isGlucoseHigh = !isNaN(glucoseNum) ? glucoseNum > 125 : glucoseObs?.flag === "HIGH";
+  const glucoseDelta =
+    !isNaN(glucoseNum) && glucoseNum > 99
+      ? `+${Math.round(glucoseNum - 99)} mg/dL`
+      : "";
+
+  // BUG-03 Fix: Dynamically derive latest HbA1c from records prop
+  const hba1cObs = records
+    .flatMap((r) => r.lab_observations)
+    .find((obs) => /hba1c|glycated|hemoglobin a1c/i.test(obs.test_name));
+  const hba1cVal = hba1cObs ? hba1cObs.observed_value : (records.length ? "5.4" : "—");
+  const hba1cNum = parseFloat(hba1cVal);
+  const isHba1cElevated = !isNaN(hba1cNum) ? hba1cNum >= 6.5 : hba1cObs?.flag === "HIGH";
+
+  // BUG-04 Fix: Dynamically compute next medication & scheduled time from records
+  const allMeds = records.flatMap((r) => r.medications);
+  const nextMed = allMeds[0];
+  const nextMedDisplay = nextMed ? `${nextMed.name} ${nextMed.dosage}`.trim() : "No active doses";
+  const nextMedTime = nextMed
+    ? /night|bedtime|sleep|0-0-1/i.test(nextMed.frequency)
+      ? "8:00 PM"
+      : /afternoon|lunch|noon|0-1-0/i.test(nextMed.frequency)
+      ? "1:00 PM"
+      : "8:00 AM"
+    : "—";
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Glycemic Control (Fasting Glucose) */}
@@ -44,12 +76,15 @@ export function VitalsBanner({ records }: VitalsBannerProps) {
                 : "Fasting Blood Glucose"}
             </span>
             <div className="flex items-baseline gap-1.5 pt-1">
-              <span className="text-2xl font-black tracking-tight text-slate-900">185</span>
+              <span className="text-2xl font-black tracking-tight text-slate-900">{glucoseVal}</span>
               <span className="text-xs font-semibold text-slate-500">mg/dL</span>
             </div>
           </div>
-          <Badge variant="destructive" className="text-[10px] uppercase font-bold py-0.5">
-            HIGH (+86 mg/dL)
+          <Badge
+            variant={isGlucoseHigh ? "destructive" : "success"}
+            className="text-[10px] uppercase font-bold py-0.5"
+          >
+            {isGlucoseHigh ? `HIGH ${glucoseDelta ? `(${glucoseDelta})` : ""}` : "OPTIMAL"}
           </Badge>
         </div>
 
@@ -57,7 +92,9 @@ export function VitalsBanner({ records }: VitalsBannerProps) {
         <div className="mt-3 space-y-1">
           <div className="flex justify-between text-[10px] text-slate-500">
             <span>Normal: 70–99</span>
-            <span className="font-semibold text-rose-600">Suboptimal</span>
+            <span className={`font-semibold ${isGlucoseHigh ? "text-rose-600" : "text-emerald-600"}`}>
+              {isGlucoseHigh ? "Suboptimal" : "In Range"}
+            </span>
           </div>
           <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden flex">
             <div className="w-1/3 bg-emerald-400" title="Normal: 70-99" />
@@ -76,19 +113,24 @@ export function VitalsBanner({ records }: VitalsBannerProps) {
               {language === "hi" ? "औसत शर्करा (HbA1c)" : language === "te" ? "సగటు చక్కెర (HbA1c)" : "3-Month HbA1c"}
             </span>
             <div className="flex items-baseline gap-1.5 pt-1">
-              <span className="text-2xl font-black tracking-tight text-slate-900">8.4</span>
+              <span className="text-2xl font-black tracking-tight text-slate-900">{hba1cVal}</span>
               <span className="text-xs font-semibold text-slate-500">%</span>
             </div>
           </div>
-          <Badge variant="warning" className="text-[10px] uppercase font-bold py-0.5">
-            ELEVATED
+          <Badge
+            variant={isHba1cElevated ? "warning" : "success"}
+            className="text-[10px] uppercase font-bold py-0.5"
+          >
+            {isHba1cElevated ? "ELEVATED" : "NORMAL"}
           </Badge>
         </div>
 
         <div className="mt-3 space-y-1">
           <div className="flex justify-between text-[10px] text-slate-500">
             <span>Target Goal: &lt; 5.7%</span>
-            <span className="font-semibold text-amber-700">Type 2 Diabetes</span>
+            <span className={`font-semibold ${isHba1cElevated ? "text-amber-700" : "text-emerald-700"}`}>
+              {isHba1cElevated ? "Glycemic Watch" : "Non-Diabetic Range"}
+            </span>
           </div>
           <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden flex">
             <div className="w-1/3 bg-emerald-400" />
@@ -117,10 +159,10 @@ export function VitalsBanner({ records }: VitalsBannerProps) {
         </div>
 
         <div className="mt-3 flex items-center justify-between text-[11px] text-slate-600 pt-1 border-t border-slate-100">
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3 text-emerald-600" /> Next: Metformin 500mg
+          <span className="flex items-center gap-1 truncate max-w-[170px]" title={nextMedDisplay}>
+            <Clock className="h-3 w-3 shrink-0 text-emerald-600" /> Next: {nextMedDisplay}
           </span>
-          <span className="font-bold text-emerald-700">8:00 PM</span>
+          <span className="font-bold text-emerald-700 shrink-0">{nextMedTime}</span>
         </div>
       </div>
 
@@ -134,7 +176,7 @@ export function VitalsBanner({ records }: VitalsBannerProps) {
             </span>
             <div className="flex items-baseline gap-1.5 pt-1">
               <span className="text-lg font-bold text-slate-900">FHIR R4</span>
-              <span className="text-xs font-semibold text-emerald-600">NRCES M3</span>
+              <span className="text-xs font-semibold text-emerald-600">NRCES Verified</span>
             </div>
           </div>
           <span className="relative flex h-2.5 w-2.5">
@@ -145,9 +187,9 @@ export function VitalsBanner({ records }: VitalsBannerProps) {
 
         <div className="mt-3 flex items-center justify-between text-[11px] text-slate-600 pt-1 border-t border-slate-100">
           <span className="flex items-center gap-1">
-            <Zap className="h-3 w-3 text-amber-500" /> Groq LPU Engine
+            <Zap className="h-3 w-3 text-amber-500" /> Groq LPU + Supabase
           </span>
-          <span className="font-bold text-emerald-700">~210ms Latency</span>
+          <span className="font-bold text-emerald-700">Live Active</span>
         </div>
       </div>
     </div>

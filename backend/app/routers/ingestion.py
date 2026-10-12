@@ -1,16 +1,18 @@
 import uuid
 from datetime import datetime
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
-from typing import Optional
+from typing import Optional, List
 
 from app.schemas.payloads import HealthRecordResponse
 from app.services.ocr_engine import extract_clinical_record
 from app.services.fhir_mapper import transform_to_abdm_fhir_r4
+from app.services.guardrails import validate_medication_dosages
+from app.db.records_store import save_health_record, get_health_records
 
 router = APIRouter(prefix="/health-records", tags=["Health Records"])
 
-# In-memory store for instant zero-dependency execution and hackathon demo resilience
-RECORDS_STORE = []
+# Maximum allowed file upload size (10 MB)
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 
 
 @router.post("/upload", response_model=HealthRecordResponse, status_code=status.HTTP_201_CREATED)
@@ -22,16 +24,23 @@ async def upload_health_record(
     """
     Accepts clinical document images (PNG, JPEG, WEBP) or PDFs via multipart/form-data.
     Processes the file through Multimodal Vision LLM, standardizes parameters,
-    and returns an ABDM FHIR R4 Bundle alongside regional summaries.
+    persists records to Supabase, and returns an ABDM FHIR R4 Bundle alongside regional summaries.
     """
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded.")
 
-    # Read bytes
+    # Read bytes and enforce enterprise size limit
     try:
         content_bytes = await file.read()
         if len(content_bytes) == 0:
             raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+        if len(content_bytes) > MAX_FILE_SIZE_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="File size exceeds the 10MB limit."
+            )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
 
@@ -43,7 +52,12 @@ async def upload_health_record(
     if patient_name and patient_name.strip():
         extracted_data.patient_name = patient_name.strip()
 
-    # 2. Map to ABDM FHIR R4 Bundle
+    # 2. Run Pharmacopeia Dosage Guardrail
+    if extracted_data.medications:
+        meds_dict = [m.dict() for m in extracted_data.medications]
+        validate_medication_dosages(meds_dict)
+
+    # 3. Map to ABDM FHIR R4 Bundle
     fhir_bundle = transform_to_abdm_fhir_r4(extracted_data, abha_id=abha_id)
 
     record_id = str(uuid.uuid4())
@@ -63,14 +77,14 @@ async def upload_health_record(
         created_at=datetime.utcnow().isoformat()
     )
 
-    # Cache in memory
-    RECORDS_STORE.insert(0, response_record)
+    # 4. Save to persistent Supabase store & memory cache
+    save_health_record(response_record)
     return response_record
 
 
-@router.get("", response_model=list[HealthRecordResponse])
+@router.get("", response_model=List[HealthRecordResponse])
 async def list_health_records():
     """
-    Returns list of processed health records for the patient timeline.
+    Returns list of processed health records from Supabase for the patient timeline.
     """
-    return RECORDS_STORE
+    return get_health_records()

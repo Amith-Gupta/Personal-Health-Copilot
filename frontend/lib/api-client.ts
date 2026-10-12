@@ -3,7 +3,9 @@ import { HealthRecord, MOCK_RECORDS_CACHE } from "./mock-cache";
 const BACKEND_BASE_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api/v1";
 
-const TIMEOUT_MS = 5000;
+const DEFAULT_TIMEOUT_MS = 8000;
+const UPLOAD_TIMEOUT_MS = 25000;
+const COPILOT_TIMEOUT_MS = 15000;
 
 /**
  * Executes a fetch request with strict timeout.
@@ -11,7 +13,7 @@ const TIMEOUT_MS = 5000;
 async function fetchWithTimeout(
   url: string,
   options: RequestInit,
-  timeout = TIMEOUT_MS
+  timeout = DEFAULT_TIMEOUT_MS
 ): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
@@ -31,7 +33,7 @@ async function fetchWithTimeout(
 
 /**
  * Uploads a medical document (image or PDF) to the FastAPI backend.
- * Falls back to realistic mock cache if backend is unavailable or times out (>5s).
+ * Falls back to realistic mock cache if backend is unavailable or times out (>25s).
  */
 export async function uploadHealthRecord(
   file: File,
@@ -49,7 +51,7 @@ export async function uploadHealthRecord(
         method: "POST",
         body: formData,
       },
-      TIMEOUT_MS
+      UPLOAD_TIMEOUT_MS
     );
 
     if (!response.ok) {
@@ -60,12 +62,17 @@ export async function uploadHealthRecord(
     return { record: data, isFallback: false };
   } catch (err: any) {
     console.warn(
-      `[AI Health Copilot] Backend unavailable or timed out after 5s (${err.message}). Activating live demo fallback.`
+      `[AI Health Copilot] Live backend processing fallback (${err.message}). Activating local demo cache.`
     );
 
-    // Pick an appropriate realistic item from mock cache based on file name or default
-    const isLab = /lab|report|blood|test|sugar|glucose/i.test(file.name);
-    const mock = isLab ? MOCK_RECORDS_CACHE[0] : MOCK_RECORDS_CACHE[1];
+    // Pick an appropriate realistic item from mock cache based on file name (BUG-06 fix)
+    const isLab = /lab|report|blood|test|sugar|glucose|panel/i.test(file.name);
+    const isDischarge = /discharge|summary|hospital|admit|inpatient/i.test(file.name);
+    const mock = isDischarge
+      ? MOCK_RECORDS_CACHE[2]
+      : isLab
+      ? MOCK_RECORDS_CACHE[0]
+      : MOCK_RECORDS_CACHE[1];
 
     const fallbackRecord: HealthRecord = {
       ...mock,
@@ -80,7 +87,7 @@ export async function uploadHealthRecord(
 }
 
 /**
- * Fetches all health records.
+ * Fetches all health records from Supabase / FastAPI backend.
  */
 export async function fetchHealthRecords(): Promise<{
   records: HealthRecord[];
@@ -90,7 +97,7 @@ export async function fetchHealthRecords(): Promise<{
     const response = await fetchWithTimeout(
       `${BACKEND_BASE_URL}/health-records`,
       { method: "GET" },
-      TIMEOUT_MS
+      DEFAULT_TIMEOUT_MS
     );
 
     if (!response.ok) {
@@ -125,7 +132,7 @@ export async function queryHealthCopilot(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, language }),
       },
-      TIMEOUT_MS
+      COPILOT_TIMEOUT_MS
     );
 
     if (!response.ok) {
@@ -194,4 +201,3 @@ export async function transcribeVoiceAudio(
     };
   }
 }
-

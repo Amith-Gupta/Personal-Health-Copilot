@@ -30,8 +30,7 @@ export function TimelineFeed({ records, language }: TimelineFeedProps) {
       }
       if (
         filterType === "DIAGNOSTIC" &&
-        rec.document_type !== "DiagnosticReport" &&
-        rec.document_type !== "LabReport"
+        rec.document_type !== "DiagnosticReport"
       ) {
         return false;
       }

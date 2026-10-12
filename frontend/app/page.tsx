@@ -228,7 +228,7 @@ export default function DashboardPage() {
           </Badge>
           <Badge variant="outline" className="border-slate-300 bg-white text-slate-700 text-xs py-1 px-3 shadow-2xs flex items-center gap-1.5">
             <Cpu className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Gemini 3.8 Flash Vision</span>
+            <span>Gemini Multimodal Vision</span>
           </Badge>
         </div>
       </div>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
               isRecording
                 ? "bg-rose-600 text-white animate-pulse ring-4 ring-rose-400/50"
                 : voiceProcessing
-                ? "bg-amber-600 text-white animate-spin"
+                ? "bg-amber-600 text-white"
                 : "bg-slate-800 text-emerald-400 border border-slate-700 hover:bg-slate-700 hover:text-emerald-300"
             }`}
           >
@@ -512,7 +512,7 @@ export default function DashboardPage() {
                   Multimodal Ingestion Pipeline
                 </p>
                 <ul className="space-y-1.5 list-disc list-inside text-slate-500 text-xs">
-                  <li><strong>Gemini 3.8 Flash Vision</strong> scans handwriting and diagnostic tables</li>
+                  <li><strong>Gemini Multimodal Vision</strong> scans handwriting and diagnostic tables</li>
                   <li><strong>Dosage Sanitizer</strong> normalizes tripartite notations (e.g., 1-0-1 into twice daily)</li>
                   <li><strong>NRCES Validator</strong> structures valid FHIR R4 document bundles</li>
                   <li>Generates localized summaries in <strong>English, हिन्दी, and తెలుగు</strong></li>

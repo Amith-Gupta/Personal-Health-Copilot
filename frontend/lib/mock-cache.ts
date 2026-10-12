@@ -24,7 +24,7 @@ export interface SummaryItem {
 export interface HealthRecord {
   id: string;
   user_id?: string;
-  document_type: "Prescription" | "DiagnosticReport" | "DischargeSummary" | "LabReport";
+  document_type: "Prescription" | "DiagnosticReport" | "DischargeSummary";
   record_date: string;
   title: string;
   summary: SummaryItem;

@@ -32,9 +32,7 @@ export function RecordCard({ record, language }: RecordCardProps) {
     record.summary.english;
 
   const isPrescription = record.document_type === "Prescription";
-  const isDiagnostic =
-    record.document_type === "DiagnosticReport" ||
-    record.document_type === "LabReport";
+  const isDiagnostic = record.document_type === "DiagnosticReport";
 
   const abnormalObservations = record.lab_observations.filter(
     (obs) => obs.flag === "HIGH" || obs.flag === "LOW" || obs.flag === "ABNORMAL"
