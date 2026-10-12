@@ -4,25 +4,22 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Activity,
   Pill,
-  AlertTriangle,
   Send,
   Sparkles,
   RefreshCw,
   FileText,
   Bot,
-  HelpCircle,
   Mic,
   MicOff,
   Volume2,
   VolumeX,
   ShieldCheck,
   Zap,
-  Calendar,
-  Layers,
   Clock,
-  ArrowUpRight,
   Database,
-  Cpu,
+  Search,
+  CheckCircle2,
+  FileCheck2,
 } from "lucide-react";
 import { UploadZone } from "@/components/upload-zone";
 import { TimelineFeed } from "@/components/timeline-feed";
@@ -35,13 +32,20 @@ import { useLanguage } from "@/lib/language-context";
 import {
   HealthRecord,
   MOCK_RECORDS_CACHE,
-  LanguageCode,
 } from "@/lib/mock-cache";
 import {
   fetchHealthRecords,
   queryHealthCopilot,
   transcribeVoiceAudio,
 } from "@/lib/api-client";
+
+interface ChatMessage {
+  id: string;
+  sender: "user" | "copilot";
+  text: string;
+  citations?: string[];
+  timestamp: string;
+}
 
 export default function DashboardPage() {
   const { language } = useLanguage();
@@ -50,10 +54,15 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [copilotQuery, setCopilotQuery] = useState("");
   const [copilotLoading, setCopilotLoading] = useState(false);
-  const [copilotResponse, setCopilotResponse] = useState<{
-    answer: string;
-    citations: string[];
-  } | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: "initial-welcome",
+      sender: "copilot",
+      text: "Hello Rajesh. I have reviewed your latest health records and prescriptions. Your fasting glucose (185 mg/dL) and HbA1c (8.4%) are currently elevated. You can ask me questions about your medications, lab observations, or diet in English, Hindi, or Telugu.",
+      citations: ["Quest Diagnostics Comprehensive Panel", "Endocrinology Follow-up Prescription"],
+      timestamp: "Just now",
+    },
+  ]);
 
   // Real-time voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -61,8 +70,9 @@ export default function DashboardPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Load records from backend on mount
+  // Load records from Supabase / Backend on mount
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
@@ -82,20 +92,51 @@ export default function DashboardPage() {
 
   const handleRecordUploaded = (newRecord: HealthRecord) => {
     setRecords((prev) => [newRecord, ...prev]);
+    // Notify in copilot chat
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `sys-${Date.now()}`,
+        sender: "copilot",
+        text: `I noticed a new ${newRecord.document_type} was uploaded ("${newRecord.title}"). Your clinical timeline and ABDM FHIR bundle have been updated in Supabase. Would you like me to explain the extracted parameters?`,
+        citations: [newRecord.title],
+        timestamp: "Just now",
+      },
+    ]);
   };
 
   const handleAskCopilot = async (customQuery?: string) => {
     const q = (customQuery || copilotQuery).trim();
     if (!q || copilotLoading) return;
 
+    const userMsg: ChatMessage = {
+      id: `u-${Date.now()}`,
+      sender: "user",
+      text: q,
+      timestamp: "Just now",
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setCopilotQuery("");
     setCopilotLoading(true);
+
     try {
       const response = await queryHealthCopilot(q, language);
-      setCopilotResponse(response);
+      const copilotMsg: ChatMessage = {
+        id: `c-${Date.now()}`,
+        sender: "copilot",
+        text: response.answer,
+        citations: response.citations,
+        timestamp: "Just now",
+      };
+      setMessages((prev) => [...prev, copilotMsg]);
     } catch (err) {
       console.error("Copilot query failed", err);
     } finally {
       setCopilotLoading(false);
+      setTimeout(() => {
+        chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
   };
 
@@ -125,7 +166,6 @@ export default function DashboardPage() {
         try {
           const res = await transcribeVoiceAudio(audioBlob);
           if (res.text) {
-            setCopilotQuery(res.text);
             handleAskCopilot(res.text);
           }
         } catch (e) {
@@ -147,14 +187,12 @@ export default function DashboardPage() {
             : language === "te"
             ? "నా రక్తంలో చక్కెర ఎక్కువగా ఉందా?"
             : "Are any of my blood test results high?";
-        setCopilotQuery(simulatedText);
         setVoiceProcessing(false);
         handleAskCopilot(simulatedText);
-      }, 700);
+      }, 800);
     }
   };
 
-  // Stop real-time voice recording
   const stopVoiceRecording = () => {
     if (
       mediaRecorderRef.current &&
@@ -188,404 +226,349 @@ export default function DashboardPage() {
     window.speechSynthesis.speak(utterance);
   };
 
-  // Quick prompt suggestions
-  const setQuickPrompt = (q: string) => {
-    setCopilotQuery(q);
-    handleAskCopilot(q);
-  };
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      {/* 1. Patient Welcome Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+      {/* 1. Executive Patient Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
               {language === "hi"
-                ? "नमस्ते, राजेश कुमार शर्मा"
+                ? "राजेश कुमार शर्मा का स्वास्थ्य डैशबोर्ड"
                 : language === "te"
-                ? "నమస్తే, రాజేష్ కుమార్ శర్మ"
-                : "Welcome, Rajesh Kumar Sharma"}
-            </h2>
-            <Badge variant="outline" className="border-emerald-300 text-emerald-800 bg-emerald-50 text-[11px] font-semibold">
-              ABHA Verified
-            </Badge>
+                ? "రాజేష్ కుమార్ శర్మ ఆరోగ్య సమాచారం"
+                : "Clinical Dashboard"}
+            </h1>
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              ABHA Connected
+            </span>
           </div>
-          <p className="mt-1 text-sm text-slate-600">
-            {language === "hi"
-              ? "आपकी सभी नैदानिक रिपोर्ट, डॉक्टर के पर्चे और डिस्चार्ज सारांश यहां वास्तविक समय में डिजिटाइज़्ड हैं।"
-              : language === "te"
-              ? "మీ అన్ని ప్రిస్క్రిప్షన్‌లు, ల్యాబ్ రిపోర్టులు ఇక్కడ నిజ సమయంలో భద్రపరచబడ్డాయి."
-              : "Your aggregated clinical profile transformed into ABDM FHIR R4 standard bundles with real-time AI guidance."}
+          <p className="text-xs text-slate-500 mt-1">
+            Aggregated ABDM FHIR R4 longitudinal records, clinical observations, and AI guidance.
           </p>
         </div>
 
-        {/* Live AI Status Indicators */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-slate-300 bg-white text-slate-700 text-xs py-1 px-3 shadow-2xs flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 text-amber-500" />
-            <span>Groq LPU (~210ms)</span>
-          </Badge>
-          <Badge variant="outline" className="border-slate-300 bg-white text-slate-700 text-xs py-1 px-3 shadow-2xs flex items-center gap-1.5">
-            <Cpu className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Gemini Multimodal Vision</span>
-          </Badge>
+        {/* Live sync badges */}
+        <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+          <span className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <Database className="h-3.5 w-3.5 text-teal-600" />
+            Supabase DB Synced
+          </span>
+          <span className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+            Gemini + Groq LPU
+          </span>
         </div>
       </div>
 
-      {/* 2. Interactive Vitals & Metabolic Health Summary */}
+      {/* 2. Key Vitals & Metabolic Health Scorecard */}
       <VitalsBanner records={records} />
 
-      {/* 3. Conversational AI Health Copilot Assistant */}
-      <div className="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-6 sm:p-7 text-white shadow-xl relative overflow-hidden">
-        {/* Glow backdrop accent */}
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-base sm:text-lg text-emerald-100">
-                Ask Your AI Health Copilot
-              </h3>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className="border-emerald-400/30 bg-emerald-950/60 text-emerald-300 text-[10px] hidden sm:inline-flex items-center gap-1"
+      {/* 3. Main Workspace: Two-Column Integrated Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column (7 Columns): Clinical Navigation & Records */}
+        <div className="lg:col-span-7 space-y-4">
+          {/* Navigation Tab Pills */}
+          <div className="flex items-center gap-1.5 bg-slate-200/70 p-1 rounded-xl w-fit">
+            <button
+              onClick={() => setActiveTab("TIMELINE")}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                activeTab === "TIMELINE"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
             >
-              <Zap className="h-3 w-3 text-amber-400" /> Whisper Voice (~120ms)
-            </Badge>
-            <Badge
-              variant="outline"
-              className="border-emerald-400/30 bg-emerald-950/60 text-emerald-300 text-[10px] hidden sm:inline-flex items-center gap-1"
+              <Clock className="h-3.5 w-3.5" />
+              Timeline & Upload
+            </button>
+
+            <button
+              onClick={() => setActiveTab("MEDICATIONS")}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                activeTab === "MEDICATIONS"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
             >
-              <ShieldCheck className="h-3 w-3 text-emerald-400" /> Clinical Safety Guardrails Active
-            </Badge>
+              <Pill className="h-3.5 w-3.5" />
+              Medication Schedule
+            </button>
+
+            <button
+              onClick={() => setActiveTab("LABS")}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                activeTab === "LABS"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Activity className="h-3.5 w-3.5" />
+              Lab Biomarkers
+            </button>
+
+            <button
+              onClick={() => setActiveTab("ABDM")}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                activeTab === "ABDM"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Database className="h-3.5 w-3.5" />
+              FHIR R4 Explorer
+            </button>
           </div>
-        </div>
 
-        <p className="text-xs text-slate-300 mb-4 max-w-2xl leading-relaxed">
-          {language === "hi"
-            ? "अपनी दवाओं, असामान्य लैब रिपोर्ट या डॉक्टर के निर्देशों के बारे में बोलकर या लिखकर हिंदी, तेलुगु या अंग्रेजी में पूछें।"
-            : language === "te"
-            ? "మీ మందులు, ల్యాబ్ నివేదికల గురించి వాయిస్ ద్వారా లేదా టైప్ చేసి తెలుగు, హిందీ లేదా ఇంగ్లీషులో అడగండి."
-            : "Ask voice or text questions regarding dosages, abnormal lab trends, or plain-language explanations with full clinical citations."}
-        </p>
-
-        {/* Input Bar */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleAskCopilot();
-          }}
-          className="flex items-center gap-2"
-        >
-          {/* Real-time Voice Record Button */}
-          <button
-            type="button"
-            onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
-            disabled={voiceProcessing}
-            title={isRecording ? "Stop recording voice" : "Speak your health query"}
-            className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all shadow-md ${
-              isRecording
-                ? "bg-rose-600 text-white animate-pulse ring-4 ring-rose-400/50"
-                : voiceProcessing
-                ? "bg-amber-600 text-white"
-                : "bg-slate-800 text-emerald-400 border border-slate-700 hover:bg-slate-700 hover:text-emerald-300"
-            }`}
-          >
-            {voiceProcessing ? (
-              <RefreshCw className="h-5 w-5 animate-spin" />
-            ) : isRecording ? (
-              <MicOff className="h-5 w-5" />
-            ) : (
-              <Mic className="h-5 w-5" />
-            )}
-          </button>
-
-          <input
-            type="text"
-            value={copilotQuery}
-            onChange={(e) => setCopilotQuery(e.target.value)}
-            placeholder={
-              isRecording
-                ? "Listening... Speak in English, Hindi, or Telugu..."
-                : voiceProcessing
-                ? "Transcribing your audio via Groq Whisper LPU..."
-                : language === "hi"
-                ? "उदा: क्या मेरे ब्लड टेस्ट में शुगर का स्तर अधिक है? मुझे कौन सी दवा लेनी चाहिए?"
-                : language === "te"
-                ? "ఉదా: నా రక్త పరీక్షలలో చక్కెర ఎక్కువగా ఉందా? నేను ఏ మందులు తీసుకోవాలి?"
-                : "Speak or type: e.g., Are any test results abnormal and when should I take Metformin?"
-            }
-            className={`flex-1 rounded-2xl border border-slate-700 bg-slate-800/90 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 ${
-              isRecording ? "border-rose-500 bg-slate-800" : ""
-            }`}
-          />
-
-          <Button
-            type="submit"
-            disabled={copilotLoading || isRecording}
-            variant="gradient"
-            className="h-12 px-6 font-bold shrink-0 rounded-2xl"
-          >
-            {copilotLoading ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <Send className="h-4 w-4 mr-1.5" /> Ask Copilot
-              </>
-            )}
-          </Button>
-        </form>
-
-        {/* Suggestion Chips */}
-        <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-800/80 text-xs">
-          <span className="text-slate-400 text-[11px] font-semibold">Suggested Questions:</span>
-          <button
-            type="button"
-            onClick={() =>
-              setQuickPrompt("Are any of my recent lab tests high or out of range?")
-            }
-            className="rounded-full bg-slate-800/90 px-3 py-1 text-[11px] text-slate-300 hover:bg-slate-700 hover:text-white transition border border-slate-700"
-          >
-            "Are any lab tests high?"
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setQuickPrompt("What is my current diabetes medication schedule?")
-            }
-            className="rounded-full bg-slate-800/90 px-3 py-1 text-[11px] text-slate-300 hover:bg-slate-700 hover:text-white transition border border-slate-700"
-          >
-            "My medication schedule"
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setQuickPrompt("Explain my Metformin and Atorvastatin prescriptions in simple language.")
-            }
-            className="rounded-full bg-slate-800/90 px-3 py-1 text-[11px] text-slate-300 hover:bg-slate-700 hover:text-white transition border border-slate-700 hidden sm:inline-block"
-          >
-            "Explain my prescriptions"
-          </button>
-        </div>
-
-        {/* Copilot Response Display */}
-        {copilotResponse && (
-          <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-slate-900/95 p-5 text-sm animate-in fade-in duration-200 shadow-inner">
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0 mt-0.5 border border-emerald-500/30">
-                <Bot className="h-5 w-5" />
-              </div>
-              <div className="space-y-2.5 flex-1">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <span className="font-bold text-emerald-300 text-xs flex items-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                    Clinical Safety Verified • Multi-Agent Router
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleToggleSpeak(copilotResponse.answer)}
-                    className="h-7 text-xs text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 gap-1.5 rounded-lg border border-slate-700"
-                  >
-                    {isSpeaking ? (
-                      <>
-                        <VolumeX className="h-3.5 w-3.5 text-rose-400" /> Stop Voice
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 className="h-3.5 w-3.5 text-emerald-400" /> Listen Voice
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                <p className="font-medium text-slate-100 leading-relaxed text-xs sm:text-sm whitespace-pre-line">
-                  {copilotResponse.answer}
-                </p>
-
-                {copilotResponse.citations.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800 text-[11px] text-slate-400">
-                    <span className="font-semibold text-slate-300">
-                      Evidence Citations:
-                    </span>
-                    {copilotResponse.citations.map((c, i) => (
-                      <Badge
-                        key={i}
-                        variant="secondary"
-                        className="bg-slate-800 text-slate-300 border-slate-700 text-[10px]"
-                      >
-                        {c}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 4. Tab Navigation Hub */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab("TIMELINE")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap ${
-              activeTab === "TIMELINE"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-            }`}
-          >
-            <Clock className="h-4 w-4" />
-            <span>Clinical Timeline & Upload</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("MEDICATIONS")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap ${
-              activeTab === "MEDICATIONS"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-            }`}
-          >
-            <Pill className="h-4 w-4" />
-            <span>Medications & Dosage Tracker</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("LABS")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap ${
-              activeTab === "LABS"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-            }`}
-          >
-            <Activity className="h-4 w-4" />
-            <span>Diagnostic Lab Biomarkers</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("ABDM")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all whitespace-nowrap ${
-              activeTab === "ABDM"
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-            }`}
-          >
-            <Database className="h-4 w-4" />
-            <span>ABDM FHIR R4 Bundle Explorer</span>
-          </button>
-        </div>
-
-        {/* Tab 1: Clinical Timeline & Document Upload */}
-        {activeTab === "TIMELINE" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left: Upload Zone */}
-            <div className="lg:col-span-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-emerald-600" />
-                  Upload Clinical Document
-                </h3>
-                <Badge variant="outline" className="text-xs text-slate-500 font-semibold">
-                  Auto-Digitization
-                </Badge>
-              </div>
-
+          {/* TAB 1: Timeline & Ingestion */}
+          {activeTab === "TIMELINE" && (
+            <div className="space-y-4">
+              {/* Document Upload Scanner */}
               <UploadZone
                 onRecordUploaded={handleRecordUploaded}
                 abhaId="91-1234-5678-9012"
               />
 
-              <div className="rounded-2xl border border-slate-200/90 bg-white p-4 space-y-2.5 text-xs text-slate-600 shadow-xs">
-                <p className="font-bold text-slate-800 flex items-center gap-1.5 text-sm">
-                  <Activity className="h-4 w-4 text-emerald-600" />
-                  Multimodal Ingestion Pipeline
-                </p>
-                <ul className="space-y-1.5 list-disc list-inside text-slate-500 text-xs">
-                  <li><strong>Gemini Multimodal Vision</strong> scans handwriting and diagnostic tables</li>
-                  <li><strong>Dosage Sanitizer</strong> normalizes tripartite notations (e.g., 1-0-1 into twice daily)</li>
-                  <li><strong>NRCES Validator</strong> structures valid FHIR R4 document bundles</li>
-                  <li>Generates localized summaries in <strong>English, हिन्दी, and తెలుగు</strong></li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Right: Timeline Feed */}
-            <div className="lg:col-span-7 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-extrabold text-slate-900 text-lg">
-                    Unified Health Timeline
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Chronological clinical history with extracted parameters & FHIR bundles
-                  </p>
-                </div>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-                  {records.length} Documents Synced
+              {/* Timeline Header */}
+              <div className="flex items-center justify-between pt-2">
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-emerald-600" />
+                  Clinical Documents ({records.length})
+                </h3>
+                <span className="text-[11px] text-slate-400">
+                  Ordered by record date
                 </span>
               </div>
 
+              {/* Timeline Feed */}
               <TimelineFeed records={records} language={language} />
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Tab 2: Medications Tracker */}
-        {activeTab === "MEDICATIONS" && (
-          <MedicationsTracker records={records} />
-        )}
+          {/* TAB 2: Medications Tracker */}
+          {activeTab === "MEDICATIONS" && (
+            <MedicationsTracker records={records} />
+          )}
 
-        {/* Tab 3: Lab Analytics */}
-        {activeTab === "LABS" && (
-          <LabAnalytics records={records} />
-        )}
+          {/* TAB 3: Diagnostic Labs */}
+          {activeTab === "LABS" && (
+            <LabAnalytics records={records} />
+          )}
 
-        {/* Tab 4: ABDM FHIR R4 Bundle Explorer */}
-        {activeTab === "ABDM" && (
-          <div className="space-y-4">
-            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-white p-5 rounded-2xl border border-emerald-200">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                ABDM National Health Locker (FHIR Release 4)
-              </h3>
-              <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
-                All records stored in this profile are structured as HL7 FHIR Release 4 Document Bundles,
-                compliant with National Resource Centre for EHR Standards (NRCES) StructureDefinitions.
-              </p>
-            </div>
+          {/* TAB 4: ABDM FHIR Explorer */}
+          {activeTab === "ABDM" && (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 text-xs">
+                <p className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-teal-600" />
+                  ABDM FHIR Release 4 Document Bundles
+                </p>
+                <p className="text-slate-500">
+                  Every ingested clinical record is transformed into standard HL7 FHIR Release 4 Document Bundles compliant with National Resource Centre for EHR Standards (NRCES).
+                </p>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {records.map((r) => (
-                <div key={r.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs hover:shadow-md transition space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-bold text-slate-900 text-sm">{r.title}</h4>
-                      <p className="text-xs text-slate-500">Document Type: <strong>{r.document_type}</strong></p>
+              <div className="space-y-3">
+                {records.map((r) => (
+                  <div key={r.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-xs">{r.title}</h4>
+                        <p className="text-[11px] text-slate-500">{r.document_type} • {r.record_date}</p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] bg-slate-50">
+                        Bundle JSON
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="border-emerald-300 text-emerald-800 bg-emerald-50 text-xs">
-                      FHIR Bundle
-                    </Badge>
+                    <div className="rounded-xl bg-slate-900 p-3 text-[11px] font-mono text-emerald-400 overflow-x-auto max-h-48">
+                      <pre>{JSON.stringify(r.fhir_bundle, null, 2)}</pre>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
-                  <div className="rounded-xl bg-slate-950 p-3 text-xs font-mono text-emerald-400 overflow-x-auto max-h-40">
-                    <pre>{JSON.stringify(r.fhir_bundle, null, 2)}</pre>
-                  </div>
+        {/* Right Column (5 Columns): Intelligent AI Health Copilot Companion */}
+        <div className="lg:col-span-5 sticky top-20">
+          <div className="rounded-3xl border border-slate-200/90 bg-white shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col h-[calc(100vh-6.5rem)] max-h-[820px]">
+            {/* Copilot Header */}
+            <div className="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <Bot className="h-4 w-4" />
                 </div>
-              ))}
+                <div>
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-1.5">
+                    Personal Health Copilot
+                  </h3>
+                  <p className="text-[10px] text-emerald-400 font-medium">
+                    Clinical Reasoning Engine • Multilingual
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] font-medium text-slate-400">Ready</span>
+              </div>
+            </div>
+
+            {/* Chat Messages Thread */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50">
+              {messages.map((msg) => {
+                const isUser = msg.sender === "user";
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
+                  >
+                    <div
+                      className={`max-w-[90%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
+                        isUser
+                          ? "bg-slate-900 text-white shadow-xs"
+                          : "bg-white text-slate-800 border border-slate-200/90 shadow-xs"
+                      }`}
+                    >
+                      {!isUser && (
+                        <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 text-[10px] text-slate-400">
+                          <span className="font-semibold text-emerald-700 flex items-center gap-1">
+                            <Sparkles className="h-3 w-3" /> Copilot Clinical Insight
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSpeak(msg.text)}
+                            className="text-slate-500 hover:text-slate-800 flex items-center gap-1"
+                            title="Listen with voice"
+                          >
+                            <Volume2 className="h-3 w-3" /> Listen
+                          </button>
+                        </div>
+                      )}
+
+                      <p className="whitespace-pre-line font-medium">{msg.text}</p>
+
+                      {msg.citations && msg.citations.length > 0 && (
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1 text-[10px]">
+                          <span className="font-semibold text-slate-400">Sources:</span>
+                          {msg.citations.map((c, idx) => (
+                            <span
+                              key={idx}
+                              className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium border border-slate-200/80"
+                            >
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {copilotLoading && (
+                <div className="flex items-center gap-2 p-3 bg-white rounded-2xl border border-slate-200 text-xs text-slate-600 shadow-xs animate-pulse max-w-[80%]">
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-600" />
+                  <span>Synthesizing clinical answer across records...</span>
+                </div>
+              )}
+
+              <div ref={chatBottomRef} />
+            </div>
+
+            {/* Suggested Prompts */}
+            <div className="px-3.5 py-2 bg-white border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto text-[11px]">
+              <span className="text-slate-400 shrink-0 font-medium text-[10px]">Ask:</span>
+              <button
+                type="button"
+                onClick={() => handleAskCopilot("Are any of my blood test results high or abnormal?")}
+                className="whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+              >
+                High lab tests?
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAskCopilot("When should I take my diabetes medication?")}
+                className="whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+              >
+                Med schedule?
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAskCopilot("Explain Metformin and Atorvastatin in simple words.")}
+                className="whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+              >
+                Explain drugs?
+              </button>
+            </div>
+
+            {/* Voice & Text Input Form */}
+            <div className="p-3 bg-white border-t border-slate-200">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAskCopilot();
+                }}
+                className="flex items-center gap-2"
+              >
+                {/* Voice Record Button with Wave Indicator */}
+                <button
+                  type="button"
+                  onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
+                  disabled={voiceProcessing}
+                  title={isRecording ? "Stop recording voice" : "Speak clinical query"}
+                  className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition shadow-xs ${
+                    isRecording
+                      ? "bg-rose-600 text-white ring-2 ring-rose-400"
+                      : voiceProcessing
+                      ? "bg-amber-600 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {isRecording ? (
+                    <MicOff className="h-4 w-4" />
+                  ) : voiceProcessing ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Mic className="h-4 w-4 text-emerald-700" />
+                  )}
+                </button>
+
+                <input
+                  type="text"
+                  value={copilotQuery}
+                  onChange={(e) => setCopilotQuery(e.target.value)}
+                  placeholder={
+                    isRecording
+                      ? "Listening... Speak now..."
+                      : voiceProcessing
+                      ? "Transcribing with Whisper LPU..."
+                      : language === "hi"
+                      ? "अपनी दवाओं या रिपोर्ट के बारे में पूछें..."
+                      : language === "te"
+                      ? "మీ మందులు లేదా రిపోర్టుల గురించి అడగండి..."
+                      : "Ask about dosages, abnormal labs, diet..."
+                  }
+                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none"
+                />
+
+                <Button
+                  type="submit"
+                  disabled={copilotLoading || isRecording}
+                  className="h-10 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shrink-0"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </Button>
+              </form>
+
+              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-2 px-1">
+                <span>Clinical reference summaries from ABHA records</span>
+                <span className="font-semibold text-emerald-700">Safety Guardrails Active</span>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

@@ -32,37 +32,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 160 84% 39%;
 
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
-
-    --card: 224 71% 7%;
-    --card-foreground: 213 31% 91%;
-
-    --popover: 224 71% 7%;
-    --popover-foreground: 213 31% 91%;
-
-    --primary: 160 84% 45%;
-    --primary-foreground: 224 71% 4%;
-
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-
-    --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 210 20% 98%;
-
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 160 84% 45%;
+    --radius: 1rem;
   }
 }
 
@@ -71,22 +41,58 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-700;
+    @apply bg-[#F8FAFC] text-slate-900 font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-800;
   }
 }
 
-/* Custom scrollbars for timeline and FHIR viewer */
+/* Elite Glass & Shadow Utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+}
+
+.glass-card-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  border-color: rgba(203, 213, 225, 1);
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  transform: translateY(-1px);
+}
+
+/* Audio wave pulse animation for voice assistant */
+@keyframes soundwave {
+  0%, 100% { height: 6px; }
+  50% { height: 22px; }
+}
+
+.animate-wave-1 {
+  animation: soundwave 1.1s ease-in-out infinite;
+}
+.animate-wave-2 {
+  animation: soundwave 1.1s ease-in-out infinite 0.2s;
+}
+.animate-wave-3 {
+  animation: soundwave 1.1s ease-in-out infinite 0.4s;
+}
+.animate-wave-4 {
+  animation: soundwave 1.1s ease-in-out infinite 0.15s;
+}
+
+/* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.6);
+  background: rgba(100, 116, 139, 0.55);
 }

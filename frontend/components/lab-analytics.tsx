@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Info,
   Filter,
+  Layers,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/language-context";
@@ -23,6 +24,7 @@ export function LabAnalytics({ records }: LabAnalyticsProps) {
 
   // Collect all unique lab observations
   const allLabs: LabObservationItem[] = records.flatMap((r) => r.lab_observations);
+  const abnormalCount = allLabs.filter((l) => ["HIGH", "LOW", "ABNORMAL"].includes(l.flag)).length;
 
   // Filter observations
   const filteredLabs = allLabs.filter((lab) => {
@@ -44,18 +46,18 @@ export function LabAnalytics({ records }: LabAnalyticsProps) {
   return (
     <div className="space-y-6">
       {/* Header and Category Filter */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-rose-50 via-amber-50 to-white p-4 rounded-2xl border border-rose-200/70">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div>
-          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-rose-600" />
+          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <Activity className="h-4 w-4 text-emerald-600" />
             {language === "hi"
               ? "प्रयोगशाला जांच विश्लेषण एवं संदर्भ सीमाएं"
               : language === "te"
               ? "ల్యాబ్ పరీక్ష విశ్లేషణ మరియు సాధారణ పరిధులు"
-              : "Diagnostic Investigation & Lab Biomarker Analytics"}
+              : "Diagnostic Biomarkers & Clinical Observations"}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Normalized against standard biological reference intervals (NRCES Observation profiles)
+            Biological reference ranges synchronized from ABDM FHIR Observation records ({allLabs.length} total tests, {abnormalCount} flagged)
           </p>
         </div>
 
@@ -65,17 +67,21 @@ export function LabAnalytics({ records }: LabAnalyticsProps) {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+              className={`rounded-xl px-3 py-1 text-xs font-semibold transition ${
                 selectedCategory === cat
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
               {cat === "ALL"
-                ? "All Tests"
+                ? `All (${allLabs.length})`
                 : cat === "ABNORMAL"
-                ? "⚠️ Abnormal Only"
-                : cat}
+                ? `Alerts (${abnormalCount})`
+                : cat === "GLUCOSE"
+                ? "Glycemic"
+                : cat === "LIPID"
+                ? "Lipid Panel"
+                : "Renal / Kidney"}
             </button>
           ))}
         </div>
@@ -91,47 +97,46 @@ export function LabAnalytics({ records }: LabAnalyticsProps) {
           return (
             <div
               key={index}
-              className={`rounded-2xl border p-4 transition-all hover:shadow-md ${
-                isHigh
-                  ? "border-rose-200 bg-rose-50/20"
-                  : isLow
-                  ? "border-amber-200 bg-amber-50/20"
-                  : "border-slate-200 bg-white"
-              }`}
+              className="rounded-2xl border border-slate-200/90 bg-white p-5 transition-all hover:shadow-md space-y-3"
             >
               <div className="flex items-start justify-between">
                 <div>
                   <h4 className="font-bold text-slate-900 text-sm">{lab.test_name}</h4>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Reference Interval: <strong>{lab.reference_range || "N/A"} {lab.unit}</strong>
+                    Reference Interval: <strong className="text-slate-700">{lab.reference_range || "Standard"} {lab.unit}</strong>
                   </p>
                 </div>
 
-                <Badge
-                  variant={isHigh ? "destructive" : isLow ? "warning" : "success"}
-                  className="text-[10px] font-bold uppercase tracking-wider"
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                    isHigh
+                      ? "bg-rose-50 text-rose-700 border border-rose-200/80"
+                      : isLow
+                      ? "bg-amber-50 text-amber-800 border border-amber-200/80"
+                      : "bg-emerald-50 text-emerald-800 border border-emerald-200/80"
+                  }`}
                 >
                   {lab.flag}
-                </Badge>
+                </span>
               </div>
 
               {/* Observed Value Callout */}
-              <div className="mt-4 flex items-baseline justify-between pt-2 border-t border-slate-100">
-                <span className="text-xs text-slate-500 font-medium">Measured Clinical Value:</span>
-                <span className="text-xl font-black text-slate-900 font-mono">
-                  {lab.observed_value} <span className="text-xs font-semibold text-slate-500">{lab.unit}</span>
+              <div className="flex items-baseline justify-between pt-2 border-t border-slate-100">
+                <span className="text-xs text-slate-500 font-medium">Measured Value:</span>
+                <span className="text-2xl font-bold text-slate-900 font-mono">
+                  {lab.observed_value} <span className="text-xs font-semibold text-slate-400">{lab.unit}</span>
                 </span>
               </div>
 
               {/* Patient Friendly Interpretation */}
-              <div className="mt-3 rounded-xl bg-slate-50 p-2.5 text-xs text-slate-600 border border-slate-100 flex items-start gap-2">
-                <Info className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+              <div className="rounded-xl bg-slate-50 p-2.5 text-xs text-slate-600 border border-slate-100 flex items-start gap-2 leading-relaxed">
+                <Info className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
                 <span>
                   {isHigh
-                    ? "Result is higher than normal clinical threshold. Consult doctor for targeted dietary and medication adjustments."
+                    ? "Result exceeds recommended biological threshold. Consult physician regarding lifestyle or dosage review."
                     : isLow
-                    ? "Result is below expected biological baseline."
-                    : "Within standard healthy biological limits."}
+                    ? "Result is lower than target baseline range."
+                    : "Observation is within normal physiological limits."}
                 </span>
               </div>
             </div>
