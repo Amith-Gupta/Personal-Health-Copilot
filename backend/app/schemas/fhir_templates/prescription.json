@@ -1,0 +1,126 @@
+{
+  "resourceType": "Bundle",
+  "id": "bundle-prescription-template",
+  "meta": {
+    "versionId": "1",
+    "lastUpdated": "2026-03-30T10:00:00Z",
+    "profile": [
+      "https://nrces.in/ndhm/fhir/r4/StructureDefinition/PrescriptionRecord"
+    ]
+  },
+  "identifier": {
+    "system": "https://abdm.gov.in/bundle",
+    "value": "BUNDLE-RX-001"
+  },
+  "type": "document",
+  "timestamp": "2026-03-30T10:00:00Z",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:Composition/comp-01",
+      "resource": {
+        "resourceType": "Composition",
+        "id": "comp-01",
+        "status": "final",
+        "type": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "440545006",
+              "display": "Prescription record"
+            }
+          ],
+          "text": "Prescription Record"
+        },
+        "subject": {
+          "reference": "urn:uuid:Patient/patient-01",
+          "display": "Patient"
+        },
+        "date": "2026-03-30T10:00:00Z",
+        "author": [
+          {
+            "reference": "urn:uuid:Practitioner/practitioner-01",
+            "display": "Attending Physician"
+          }
+        ],
+        "title": "Prescription Record",
+        "section": [
+          {
+            "title": "Medications",
+            "code": {
+              "coding": [
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "721912009",
+                  "display": "Medication summary"
+                }
+              ]
+            },
+            "entry": [
+              {
+                "reference": "urn:uuid:MedicationRequest/med-01"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:Patient/patient-01",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-01",
+        "identifier": [
+          {
+            "system": "https://healthid.ndhm.gov.in",
+            "value": "91-1234-5678-9012"
+          }
+        ],
+        "name": [
+          {
+            "text": "Rajesh Kumar Sharma"
+          }
+        ],
+        "gender": "male"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:Practitioner/practitioner-01",
+      "resource": {
+        "resourceType": "Practitioner",
+        "id": "practitioner-01",
+        "identifier": [
+          {
+            "system": "https://doctor.ndhm.gov.in",
+            "value": "MCI-49219"
+          }
+        ],
+        "name": [
+          {
+            "text": "Dr. Ananya Rao, MD (Medicine)"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:MedicationRequest/med-01",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "med-01",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "text": "Metformin 500mg"
+        },
+        "subject": {
+          "reference": "urn:uuid:Patient/patient-01"
+        },
+        "authoredOn": "2026-03-30T10:00:00Z",
+        "dosageInstruction": [
+          {
+            "text": "1-0-1 (Twice daily after food) for 30 days"
+          }
+        ]
+      }
+    }
+  ]
+}

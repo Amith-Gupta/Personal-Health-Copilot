@@ -1,0 +1,48 @@
+{
+  "resourceType": "Bundle",
+  "id": "bundle-discharge-template",
+  "meta": {
+    "versionId": "1",
+    "lastUpdated": "2026-03-30T10:00:00Z",
+    "profile": [
+      "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DischargeSummaryRecord"
+    ]
+  },
+  "type": "document",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:Composition/comp-ds-01",
+      "resource": {
+        "resourceType": "Composition",
+        "id": "comp-ds-01",
+        "status": "final",
+        "type": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "373942005",
+              "display": "Discharge summary"
+            }
+          ],
+          "text": "Hospital Discharge Summary"
+        },
+        "subject": {
+          "reference": "urn:uuid:Patient/patient-01"
+        },
+        "title": "Inpatient Hospital Discharge Summary"
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:Patient/patient-01",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-01",
+        "name": [
+          {
+            "text": "Rajesh Kumar Sharma"
+          }
+        ]
+      }
+    }
+  ]
+}

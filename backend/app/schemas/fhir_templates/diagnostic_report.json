@@ -1,0 +1,119 @@
+{
+  "resourceType": "Bundle",
+  "id": "bundle-diagnostic-template",
+  "meta": {
+    "versionId": "1",
+    "lastUpdated": "2026-03-30T10:00:00Z",
+    "profile": [
+      "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DiagnosticReportRecord"
+    ]
+  },
+  "identifier": {
+    "system": "https://abdm.gov.in/bundle",
+    "value": "BUNDLE-LAB-001"
+  },
+  "type": "document",
+  "timestamp": "2026-03-30T10:00:00Z",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:Patient/patient-01",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-01",
+        "identifier": [
+          {
+            "system": "https://healthid.ndhm.gov.in",
+            "value": "91-1234-5678-9012"
+          }
+        ],
+        "name": [
+          {
+            "text": "Rajesh Kumar Sharma"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:DiagnosticReport/report-01",
+      "resource": {
+        "resourceType": "DiagnosticReport",
+        "id": "report-01",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v2-0074",
+                "code": "LAB",
+                "display": "Laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "24323-8",
+              "display": "Comprehensive Metabolic Panel"
+            }
+          ],
+          "text": "Comprehensive Lab Profile"
+        },
+        "subject": {
+          "reference": "urn:uuid:Patient/patient-01"
+        },
+        "effectiveDateTime": "2026-03-30T09:00:00Z",
+        "conclusion": "Elevated fasting blood glucose and HbA1c.",
+        "result": [
+          {
+            "reference": "urn:uuid:Observation/obs-01"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:Observation/obs-01",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-01",
+        "status": "final",
+        "code": {
+          "text": "Fasting Blood Glucose"
+        },
+        "subject": {
+          "reference": "urn:uuid:Patient/patient-01"
+        },
+        "valueQuantity": {
+          "value": 185,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "H",
+                "display": "High"
+              }
+            ]
+          }
+        ],
+        "referenceRange": [
+          {
+            "low": {
+              "value": 70,
+              "unit": "mg/dL"
+            },
+            "high": {
+              "value": 99,
+              "unit": "mg/dL"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
