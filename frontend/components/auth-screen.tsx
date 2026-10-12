@@ -33,13 +33,18 @@ export function AuthScreen() {
   const input = "h-11 w-full rounded-full border border-line bg-surface px-4 text-[14px] text-fg placeholder:text-fg-3 focus:border-fg focus:outline-none";
 
   return (
-    <main className="flex min-h-[100dvh] flex-col">
+    <main className="flex min-h-[100dvh] flex-col overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4">
         <span className="display text-[20px] font-bold">copilot<span className="text-high">.</span></span>
         <div className="flex items-center gap-2"><div className="w-48"><LangSwitch /></div><ThemeToggle /></div>
       </div>
       <div className="mx-auto grid w-full max-w-[1240px] flex-1 items-center gap-12 px-5 pb-16 md:grid-cols-2">
-        <h2 className="display hidden text-[64px] font-semibold leading-[0.95] md:block">{t.tagline}</h2>
+        <div className="relative hidden md:block">
+          <h2 className="display relative z-10 text-[56px] font-semibold leading-[0.95] lg:text-[64px]">{t.tagline}</h2>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/hero-stethoscope.jpg" alt="" aria-hidden
+            className="pointer-events-none absolute -bottom-[26rem] left-20 w-[560px] max-w-none select-none mix-blend-multiply opacity-90 [mask-image:radial-gradient(closest-side,#000_45%,transparent_100%)]" />
+        </div>
         <div className="w-full max-w-[380px] animate-fade-up md:justify-self-end">
           <h1 className="display text-[32px] font-semibold">{mode === "in" ? t.signIn : t.signUp}</h1>
           <p className="mt-1 text-[14px] text-fg-3 md:hidden">{t.tagline}</p>
