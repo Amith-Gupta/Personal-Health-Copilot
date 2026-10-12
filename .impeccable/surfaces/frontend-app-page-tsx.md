@@ -5,21 +5,21 @@ primary_target: "frontend/app/page.tsx"
 related_targets: []
 ---
 
-# Surface: Health Passbook (frontend/app)
+# Surface: Health Copilot app (frontend/app)
 
-Mode: operate. Audience: Indian family caregiver managing parents' and own records; judges in demo. Job: upload a document, check what the AI read against the original, understand it in plain language, see each person's timeline.
+Mode: operate. Audience: Indian family caregiver managing parents' and own records; hackathon judges in demo. Job: upload a document, check what the AI read against the original, understand it in plain language, see each person's timeline and medicines, ask questions.
 
 ## Direction contract
-seed: 53c1b15f (assigned index 4)
+seed: 53c1b15f (user rejected the assigned passbook direction after seeing it; took the category standard, played straight)
 
-THESIS: A family health passbook. Each person owns a passbook; every document is a dated, stamped ledger entry. Refuses the category default of a SaaS dashboard with KPI cards, gradients and AI badges.
+THESIS: Category standard at Linear / Stripe / Vercel craft. Refuses gradient hero cards, AI badges, glow and KPI-tile dashboards.
 
-OWN-WORLD: Pale blue-green security-print page with fine guilloche line texture, deep indigo passbook cover as the person switcher, blue-black ink, violet rubber-stamp marks for "read from source", bank red for out-of-range values only. Anek (Latin, Devanagari, Telugu) for text, Red Hat Mono for printed figures. Ruled ledger rows, no floating cards.
+OWN-WORLD: Cool off-white canvas, white surfaces with 1px zinc borders and soft offset shadows, off-black ink, one blue-violet accent, red only for out-of-range. Geist + Geist Mono, Noto Sans Devanagari/Telugu for parity. 6-8px radii.
 
-STORY: Pick whose passbook, add a page (upload), watch the entry print line by line, check it against the original side by side, read what it means and what to ask the doctor.
+STORY: Pick a family member, see what needs attention, open a record and verify it against the original, add a document, ask.
 
-FIRST VIEWPORT: The open passbook: cover tab of the selected person with ABHA number, a "current balance" strip (active medicines, latest out-of-range values), and the ledger of entries.
+FIRST VIEWPORT: Patient header with ABHA status and actions; Overview with "Needs attention" range bars and today's medicine schedule.
 
-SIGNATURE: New upload prints into the ledger row by row like a passbook printer, ending in a stamp.
+SIGNATURE: Range bar per test showing the value against the printed reference band.
 
-RISK: Skeuomorphism tipping into costume; keep it to ruling, stamps and type, all controls stay plainly clickable.
+RISK: Generic SaaS. Earn it through data precision and detail polish.

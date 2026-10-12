@@ -2,91 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
+:root {
+  --canvas: 250 250 251;
+  --surface: 255 255 255;
+  --subtle: 244 244 246;
+  --hover: 239 240 243;
+  --line: 230 231 235;
+  --line-strong: 212 214 220;
+  --fg: 17 18 23;
+  --fg-2: 75 79 92;
+  --fg-3: 112 117 130;
+  --accent: 79 70 229;
+  --accent-fg: 255 255 255;
+  --accent-soft: 238 237 253;
+  --high: 200 38 38;
+  --high-soft: 254 238 238;
+  --low: 29 99 196;
+  --low-soft: 234 242 253;
+  --ok: 21 128 82;
+  --ok-soft: 231 246 238;
+  --warn: 166 98 9;
+  --warn-soft: 253 244 225;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 160 84% 39%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 160 84% 39%;
-
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
-
-    --card: 224 71% 7%;
-    --card-foreground: 213 31% 91%;
-
-    --popover: 224 71% 7%;
-    --popover-foreground: 213 31% 91%;
-
-    --primary: 160 84% 45%;
-    --primary-foreground: 224 71% 4%;
-
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-
-    --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 210 20% 98%;
-
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 160 84% 45%;
+    --canvas: 12 13 16;
+    --surface: 20 21 25;
+    --subtle: 26 27 32;
+    --hover: 32 34 40;
+    --line: 39 41 48;
+    --line-strong: 54 57 66;
+    --fg: 237 238 241;
+    --fg-2: 176 180 191;
+    --fg-3: 133 138 151;
+    --accent: 129 140 248;
+    --accent-fg: 12 13 16;
+    --accent-soft: 34 34 66;
+    --high: 248 113 113;
+    --high-soft: 60 24 26;
+    --low: 110 168 250;
+    --low-soft: 22 36 62;
+    --ok: 74 200 140;
+    --ok-soft: 18 46 34;
+    --warn: 240 180 80;
+    --warn-soft: 52 38 14;
+    color-scheme: dark;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-700;
-  }
-}
-
-/* Custom scrollbars for timeline and FHIR viewer */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.6);
-}
+html { -webkit-text-size-adjust: 100%; }
+body { background: rgb(var(--canvas)); color: rgb(var(--fg)); font-feature-settings: "cv11", "ss01"; }
+::selection { background: rgb(var(--accent) / 0.18); }
+input, textarea { caret-color: rgb(var(--accent)); }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px rgb(var(--canvas)), 0 0 0 4px rgb(var(--accent) / 0.55); border-radius: 6px; }
+* { scrollbar-width: thin; scrollbar-color: rgb(var(--line-strong)) transparent; }
+.num { font-family: var(--font-geist-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.skeleton { background: linear-gradient(90deg, rgb(var(--subtle)) 0%, rgb(var(--hover)) 50%, rgb(var(--subtle)) 100%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; } }

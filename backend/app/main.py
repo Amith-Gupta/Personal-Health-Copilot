@@ -30,3 +30,21 @@ def load_sample_family(owner: str = Depends(current_user_id)):
 @app.get("/health")
 def health():
     return {"status": "ok", "vision": bool(settings.GEMINI_API_KEY), "language_model": bool(settings.GROQ_API_KEY)}
+
+
+@app.post(f"{settings.API_V1_PREFIX}/demo/session", tags=["Demo"])
+def demo_session():
+    """Signs in the shared demo account on the server so its password never reaches the browser."""
+    import os
+    import httpx
+    from fastapi import HTTPException
+    email, password = os.getenv("DEMO_EMAIL") or settings.model_extra.get("demo_email"), os.getenv("DEMO_PASSWORD") or settings.model_extra.get("demo_password")
+    if not email or not password:
+        raise HTTPException(404, "No demo account is configured.")
+    r = httpx.post(f"{settings.SUPABASE_URL}/auth/v1/token?grant_type=password",
+                   headers={"apikey": settings.SUPABASE_PUBLISHABLE_KEY or settings.SUPABASE_KEY},
+                   json={"email": email, "password": password}, timeout=15)
+    if r.status_code != 200:
+        raise HTTPException(502, "The demo account could not sign in.")
+    body = r.json()
+    return {"access_token": body["access_token"], "refresh_token": body["refresh_token"]}

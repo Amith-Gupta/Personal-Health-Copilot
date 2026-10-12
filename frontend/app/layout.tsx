@@ -1,41 +1,27 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono, Noto_Sans_Devanagari, Noto_Sans_Telugu } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/navbar";
-import { LanguageProvider } from "@/lib/language-context";
+import { I18nProvider } from "@/lib/i18n";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
+const deva = Noto_Sans_Devanagari({ subsets: ["devanagari"], variable: "--font-deva", display: "swap" });
+const telu = Noto_Sans_Telugu({ subsets: ["telugu"], variable: "--font-telu", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "AI Health Copilot | ABDM FHIR R4 Health Intelligence",
-  description:
-    "AI-Powered Personal Health Copilot translating medical documents into plain-language summaries and ABDM FHIR R4 Bundles.",
+  title: "Health Copilot",
+  description: "Reads a family's prescriptions, lab reports and discharge summaries, explains them in English, Hindi and Telugu, and keeps one ABDM-ready record per person.",
+};
+export const viewport: Viewport = {
+  width: "device-width", initialScale: 1,
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#FAFAFB" }, { media: "(prefers-color-scheme: dark)", color: "#0C0D10" }],
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full">
-      <body className="min-h-screen bg-slate-50/60 text-slate-900 flex flex-col font-sans">
-        <LanguageProvider>
-          <Navbar />
-          <main className="flex-1 pb-16">{children}</main>
-          <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-            <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-              <p>
-                © 2026 AI Health Copilot. Built for Ayushman Bharat Digital Mission (ABDM) Hackathon.
-              </p>
-              <div className="flex items-center gap-4 text-[11px] text-slate-400">
-                <span>HL7 FHIR R4</span>
-                <span>•</span>
-                <span>NRCES Profiles</span>
-                <span>•</span>
-                <span>Gemini 1.5 Multimodal Vision</span>
-              </div>
-            </div>
-          </footer>
-        </LanguageProvider>
+    <html lang="en-IN" className={`${geist.variable} ${geistMono.variable} ${deva.variable} ${telu.variable}`}>
+      <body className="min-h-[100dvh] font-sans text-base antialiased">
+        <I18nProvider>{children}</I18nProvider>
       </body>
     </html>
   );

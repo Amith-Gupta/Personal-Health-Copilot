@@ -1,0 +1,233 @@
+"use client";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import type { Lang } from "./types";
+
+const en = {
+  appName: "Health Copilot",
+  tabs: { overview: "Overview", records: "Records", medicines: "Medicines", ask: "Ask" },
+  needsAttention: "Needs attention", attentionNote: "Latest value of each test, outside the range printed on the report.",
+  allClear: "Every latest test value is inside its printed range.", noTests: "No lab results yet.",
+  todaysMeds: "Medicine schedule", schedNote: "From the latest prescription by each doctor.",
+  morning: "Morning", afternoon: "Afternoon", night: "Night", asNeeded: "When needed", weekly: "Weekly", other: "As written",
+  recent: "Recent records", viewAll: "View all", back: "Records",
+  documents: (n: number) => `${n} record${n === 1 ? "" : "s"}`,
+  prescribedBy: "Prescribed by", from: "From",
+  filed: (who: string) => `Filed to ${who}`,
+  uploadTitle: "Add a medical document", newRecord: "Add document",
+  verified: "Verified against range", aiRead: "AI-read",
+  conversation: "Ask anything about these records", thinking: "Reading the records",
+  schedule: "Schedule", source: "Source",
+  tagline: "Your family's prescriptions, lab reports and discharge papers, read and explained.",
+  signIn: "Sign in", signUp: "Create account", signOut: "Sign out",
+  email: "Email", password: "Password", useDemo: "Use the demo family",
+  demoNote: "Demo login. All people and documents in it are invented.",
+  haveAccount: "Already have an account?", noAccount: "New here?",
+  family: "Family", addMember: "Add family member", name: "Name", relation: "Relation", age: "Age", sex: "Sex",
+  save: "Save", cancel: "Cancel",
+  passbookOf: "Records of", sample: "Sample",
+  abha: "ABHA", abhaLink: "Link ABHA", abhaLinked: "ABHA linked", abhaUnlink: "Unlink",
+  abhaHelp: "Enter the 14-digit ABHA number or ABHA address. This prototype checks the format only; it does not contact ABDM.",
+  abhaNumber: "ABHA number", abhaAddress: "or ABHA address",
+  exportFhir: "Export FHIR R4",
+  current: "Current position", currentMeds: "Medicines on the latest prescriptions", outOfRange: "Latest values outside the printed range",
+  noneYet: "Nothing yet", allInRange: "All latest values are inside their printed ranges",
+  ledger: "Records", date: "Date", entry: "Entry", particulars: "Particulars", check: "Check",
+  addPage: "Add a document", dropHere: "Drop a photo or PDF of a prescription, lab report or discharge summary",
+  chooseFile: "Choose file", fileHint: "JPG, PNG, HEIC or PDF, up to 15 MB",
+  reading: "Reading the document", readingSteps: ["Reading every line of the page", "Finding medicines, tests and dates", "Checking each value against its printed range", "Writing the explanation in English, Hindi and Telugu"],
+  takesTime: "This usually takes 10 to 40 seconds.",
+  notFiled: "Not filed", tryAgain: "Try again",
+  readFromSource: "Read", nameDiffers: "Name differs", noName: "No name on page",
+  nameMismatch: (onDoc: string, who: string) => `This document names ${onDoc}, but it was added to ${who}'s records.`,
+  moveTo: "Move to", addAsMember: (n: string) => `Add ${n} to the family`, keepHere: "Keep here",
+  original: "Original document", whatItSays: "What it says", openOriginal: "Open original",
+  diagnoses: "Diagnoses", medicines: "Medicines", tests: "Test results",
+  medicine: "Medicine", dose: "Dose", when: "When", howLong: "How long",
+  test: "Test", result: "Result", range: "Printed range",
+  HIGH: "High", LOW: "Low", NORMAL: "In range", ABNORMAL: "Abnormal", UNKNOWN: "No range",
+  questions: "Questions to ask the doctor", followUp: "Follow-up", unreadable: "Could not read",
+  hardToRead: "hard to read, check the original",
+  readBy: "Read by", seconds: "s", rangeChecked: "Flags are computed from the printed reference range.",
+  showFhir: "Show FHIR record", hideFhir: "Hide FHIR record", deleteEntry: "Delete entry", confirmDelete: "Delete this entry and its original file?",
+  ask: "Ask about", askPlaceholder: "Ask in English, Hindi or Telugu. For example: which results are not normal?",
+  askButton: "Ask", listening: "Listening. Tap again to stop.", speak: "Speak", readAloud: "Read aloud", stop: "Stop",
+  sources: "From",
+  suggestions: ["Which results are not normal?", "When should each medicine be taken?", "What should we ask at the next visit?"],
+  emptyFamily: "Start with one person", emptyFamilyBody: "Add yourself or a family member, then add their first document. Or open the sample family to see how it works.",
+  loadSample: "Open the sample family", emptyLedger: "No documents yet. Add a prescription, lab report or discharge summary above.",
+  disclaimer: "Explains documents in plain words. Not a diagnosis. Ask your doctor before changing any medicine.",
+  emergency: "Emergency: 112 or 108",
+  types: { Prescription: "Prescription", DiagnosticReport: "Lab report", DischargeSummary: "Discharge summary" },
+  medsCount: (n: number) => `${n} medicine${n === 1 ? "" : "s"}`,
+  testsCount: (n: number, out: number) => `${n} tests, ${out} outside range`,
+  noDate: "No date",
+};
+type Dict = typeof en;
+
+const hi: Dict = {
+  ...en,
+  appName: "हेल्थ कोपायलट",
+  tabs: { overview: "सारांश", records: "रिकॉर्ड", medicines: "दवाएं", ask: "पूछें" },
+  needsAttention: "ध्यान देने योग्य", attentionNote: "हर जांच का नवीनतम मान, जो रिपोर्ट पर छपी सीमा से बाहर है।",
+  allClear: "हर जांच का नवीनतम मान अपनी छपी सीमा के अंदर है।", noTests: "अभी कोई जांच नतीजा नहीं।",
+  todaysMeds: "दवाओं की समय सारणी", schedNote: "हर डॉक्टर के नवीनतम पर्चे से।",
+  morning: "सुबह", afternoon: "दोपहर", night: "रात", asNeeded: "ज़रूरत पर", weekly: "हफ़्ते में", other: "जैसा लिखा है",
+  recent: "हाल के रिकॉर्ड", viewAll: "सभी देखें", back: "रिकॉर्ड",
+  documents: (n: number) => `${n} रिकॉर्ड`,
+  prescribedBy: "लिखने वाले", from: "स्रोत",
+  filed: (who: string) => `${who} के रिकॉर्ड में जोड़ा गया`,
+  uploadTitle: "मेडिकल दस्तावेज़ जोड़ें", newRecord: "दस्तावेज़ जोड़ें",
+  verified: "सीमा से जांचा गया", aiRead: "AI द्वारा पढ़ा",
+  conversation: "इन रिकॉर्ड के बारे में कुछ भी पूछें", thinking: "रिकॉर्ड पढ़े जा रहे हैं",
+  schedule: "समय", source: "स्रोत",
+  tagline: "परिवार के पर्चे, जांच रिपोर्ट और डिस्चार्ज कागज़, पढ़े और समझाए गए।",
+  signIn: "साइन इन", signUp: "खाता बनाएं", signOut: "साइन आउट",
+  email: "ईमेल", password: "पासवर्ड", useDemo: "डेमो परिवार खोलें",
+  demoNote: "डेमो लॉगिन। इसमें सभी लोग और दस्तावेज़ काल्पनिक हैं।",
+  haveAccount: "पहले से खाता है?", noAccount: "नए हैं?",
+  family: "परिवार", addMember: "परिवार का सदस्य जोड़ें", name: "नाम", relation: "रिश्ता", age: "उम्र", sex: "लिंग",
+  save: "सहेजें", cancel: "रद्द करें",
+  passbookOf: "पासबुक", sample: "नमूना",
+  abhaLink: "ABHA जोड़ें", abhaLinked: "ABHA जुड़ा है", abhaUnlink: "हटाएं",
+  abhaHelp: "14 अंकों का ABHA नंबर या ABHA पता डालें। यह प्रोटोटाइप केवल प्रारूप जांचता है, ABDM से संपर्क नहीं करता।",
+  abhaNumber: "ABHA नंबर", abhaAddress: "या ABHA पता",
+  exportFhir: "FHIR R4 डाउनलोड",
+  current: "वर्तमान स्थिति", currentMeds: "नवीनतम पर्चों की दवाएं", outOfRange: "छपी हुई सीमा से बाहर नवीनतम मान",
+  noneYet: "अभी कुछ नहीं", allInRange: "सभी नवीनतम मान अपनी छपी सीमा के अंदर हैं",
+  ledger: "प्रविष्टियां", date: "तारीख", entry: "प्रविष्टि", particulars: "विवरण", check: "जांच",
+  addPage: "दस्तावेज़ जोड़ें", dropHere: "पर्चे, जांच रिपोर्ट या डिस्चार्ज सारांश की फ़ोटो या PDF यहां छोड़ें",
+  chooseFile: "फ़ाइल चुनें", fileHint: "JPG, PNG, HEIC या PDF, 15 MB तक",
+  reading: "दस्तावेज़ पढ़ा जा रहा है", readingSteps: ["पन्ने की हर पंक्ति पढ़ी जा रही है", "दवाएं, जांच और तारीखें खोजी जा रही हैं", "हर मान को छपी सीमा से मिलाया जा रहा है", "अंग्रेज़ी, हिंदी और तेलुगु में समझाया जा रहा है"],
+  takesTime: "आमतौर पर 10 से 40 सेकंड लगते हैं।",
+  notFiled: "दर्ज नहीं हुआ", tryAgain: "फिर कोशिश करें",
+  readFromSource: "मूल से पढ़ा", nameDiffers: "नाम अलग", noName: "नाम नहीं छपा",
+  nameMismatch: (onDoc, who) => `इस दस्तावेज़ पर ${onDoc} का नाम है, लेकिन यह ${who} के रिकॉर्ड में जोड़ा गया है।`,
+  moveTo: "यहां ले जाएं", addAsMember: (n) => `${n} को परिवार में जोड़ें`, keepHere: "यहीं रखें",
+  original: "मूल दस्तावेज़", whatItSays: "इसमें क्या लिखा है", openOriginal: "मूल खोलें",
+  diagnoses: "निदान", medicines: "दवाएं", tests: "जांच के नतीजे",
+  medicine: "दवा", dose: "खुराक", when: "कब", howLong: "कितने दिन",
+  test: "जांच", result: "नतीजा", range: "छपी सीमा",
+  HIGH: "अधिक", LOW: "कम", NORMAL: "सीमा में", ABNORMAL: "असामान्य", UNKNOWN: "सीमा नहीं",
+  questions: "डॉक्टर से पूछने के सवाल", followUp: "अगली जांच", unreadable: "पढ़ा नहीं जा सका",
+  hardToRead: "पढ़ना मुश्किल, मूल देखें",
+  readBy: "पढ़ा", rangeChecked: "फ़्लैग छपी संदर्भ सीमा से गणना किए गए हैं।",
+  showFhir: "FHIR रिकॉर्ड दिखाएं", hideFhir: "FHIR रिकॉर्ड छिपाएं", deleteEntry: "प्रविष्टि हटाएं", confirmDelete: "यह प्रविष्टि और मूल फ़ाइल हटाएं?",
+  ask: "पूछें", askPlaceholder: "हिंदी, अंग्रेज़ी या तेलुगु में पूछें। जैसे: कौन से नतीजे सामान्य नहीं हैं?",
+  askButton: "पूछें", listening: "सुन रहे हैं। रोकने के लिए फिर दबाएं।", speak: "बोलें", readAloud: "सुनें", stop: "रोकें",
+  sources: "स्रोत",
+  suggestions: ["कौन से नतीजे सामान्य नहीं हैं?", "हर दवा कब लेनी है?", "अगली मुलाकात में क्या पूछें?"],
+  emptyFamily: "एक व्यक्ति से शुरू करें", emptyFamilyBody: "खुद को या परिवार के किसी सदस्य को जोड़ें, फिर पहला दस्तावेज़ जोड़ें। या नमूना परिवार खोलकर देखें।",
+  loadSample: "नमूना परिवार खोलें", emptyLedger: "अभी कोई दस्तावेज़ नहीं। ऊपर पर्चा, जांच रिपोर्ट या डिस्चार्ज सारांश जोड़ें।",
+  disclaimer: "दस्तावेज़ों को आसान शब्दों में समझाता है। यह निदान नहीं है। दवा बदलने से पहले डॉक्टर से पूछें।",
+  emergency: "आपातकाल: 112 या 108",
+  types: { Prescription: "पर्चा", DiagnosticReport: "जांच रिपोर्ट", DischargeSummary: "डिस्चार्ज सारांश" },
+  medsCount: (n) => `${n} दवा`,
+  testsCount: (n, out) => `${n} जांच, ${out} सीमा से बाहर`,
+  noDate: "तारीख नहीं",
+};
+
+const te: Dict = {
+  ...en,
+  appName: "హెల్త్ కోపైలట్",
+  tabs: { overview: "సారాంశం", records: "రికార్డులు", medicines: "మందులు", ask: "అడగండి" },
+  needsAttention: "గమనించాల్సినవి", attentionNote: "ప్రతి పరీక్ష తాజా విలువ, రిపోర్ట్‌పై ముద్రించిన పరిధి దాటినవి.",
+  allClear: "ప్రతి పరీక్ష తాజా విలువ ముద్రించిన పరిధిలోనే ఉంది.", noTests: "ఇంకా ల్యాబ్ ఫలితాలు లేవు.",
+  todaysMeds: "మందుల సమయ పట్టిక", schedNote: "ప్రతి డాక్టర్ తాజా ప్రిస్క్రిప్షన్ నుండి.",
+  morning: "ఉదయం", afternoon: "మధ్యాహ్నం", night: "రాత్రి", asNeeded: "అవసరమైతే", weekly: "వారానికి", other: "రాసినట్లు",
+  recent: "ఇటీవలి రికార్డులు", viewAll: "అన్నీ చూడండి", back: "రికార్డులు",
+  documents: (n: number) => `${n} రికార్డులు`,
+  prescribedBy: "రాసినవారు", from: "ఆధారం",
+  filed: (who: string) => `${who} రికార్డుల్లో చేర్చబడింది`,
+  uploadTitle: "వైద్య పత్రం జోడించండి", newRecord: "పత్రం జోడించండి",
+  verified: "పరిధితో సరిచూసింది", aiRead: "AI చదివింది",
+  conversation: "ఈ రికార్డుల గురించి ఏదైనా అడగండి", thinking: "రికార్డులు చదువుతోంది",
+  schedule: "సమయం", source: "ఆధారం",
+  tagline: "మీ కుటుంబ ప్రిస్క్రిప్షన్‌లు, ల్యాబ్ రిపోర్టులు, డిశ్చార్జ్ పత్రాలు, చదివి వివరించబడతాయి.",
+  signIn: "సైన్ ఇన్", signUp: "ఖాతా తెరవండి", signOut: "సైన్ అవుట్",
+  email: "ఈమెయిల్", password: "పాస్‌వర్డ్", useDemo: "డెమో కుటుంబాన్ని తెరవండి",
+  demoNote: "డెమో లాగిన్. ఇందులోని వ్యక్తులు, పత్రాలు అన్నీ కల్పితం.",
+  haveAccount: "ఇప్పటికే ఖాతా ఉందా?", noAccount: "కొత్తవారా?",
+  family: "కుటుంబం", addMember: "కుటుంబ సభ్యుడిని జోడించండి", name: "పేరు", relation: "సంబంధం", age: "వయస్సు", sex: "లింగం",
+  save: "సేవ్ చేయండి", cancel: "రద్దు",
+  passbookOf: "పాస్‌బుక్", sample: "నమూనా",
+  abhaLink: "ABHA లింక్ చేయండి", abhaLinked: "ABHA లింక్ అయింది", abhaUnlink: "తీసివేయండి",
+  abhaHelp: "14 అంకెల ABHA నంబర్ లేదా ABHA చిరునామా ఇవ్వండి. ఈ ప్రోటోటైప్ ఫార్మాట్ మాత్రమే చూస్తుంది, ABDMని సంప్రదించదు.",
+  abhaNumber: "ABHA నంబర్", abhaAddress: "లేదా ABHA చిరునామా",
+  exportFhir: "FHIR R4 డౌన్‌లోడ్",
+  current: "ప్రస్తుత స్థితి", currentMeds: "తాజా ప్రిస్క్రిప్షన్‌లలోని మందులు", outOfRange: "ముద్రించిన పరిధి దాటిన తాజా విలువలు",
+  noneYet: "ఇంకా ఏమీ లేదు", allInRange: "తాజా విలువలన్నీ ముద్రించిన పరిధిలోనే ఉన్నాయి",
+  ledger: "నమోదులు", date: "తేదీ", entry: "నమోదు", particulars: "వివరాలు", check: "తనిఖీ",
+  addPage: "పత్రం జోడించండి", dropHere: "ప్రిస్క్రిప్షన్, ల్యాబ్ రిపోర్ట్ లేదా డిశ్చార్జ్ సారాంశం ఫోటో లేదా PDF ఇక్కడ వదలండి",
+  chooseFile: "ఫైల్ ఎంచుకోండి", fileHint: "JPG, PNG, HEIC లేదా PDF, 15 MB వరకు",
+  reading: "పత్రం చదువుతోంది", readingSteps: ["పేజీలోని ప్రతి పంక్తి చదువుతోంది", "మందులు, పరీక్షలు, తేదీలు వెతుకుతోంది", "ప్రతి విలువను ముద్రించిన పరిధితో పోలుస్తోంది", "ఇంగ్లీష్, హిందీ, తెలుగులో వివరణ రాస్తోంది"],
+  takesTime: "సాధారణంగా 10 నుండి 40 సెకన్లు పడుతుంది.",
+  notFiled: "నమోదు కాలేదు", tryAgain: "మళ్ళీ ప్రయత్నించండి",
+  readFromSource: "మూలం నుండి చదివింది", nameDiffers: "పేరు వేరు", noName: "పేరు లేదు",
+  nameMismatch: (onDoc, who) => `ఈ పత్రంలో ${onDoc} పేరు ఉంది, కానీ ఇది ${who} రికార్డుల్లో చేర్చబడింది.`,
+  moveTo: "ఇక్కడికి మార్చండి", addAsMember: (n) => `${n}ని కుటుంబంలో జోడించండి`, keepHere: "ఇక్కడే ఉంచండి",
+  original: "అసలు పత్రం", whatItSays: "ఇందులో ఏముంది", openOriginal: "అసలు తెరవండి",
+  diagnoses: "రోగ నిర్ధారణ", medicines: "మందులు", tests: "పరీక్ష ఫలితాలు",
+  medicine: "మందు", dose: "మోతాదు", when: "ఎప్పుడు", howLong: "ఎన్ని రోజులు",
+  test: "పరీక్ష", result: "ఫలితం", range: "ముద్రించిన పరిధి",
+  HIGH: "ఎక్కువ", LOW: "తక్కువ", NORMAL: "పరిధిలో", ABNORMAL: "అసాధారణం", UNKNOWN: "పరిధి లేదు",
+  questions: "డాక్టర్‌ను అడగాల్సిన ప్రశ్నలు", followUp: "తదుపరి సందర్శన", unreadable: "చదవలేకపోయింది",
+  hardToRead: "చదవడం కష్టం, అసలు చూడండి",
+  readBy: "చదివింది", rangeChecked: "ఫ్లాగ్‌లు ముద్రించిన రిఫరెన్స్ పరిధి నుండి లెక్కించబడ్డాయి.",
+  showFhir: "FHIR రికార్డ్ చూపించు", hideFhir: "FHIR రికార్డ్ దాచు", deleteEntry: "నమోదు తొలగించండి", confirmDelete: "ఈ నమోదు, అసలు ఫైల్ తొలగించాలా?",
+  ask: "అడగండి", askPlaceholder: "తెలుగు, హిందీ లేదా ఇంగ్లీషులో అడగండి. ఉదా: ఏ ఫలితాలు సాధారణంగా లేవు?",
+  askButton: "అడగండి", listening: "వింటోంది. ఆపడానికి మళ్ళీ నొక్కండి.", speak: "మాట్లాడండి", readAloud: "వినండి", stop: "ఆపండి",
+  sources: "ఆధారం",
+  suggestions: ["ఏ ఫలితాలు సాధారణంగా లేవు?", "ప్రతి మందు ఎప్పుడు వేసుకోవాలి?", "తదుపరి సందర్శనలో ఏమి అడగాలి?"],
+  emptyFamily: "ఒక వ్యక్తితో మొదలుపెట్టండి", emptyFamilyBody: "మిమ్మల్ని లేదా కుటుంబ సభ్యుడిని జోడించి, మొదటి పత్రం జోడించండి. లేదా నమూనా కుటుంబాన్ని తెరిచి చూడండి.",
+  loadSample: "నమూనా కుటుంబం తెరవండి", emptyLedger: "ఇంకా పత్రాలు లేవు. పైన ప్రిస్క్రిప్షన్, ల్యాబ్ రిపోర్ట్ లేదా డిశ్చార్జ్ సారాంశం జోడించండి.",
+  disclaimer: "పత్రాలను సులభమైన మాటల్లో వివరిస్తుంది. ఇది వైద్య నిర్ధారణ కాదు. మందు మార్చే ముందు డాక్టర్‌ను అడగండి.",
+  emergency: "అత్యవసరం: 112 లేదా 108",
+  types: { Prescription: "ప్రిస్క్రిప్షన్", DiagnosticReport: "ల్యాబ్ రిపోర్ట్", DischargeSummary: "డిశ్చార్జ్ సారాంశం" },
+  medsCount: (n) => `${n} మందులు`,
+  testsCount: (n, out) => `${n} పరీక్షలు, ${out} పరిధి దాటాయి`,
+  noDate: "తేదీ లేదు",
+};
+
+const DICTS: Record<Lang, Dict> = { en, hi, te };
+const Ctx = createContext<{ lang: Lang; t: Dict; setLang: (l: Lang) => void }>({ lang: "en", t: en, setLang: () => {} });
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>("en");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("lang") as Lang | null;
+      if (saved && saved in DICTS) setLangState(saved);
+    } catch {}
+  }, []);
+  useEffect(() => { document.documentElement.lang = lang === "en" ? "en-IN" : lang === "hi" ? "hi" : "te"; }, [lang]);
+  const setLang = (l: Lang) => {
+    setLangState(l);
+    try { localStorage.setItem("lang", l); } catch {}
+  };
+  return <Ctx.Provider value={{ lang, t: DICTS[lang], setLang }}>{children}</Ctx.Provider>;
+}
+
+export const useI18n = () => useContext(Ctx);
+
+const RELATIONS: Record<string, { hi: string; te: string }> = {
+  self: { hi: "स्वयं", te: "స్వయం" }, wife: { hi: "पत्नी", te: "భార్య" }, husband: { hi: "पति", te: "భర్త" },
+  father: { hi: "पिता", te: "తండ్రి" }, mother: { hi: "माता", te: "తల్లి" }, son: { hi: "बेटा", te: "కొడుకు" },
+  daughter: { hi: "बेटी", te: "కూతురు" }, brother: { hi: "भाई", te: "అన్న/తమ్ముడు" }, sister: { hi: "बहन", te: "అక్క/చెల్లి" },
+  grandfather: { hi: "दादा/नाना", te: "తాతయ్య" }, grandmother: { hi: "दादी/नानी", te: "అమ్మమ్మ/నానమ్మ" },
+  "family member": { hi: "परिवार का सदस्य", te: "కుటుంబ సభ్యుడు" },
+};
+export function relationLabel(rel: string, lang: Lang): string {
+  const r = RELATIONS[rel.trim().toLowerCase()];
+  return lang === "en" || !r ? rel : r[lang];
+}
+export function ageLabel(age: string | null | undefined, lang: Lang): string {
+  if (!age) return "";
+  return lang === "hi" ? `${age} वर्ष` : lang === "te" ? `${age} ఏళ్ళు` : `${age} y`;
+}
+
+export function formatDate(iso: string | null | undefined, lang: Lang): string {
+  if (!iso) return "";
+  const d = new Date(`${iso}T00:00:00`);
+  const loc = lang === "hi" ? "hi-IN" : lang === "te" ? "te-IN" : "en-IN";
+  return d.toLocaleDateString(loc, { day: "2-digit", month: "short", year: "numeric" });
+}

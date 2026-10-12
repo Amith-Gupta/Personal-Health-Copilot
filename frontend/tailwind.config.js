@@ -1,81 +1,39 @@
 /** @type {import('tailwindcss').Config} */
+const c = (v) => `rgb(var(--${v}) / <alpha-value>)`;
 module.exports = {
-  darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-  ],
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        canvas: c("canvas"), surface: c("surface"), subtle: c("subtle"), hover: c("hover"),
+        line: c("line"), "line-strong": c("line-strong"),
+        fg: c("fg"), "fg-2": c("fg-2"), "fg-3": c("fg-3"),
+        accent: c("accent"), "accent-fg": c("accent-fg"), "accent-soft": c("accent-soft"),
+        high: c("high"), "high-soft": c("high-soft"), low: c("low"), "low-soft": c("low-soft"),
+        ok: c("ok"), "ok-soft": c("ok-soft"), warn: c("warn"), "warn-soft": c("warn-soft"),
       },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+      fontFamily: {
+        sans: ["var(--font-geist)", "var(--font-deva)", "var(--font-telu)", "system-ui", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
       },
+      fontSize: { "2xs": ["11px", "16px"], xs: ["12px", "16px"], sm: ["13px", "20px"], base: ["14.5px", "22px"], md: ["16px", "24px"] },
+      boxShadow: {
+        card: "0 1px 2px rgb(16 18 27 / 0.04), 0 1px 1px rgb(16 18 27 / 0.03)",
+        pop: "0 1px 2px rgb(16 18 27 / 0.06), 0 8px 24px -6px rgb(16 18 27 / 0.12)",
+        focus: "0 0 0 3px rgb(var(--accent) / 0.22)",
+      },
+      borderRadius: { DEFAULT: "6px", md: "8px", lg: "10px" },
       keyframes: {
-        "accordion-down": {
-          from: { height: 0 },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
-        },
-        pulseGlow: {
-          "0%, 100%": { opacity: 1, transform: "scale(1)" },
-          "50%": { opacity: 0.6, transform: "scale(1.08)" },
-        },
+        "fade-up": { from: { opacity: 0, transform: "translateY(4px)" }, to: { opacity: 1, transform: "none" } },
+        shimmer: { from: { backgroundPosition: "-200% 0" }, to: { backgroundPosition: "200% 0" } },
+        indet: { from: { transform: "translateX(-100%)" }, to: { transform: "translateX(250%)" } },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "pulse-glow": "pulseGlow 2s infinite ease-in-out",
+        "fade-up": "fade-up .28s cubic-bezier(.16,1,.3,1) both",
+        shimmer: "shimmer 1.6s linear infinite",
+        indet: "indet 1.4s cubic-bezier(.65,0,.35,1) infinite",
       },
     },
   },
   plugins: [],
-}
+};
