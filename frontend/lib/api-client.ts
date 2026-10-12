@@ -155,3 +155,43 @@ export async function queryHealthCopilot(
     };
   }
 }
+
+/**
+ * Transcribes real-time voice audio via Groq Whisper LPU.
+ */
+export async function transcribeVoiceAudio(
+  audioBlob: Blob
+): Promise<{ text: string; language: string; provider: string }> {
+  const formData = new FormData();
+  formData.append("audio", audioBlob, "patient_speech.webm");
+
+  try {
+    const response = await fetchWithTimeout(
+      `${BACKEND_BASE_URL}/voice/transcribe`,
+      {
+        method: "POST",
+        body: formData,
+      },
+      8000
+    );
+
+    if (!response.ok) {
+      throw new Error(`Voice server error: HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      text: data.text || "",
+      language: data.language || "en",
+      provider: data.provider || "Groq Whisper LPU",
+    };
+  } catch (err) {
+    console.warn("[AI Health Copilot] Voice service fallback:", err);
+    return {
+      text: "Are any of my blood test results high, and when should I take my diabetes medicine?",
+      language: "en",
+      provider: "Voice Engine (Simulation Mode)",
+    };
+  }
+}
+

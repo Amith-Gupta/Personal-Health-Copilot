@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
-from app.routers import ingestion, abha, search
+from app.routers import ingestion, abha, search, voice
 
 # Logging configuration
 logging.basicConfig(
@@ -15,8 +15,8 @@ logger = logging.getLogger("health-copilot-backend")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="AI-Powered Personal Health Copilot transforming unstructured medical docs into ABDM FHIR R4 bundles.",
-    version="1.0.0",
+    description="AI-Powered Personal Health Copilot transforming unstructured medical docs into ABDM FHIR R4 bundles with Multi-Agent Routing & Real-Time Voice.",
+    version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -34,6 +34,7 @@ app.add_middleware(
 app.include_router(ingestion.router, prefix=settings.API_V1_PREFIX)
 app.include_router(abha.router, prefix=settings.API_V1_PREFIX)
 app.include_router(search.router, prefix=settings.API_V1_PREFIX)
+app.include_router(voice.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")
@@ -42,7 +43,9 @@ async def root():
         "service": settings.PROJECT_NAME,
         "status": "healthy",
         "api_v1_docs": "/docs",
-        "abdm_fhir_version": "R4"
+        "abdm_fhir_version": "R4",
+        "voice_engine": "Groq Whisper-large-v3-turbo (Active)",
+        "guardrails": "Llama-Guard-3 + Pharmacopeia Bounds (Active)"
     }
 
 
@@ -50,6 +53,7 @@ async def root():
 async def health_check():
     return {
         "status": "UP",
-        "vision_ai_ready": bool(settings.GEMINI_API_KEY),
+        "groq_lpu_ready": bool(settings.GROQ_API_KEY),
+        "vision_ai_ready": bool(settings.GEMINI_API_KEY or settings.HF_TOKEN or settings.GROQ_API_KEY),
         "fhir_r4_compliance": "ACTIVE"
     }

@@ -7,7 +7,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "AI-Powered Personal Health Copilot"
     API_V1_PREFIX: str = "/api/v1"
     
-    # AI Vision and Language API Key
+    # AI Engine Keys
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    HF_TOKEN: str = os.getenv("HF_TOKEN", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     
     # Supabase credentials (optional fallback to in-memory/mock if not provided)

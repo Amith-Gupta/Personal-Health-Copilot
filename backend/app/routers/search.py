@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from app.schemas.payloads import CopilotQueryRequest, CopilotQueryResponse
 from app.routers.ingestion import RECORDS_STORE
+from app.services.ai_router import route_clinical_query
 
 router = APIRouter(prefix="/copilot", tags=["AI Copilot Query"])
 
@@ -8,59 +9,38 @@ router = APIRouter(prefix="/copilot", tags=["AI Copilot Query"])
 @router.post("/query", response_model=CopilotQueryResponse)
 async def query_health_records(payload: CopilotQueryRequest):
     """
-    Answers patient medical questions across their aggregated timeline records.
-    Provides citations and relevant record references.
+    Multi-Agent Copilot Endpoint:
+    Processes patient queries through Safety Guardrails, Intent Routing,
+    Clinical Reasoning, and Multilingual Localization.
     """
-    query = payload.query.lower()
     lang = payload.language or "en"
 
-    # Context collection from store
-    found_meds = []
-    abnormal_tests = []
-    citations = []
-
+    # Context collection from active records store
+    patient_context = []
     for rec in RECORDS_STORE:
         for med in rec.medications:
-            found_meds.append(f"{med.name} ({med.dosage}, {med.frequency})")
-            citations.append(f"{rec.title} - {med.name}")
+            patient_context.append(f"Medication: {med.name} - Dosage: {med.dosage} - Frequency: {med.frequency}")
         for obs in rec.lab_observations:
-            if obs.flag in ["HIGH", "LOW", "ABNORMAL"]:
-                abnormal_tests.append(f"{obs.test_name}: {obs.observed_value} {obs.unit} (Flag: {obs.flag}, Ref: {obs.reference_range})")
-                citations.append(f"{rec.title} - {obs.test_name}")
+            patient_context.append(f"Lab: {obs.test_name} - Result: {obs.observed_value} {obs.unit} - Flag: {obs.flag}")
 
-    # Fallback to realistic context if no upload has happened yet
-    if not found_meds:
-        found_meds = ["Metformin 500mg (Twice daily after food)", "Atorvastatin 10mg (Once daily at bedtime)"]
-        abnormal_tests = ["Fasting Blood Glucose: 185 mg/dL (Flag: HIGH, Normal: 70-99)", "HbA1c: 8.4 % (Flag: HIGH, Normal: 4.0-5.6)"]
-        citations = ["Recent Metabolic Lab Panel", "Endocrinology Prescription"]
+    # Fallback default clinical context if timeline is fresh
+    if not patient_context:
+        patient_context = [
+            "Medication: Metformin Hydrochloride - Dosage: 500 mg - Frequency: 1-0-1 (Twice daily after food)",
+            "Medication: Atorvastatin Calcium - Dosage: 10 mg - Frequency: 0-0-1 (Once daily at bedtime)",
+            "Lab: Fasting Blood Glucose - Result: 185 mg/dL - Flag: HIGH (Normal: 70 - 99)",
+            "Lab: HbA1c (Glycated Hemoglobin) - Result: 8.4 % - Flag: HIGH (Normal: 4.0 - 5.6)",
+        ]
 
-    if "sugar" in query or "glucose" in query or "diabetes" in query or "test" in query or "lab" in query:
-        if lang == "hi":
-            answer = f"आपकी हालिया जांच में उपवास रक्त शर्करा (Fasting Glucose) 185 mg/dL और HbA1c 8.4% पाया गया है, जो उच्च सीमा में है। कृपया निर्धारित दवाएं समय पर लें।"
-        elif lang == "te":
-            answer = f"మీ తాజా పరీక్షల్లో ఫాస్టింగ్ బ్లడ్ షుగర్ 185 mg/dL మరియు HbA1c 8.4% ఎక్కువగా ఉన్నాయి. దయచేసి డాక్టర్ సూచించిన మందులను సమయానికి వాడండి."
-        else:
-            tests_str = "; ".join(abnormal_tests[:3]) if abnormal_tests else "Elevated fasting blood sugar."
-            answer = f"Based on your recent diagnostic reports, the following markers require attention: {tests_str}. Your doctor has recommended lifestyle adjustments and medication."
-    elif "medicine" in query or "medication" in query or "dose" in query or "dosage" in query or "tablet" in query:
-        meds_str = ", ".join(found_meds[:3])
-        if lang == "hi":
-            answer = f"आपकी वर्तमान दवाओं की सूची: {meds_str}। भोजन के बाद नियमित रूप से लें।"
-        elif lang == "te":
-            answer = f"మీ ప్రస్తుత మందుల జాబితా: {meds_str}. భోజనం తర్వాత క్రమం తప్పకుండా తీసుకోండి."
-        else:
-            answer = f"You are currently prescribed: {meds_str}. Ensure you take Metformin with meals and Atorvastatin before sleeping as advised."
-    else:
-        if lang == "hi":
-            answer = "नमस्ते! मैं आपका एआई हेल्थ कोपायलट हूं। आप अपने स्वास्थ्य रिकॉर्ड, दवाओं की खुराक या लैब परिणामों के बारे में कुछ भी पूछ सकते हैं।"
-        elif lang == "te":
-            answer = "నమస్తే! నేను మీ AI హెల్త్ కోపైలట్‌ని. మీ ఆరోగ్య రికార్డులు, మందులు లేదా ల్యాబ్ ఫలితాల గురించి ఏదైనా అడగవచ్చు."
-        else:
-            answer = "Hello! I am your AI Health Copilot. I analyze your ABHA-linked health records to explain lab metrics, medication schedules, and doctor instructions in simple terms."
+    result = await route_clinical_query(
+        query_text=payload.query,
+        patient_context=patient_context,
+        language=lang
+    )
 
     return CopilotQueryResponse(
-        answer=answer,
+        answer=result["answer"],
         language=lang,
-        citations=list(set(citations))[:5],
+        citations=result.get("citations", []),
         relevant_record_ids=[r.id for r in RECORDS_STORE[:3]]
     )
