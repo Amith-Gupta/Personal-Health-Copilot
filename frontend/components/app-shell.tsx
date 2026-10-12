@@ -60,7 +60,7 @@ export function AppShell({ email }: { email: string }) {
 
   return (
     <div className="min-h-[100dvh]">
-      <div className="band">
+      <div>
         <TopBar email={email} />
         {profiles?.length !== 0 && <FamilyRow profiles={profiles} activeId={activeId} onSelect={select} onProfilesChanged={loadProfiles} />}
         {!profiles && !loadError && <HeaderSkeleton />}
@@ -70,7 +70,7 @@ export function AppShell({ email }: { email: string }) {
         {profiles && profiles.length === 0 && <FirstRun onDone={() => loadProfiles()} />}
         {active && (
           <>
-            <div className="band">
+            <div>
             <PatientHeader profile={active} tab={tab} onTab={(x) => { setTab(x); setOpenRecord(null); }}
               recordCount={records?.length} onUpload={() => { setUploadFile(null); setUploading(true); setOpenRecord(null); }}
               onProfile={(p) => setProfiles((ps) => (ps || []).map((x) => (x.id === p.id ? p : x)))}

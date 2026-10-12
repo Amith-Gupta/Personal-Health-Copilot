@@ -13,7 +13,7 @@ export function UploadCta({ name, onFile, compact }: { name: string; onFile: (f:
     <div
       onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
       onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer.files?.[0]; if (f) onFile(f); }}
-      className={cx("relative flex flex-col justify-between overflow-hidden rounded-xl bg-[#17191f] p-6 text-white ring-1 ring-white/10 transition-transform",
+      className={cx("relative flex flex-col justify-between overflow-hidden rounded-xl bg-[#141414] p-6 text-white shadow-[0_30px_60px_-28px_rgba(20,15,5,.55)] ring-1 ring-black/10 transition-transform",
         over && "scale-[1.01] ring-4 ring-[#c4f542]", compact ? "min-h-0" : "min-h-0")}>
       <div className="relative">
         <FileArrowUp size={26} weight="duotone" className="text-[#c4f542]" />

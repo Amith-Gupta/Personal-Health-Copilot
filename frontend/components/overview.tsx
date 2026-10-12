@@ -23,7 +23,7 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
       <div className="stagger">
         <ol className="grid gap-3 md:grid-cols-3">
           {t.steps.map(([title, body], i) => (
-            <li key={i} className="flex gap-4 rounded-xl border border-line bg-surface p-5">
+            <li key={i} className="flex gap-4 panel p-5">
               <span className="display grid h-9 w-9 shrink-0 place-items-center rounded-full bg-subtle text-[17px] font-semibold">{i + 1}</span>
               <span><span className="block font-medium">{title}</span><span className="mt-1 block text-sm leading-relaxed text-fg-3">{body}</span></span>
             </li>
@@ -47,7 +47,7 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
       {/* Unified health profile */}
       <section aria-label={t.profileTitle}>
         <p className="eyebrow mb-4">{t.profileTitle}</p>
-        <dl className="grid overflow-hidden rounded-xl border border-line bg-surface sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="grid overflow-hidden panel sm:grid-cols-2 lg:grid-cols-4">
           <div className="border-line p-5 sm:border-r lg:border-b-0">
             <dt className="text-xs text-fg-3">{t.conditions}</dt>
             <dd className="mt-2 flex flex-wrap gap-1.5">{conditions.length ? conditions.map((c) => <Badge key={c} tone="accent">{c}</Badge>) : <span className="text-sm text-fg-3">–</span>}</dd>
@@ -76,7 +76,7 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
               const low = o.flag === "LOW";
               return (
                 <button key={i} onClick={() => onOpen(r.id)}
-                  className="group relative flex flex-col rounded-xl border border-line bg-surface p-5 text-left transition-all hover:-translate-y-0.5 hover:border-fg/30">
+                  className="group relative flex flex-col panel p-5 text-left transition-all hover:-translate-y-0.5 hover:border-fg/30">
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-[15px] font-medium leading-snug">{o.test_name}</p>
                     <span className="shrink-0 rounded-full bg-high-soft px-2.5 py-0.5 text-xs font-semibold text-high">{low ? "↓" : "↑"} {t[o.flag]}</span>
@@ -109,7 +109,7 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
             <p className="eyebrow">{t.todaysMeds}</p>
             <button onClick={() => onTab("medicines")} className="flex items-center gap-1 text-sm text-fg-3 hover:text-fg">{t.tabs.medicines}<ArrowRight size={13} /></button>
           </div>
-          <div className="grid overflow-hidden rounded-xl border border-line bg-surface md:grid-cols-3">
+          <div className="grid overflow-hidden panel md:grid-cols-3">
             {SLOTS.map(({ slot, Icon }, si) => {
               const here = daily.filter(({ m }) => { const s = schedule(m); return s.kind === "slots" && s.slots[slot] !== "0"; });
               return (

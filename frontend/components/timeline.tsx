@@ -33,7 +33,7 @@ export function Timeline({ records, onOpen, limit }: { records: HealthRecord[]; 
                 <li key={r.id} className="relative pl-11">
                   <span className="absolute left-0 top-4 rounded-md ring-4 ring-canvas"><DocIcon type={r.document_type} /></span>
                   <button onClick={() => onOpen(r.id)}
-                    className="group block w-full rounded-xl border border-line bg-surface p-4 text-left transition-all hover:-translate-y-0.5 hover:border-fg/30">
+                    className="group block w-full panel p-4 text-left transition-all hover:-translate-y-0.5 hover:border-fg/30">
                     <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                       <p className="text-[15px] font-medium">{t.types[r.document_type]} <span className="font-normal text-fg-3">· {tidyName(e.facility_name) || e.doctor_name || r.source_filename}</span></p>
                       <span className="num flex items-center gap-1.5 text-xs text-fg-3">{r.record_date ? formatDate(r.record_date, lang) : t.noDate}<ArrowUpRight size={13} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></span>

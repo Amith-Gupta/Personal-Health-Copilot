@@ -21,8 +21,8 @@ export function TopBar({ email }: { email: string }) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-canvas/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 max-w-[1240px] items-center gap-3 px-4 sm:px-6">
+    <header className="sticky top-3 z-40 px-3 sm:px-6">
+      <div className="on-dark mx-auto flex h-14 max-w-[920px] items-center gap-3 rounded-full bg-[#141414]/95 pl-5 pr-2 text-white shadow-[0_16px_40px_-16px_rgba(0,0,0,.55)] ring-1 ring-white/10 backdrop-blur-xl">
         <span className="display text-[20px] font-bold">copilot<span className="text-high">.</span></span>
         <div className="flex-1" />
         <div className="hidden items-center rounded-full border border-line p-0.5 sm:flex" role="radiogroup" aria-label="Language">
@@ -36,7 +36,7 @@ export function TopBar({ email }: { email: string }) {
           <button onClick={() => setMenu((v) => !v)} aria-label="Account" aria-haspopup="menu" aria-expanded={menu}
             className="grid h-9 w-9 place-items-center rounded-full bg-subtle text-[12px] font-semibold uppercase text-fg-2 hover:bg-hover">{email.slice(0, 1)}</button>
           {menu && (
-            <div role="menu" className="absolute right-0 top-11 z-50 w-64 rounded-xl border border-line bg-surface p-1.5 text-sm shadow-pop">
+            <div role="menu" className="absolute right-0 top-11 z-50 w-64 panel p-1.5 text-sm shadow-pop">
               <p className="truncate px-3 py-2 text-fg-3">{email}</p>
               <div className="flex gap-1 px-2 pb-2 sm:hidden">
                 {LANGS.map((l) => <button key={l.code} onClick={() => setLang(l.code)} className={cx("flex-1 rounded-full py-1.5", lang === l.code ? "bg-accent text-accent-fg" : "bg-subtle")}>{l.label}</button>)}

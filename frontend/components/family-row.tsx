@@ -21,7 +21,7 @@ export function FamilyRow({ profiles, activeId, onSelect, onProfilesChanged }: {
     return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
   }, []);
   return (
-    <div className="mx-auto max-w-[1240px] px-4 pt-4 sm:px-6">
+    <div className="mx-auto max-w-[1240px] px-4 pt-8 sm:px-6">
       <nav aria-label={t.family} className="flex items-center gap-1.5 overflow-x-auto pb-1">
         <span className="eyebrow mr-2 shrink-0">{t.family}</span>
         {!profiles ? [0, 1, 2].map((i) => <Skeleton key={i} className="h-8 w-24 rounded-full" />) : profiles.map((p) => {
@@ -40,7 +40,7 @@ export function FamilyRow({ profiles, activeId, onSelect, onProfilesChanged }: {
             <Plus size={13} weight="bold" /><span className="hidden sm:inline">{t.addMember}</span>
           </button>
           {adding && (
-            <div className="absolute left-0 top-10 z-50 w-72 rounded-xl border border-line bg-surface p-1 shadow-pop">
+            <div className="absolute left-0 top-10 z-50 w-72 panel p-1 shadow-pop">
               <MemberForm onDone={(p) => { setAdding(false); if (p) onProfilesChanged(p.id); }} />
               {profiles && !profiles.some((p) => p.is_sample) && (
                 <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-2 hover:bg-hover"

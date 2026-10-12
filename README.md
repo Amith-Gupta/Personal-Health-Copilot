@@ -114,3 +114,7 @@ A demo account with the sample family is created in Supabase Auth; its login is 
 - ABHA linking validates format only; there is no ABDM gateway, consent manager or HIP/HIU integration.
 - FHIR codes use text where no verified SNOMED CT / LOINC code was available.
 - Extraction quality depends on Gemini availability; when the primary model is busy the chain falls back to lighter models.
+
+## Credits
+
+- Background photograph "shadow of leaves on white wall" from [Unsplash](https://unsplash.com/photos/shadow-of-leaves-on-white-wall-GAnCCU7mqIU), used under the Unsplash License.

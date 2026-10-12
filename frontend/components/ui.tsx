@@ -44,7 +44,7 @@ export function Badge({ tone = "neutral", children, className }: { tone?: "neutr
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cx("rounded-xl border border-line bg-surface", className)}>{children}</section>;
+  return <section className={cx("panel", className)}>{children}</section>;
 }
 
 export function CardHeader({ title, note, action }: { title: ReactNode; note?: ReactNode; action?: ReactNode }) {

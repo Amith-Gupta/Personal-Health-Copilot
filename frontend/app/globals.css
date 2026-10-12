@@ -4,13 +4,13 @@
 
 /* Light (default) */
 :root {
-  --canvas: 244 245 247; --surface: 255 255 255; --subtle: 241 242 244; --hover: 235 237 240;
-  --line: 225 228 233; --line-strong: 203 208 216;
-  --fg: 22 27 41; --fg-2: 72 79 96; --fg-3: 112 119 134;
-  --accent: 29 59 168; --accent-fg: 255 255 255; --accent-soft: 232 238 252;
-  --signal: 255 233 92; --signal-fg: 22 27 41;
-  --high: 210 38 38; --high-soft: 253 236 236; --low: 210 38 38; --low-soft: 253 236 236;
-  --ok: 26 127 80; --ok-soft: 229 244 236; --warn: 168 100 6; --warn-soft: 252 243 222;
+  --canvas: 243 241 237; --surface: 255 255 255; --subtle: 238 236 231; --hover: 233 231 226;
+  --line: 226 222 215; --line-strong: 206 201 193;
+  --fg: 23 22 20; --fg-2: 84 81 76; --fg-3: 128 124 117;
+  --accent: 23 22 20; --accent-fg: 250 249 246; --accent-soft: 236 234 229;
+  --signal: 255 222 89; --signal-fg: 23 22 20;
+  --high: 200 50 36; --high-soft: 252 235 231; --low: 200 50 36; --low-soft: 252 235 231;
+  --ok: 38 122 76; --ok-soft: 228 242 233; --warn: 168 100 6; --warn-soft: 252 243 222;
   color-scheme: light;
 }
 /* Dark: explicit choice, or system preference when no choice was made */
@@ -23,18 +23,6 @@
   --high: 255 110 96; --high-soft: 60 22 22; --low: 255 110 96; --low-soft: 60 22 22;
   --ok: 120 214 150; --ok-soft: 18 44 30; --warn: 244 184 80; --warn-soft: 48 36 12;
   color-scheme: dark;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --canvas: 11 11 13; --surface: 21 22 27; --subtle: 28 30 36; --hover: 35 37 44;
-    --line: 38 40 48; --line-strong: 60 63 74;
-    --fg: 245 245 242; --fg-2: 182 184 192; --fg-3: 128 131 142;
-    --accent: 245 245 242; --accent-fg: 11 11 13; --accent-soft: 34 36 44;
-    --signal: 196 245 66; --signal-fg: 11 11 13;
-    --high: 255 110 96; --high-soft: 60 22 22; --low: 255 110 96; --low-soft: 60 22 22;
-    --ok: 120 214 150; --ok-soft: 18 44 30; --warn: 244 184 80; --warn-soft: 48 36 12;
-    color-scheme: dark;
-  }
 }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -49,7 +37,6 @@ input, textarea { caret-color: rgb(var(--fg)); }
 /* Highlighter stroke for key terms, the way people mark a report */
 mark.hl { color: inherit; background: linear-gradient(104deg, rgb(var(--signal) / 0) 0.9%, rgb(var(--signal) / .85) 2.4%, rgb(var(--signal) / .6) 5.8%, rgb(var(--signal) / .3) 93%, rgb(var(--signal) / .75) 96%, rgb(var(--signal) / 0) 98%); border-radius: 3px; padding: 0 .15em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 :root[data-theme="dark"] mark.hl { background: rgb(var(--signal) / .9); color: rgb(11 11 13); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) mark.hl { background: rgb(var(--signal) / .9); color: rgb(11 11 13); } }
 /* Red-pen circle drawn around an out-of-range value */
 @keyframes pen { from { stroke-dashoffset: 1 } to { stroke-dashoffset: 0 } }
 .pen path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: pen .7s .25s cubic-bezier(.65,0,.35,1) forwards; }
@@ -61,7 +48,7 @@ mark.hl { color: inherit; background: linear-gradient(104deg, rgb(var(--signal) 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; } }
 
 /* The dark band at the top of the app: scoped dark tokens, so every child adapts. */
-.band {
+.on-dark {
   --canvas: 11 11 13; --surface: 23 24 29; --subtle: 30 32 38; --hover: 36 38 45;
   --line: 40 42 50; --line-strong: 62 65 76;
   --fg: 245 245 242; --fg-2: 182 184 192; --fg-3: 128 131 142;
@@ -69,6 +56,28 @@ mark.hl { color: inherit; background: linear-gradient(104deg, rgb(var(--signal) 
   --signal: 196 245 66; --signal-fg: 13 13 15;
   --high: 255 110 96; --high-soft: 60 22 22; --low: 255 110 96; --low-soft: 60 22 22;
   --ok: 120 214 150; --ok-soft: 18 44 30;
-  background: rgb(var(--canvas)); color: rgb(var(--fg)); color-scheme: dark;
+  color: rgb(var(--fg)); color-scheme: dark;
 }
-.band mark.hl { background: rgb(var(--signal) / .9); color: rgb(13 13 15); }
+
+
+/* Daylight: a real photograph of leaf shadows on a plaster wall, fixed behind the app. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: url("/bg-daylight.jpg") right top / cover no-repeat;
+  opacity: .85; mix-blend-mode: multiply;
+}
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, rgb(var(--canvas) / 0) 0%, rgb(var(--canvas) / .35) 55%, rgb(var(--canvas) / .7) 100%);
+}
+:root[data-theme="dark"] body::before { filter: invert(1) brightness(.55); opacity: .35; mix-blend-mode: screen; }
+
+/* Frosted panel with real depth, like a sheet resting on the wall. */
+.panel {
+  border-radius: 20px;
+  background: rgb(var(--surface) / .8);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgb(var(--line) / .75);
+  box-shadow: 0 1px 0 rgb(255 255 255 / .6) inset, 0 1px 2px rgb(40 30 15 / .04), 0 28px 56px -32px rgb(40 30 15 / .28);
+}
+:root[data-theme="dark"] .panel { background: rgb(var(--surface) / .75); box-shadow: 0 28px 56px -32px rgb(0 0 0 / .6); }
