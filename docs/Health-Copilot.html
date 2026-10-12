@@ -1,0 +1,173 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Health Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+*{box-sizing:border-box} html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:Geist,"Noto Sans Devanagari","Noto Sans Telugu",system-ui,sans-serif;color:#141414;font-size:10.5pt;line-height:1.5;margin:0}
+h1,h2,h3{font-family:"Bricolage Grotesque";letter-spacing:-.025em;line-height:1.05;margin:0}
+h1{font-size:40pt;font-weight:600} h2{font-size:20pt;font-weight:600;margin:0 0 10pt;padding-top:4pt} h3{font-size:12.5pt;font-weight:600;margin:10pt 0 4pt}
+p{margin:0 0 7pt} .muted{color:#6b6b68} .small{font-size:9pt}
+.cover{height:255mm;display:flex;flex-direction:column;justify-content:space-between;page-break-after:always}
+.cover .mark{font-family:"Bricolage Grotesque";font-weight:700;font-size:18pt} .cover .mark b{color:#e8553d}
+.cover .hero{background:#141414;color:#f5f5f2;border-radius:18pt;padding:28pt 30pt;margin-top:24pt}
+.cover .hero h1{color:#fff;max-width:14ch} .cover .hero p{color:#b8b8b4;font-size:12pt;max-width:48ch;margin-top:12pt}
+.pill{display:inline-block;background:#c4f542;color:#141414;font-weight:600;border-radius:999pt;padding:3pt 10pt;font-size:9.5pt}
+.sec{page-break-before:always} .keep{page-break-inside:avoid}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12pt} .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10pt}
+.card{border:1px solid #e3e1dc;border-radius:10pt;padding:10pt 12pt;background:#fbfbf9}
+.card h3{margin-top:0}
+table{width:100%;border-collapse:collapse;font-size:9.5pt;margin:4pt 0 8pt} th{text-align:left;color:#6b6b68;font-weight:500;font-size:8.5pt;padding:4pt 6pt 4pt 0;border-bottom:1px solid #141414} td{padding:5pt 6pt 5pt 0;border-bottom:1px solid #e3e1dc;vertical-align:top}
+.num{font-family:"Geist Mono";font-variant-numeric:tabular-nums} code,.mono{font-family:"Geist Mono";font-size:9pt;background:#f1f0ec;padding:1pt 4pt;border-radius:3pt}
+pre{font-family:"Geist Mono";font-size:8.5pt;background:#141414;color:#e7e7e2;padding:10pt 12pt;border-radius:8pt;white-space:pre-wrap}
+.shot{border:1px solid #e3e1dc;border-radius:10pt;overflow:hidden;background:#f4f3f1;page-break-inside:avoid}
+.shot img{display:block;width:100%;height:auto} .shot.tall{height:118mm} .shot.tall img{width:100%;height:auto}
+.cap{font-size:8.5pt;color:#6b6b68;margin:4pt 0 10pt}
+ul{margin:0 0 8pt;padding-left:14pt} li{margin:2pt 0}
+.hi{background:#ffe95a;padding:0 2pt;border-radius:2pt} .red{color:#c8322a;font-weight:600}
+.foot{position:running(foot)}
+</style></head><body>
+
+<section class="cover">
+  <div><span class="mark">copilot<b>.</b></span> <span class="muted small" style="margin-left:8pt">AI-Powered Personal Health Copilot · Altrix Labs challenge, Round 1</span>
+    <div class="hero"><h1>Your family's prescriptions, lab reports and discharge papers, read and explained.</h1>
+    <p>A copilot that reads a photo or PDF of any Indian medical document, checks every value against the range printed on it, explains it in English, Hindi or Telugu, and keeps one ABDM-ready timeline per family member.</p>
+    <p style="margin-top:14pt"><span class="pill">Scan or upload</span> &nbsp; <span style="color:#c4f542">English · हिन्दी · తెలుగు · FHIR R4 · ABHA</span></p></div>
+  </div>
+  <div class="grid3">
+    <div class="card"><h3>Reads</h3><p class="small">Prescriptions, lab reports, discharge summaries. Printed, handwritten-style, bilingual, PDF or phone photo.</p></div>
+    <div class="card"><h3>Checks</h3><p class="small">Every HIGH / LOW flag is recomputed from the printed reference range, never taken from the model's guess.</p></div>
+    <div class="card"><h3>Explains</h3><p class="small">Plain words, three languages, questions to ask the doctor, and a printable visit summary.</p></div>
+  </div>
+  <p class="muted small">Prepared 13 October 2026 · Prototype by Karnam Venkata Chaitanya · github.com/karnamvenkatachaitanya/Personal-Health-Copilot</p>
+</section>
+
+<section>
+<h2>1. The problem</h2>
+<p>An Indian family's health history lives in a drawer: a prescription from one clinic, a lab printout from another, a discharge summary from a hospital stay. The person managing it is usually an adult child looking after parents. They cannot tell at a glance which value is out of range, which medicines are current, or what to ask at the next visit. The documents are in English, the family often is not.</p>
+<h2 style="margin-top:16pt">2. What the copilot does</h2>
+<div class="grid2">
+  <div class="card"><h3>Medical record intelligence</h3><p class="small">Gemini vision reads the page: medicines, strength, 1-0-1 schedules, timing, duration, every test row with its value, unit and printed range, diagnoses, doctor, facility and date. Handwriting-style and Hindi / Telugu text included.</p></div>
+  <div class="card"><h3>Honest checking</h3><p class="small">A deterministic parser recomputes each flag from the printed range ("4,000 - 11,000", "&lt; 6", "12.0 to 15.5"). Non-medical uploads are refused. If reading fails, nothing is saved; no fallback data is ever invented.</p></div>
+  <div class="card"><h3>Plain-language explanation</h3><p class="small">A short summary, a one-line meaning for each out-of-range value, and questions for the doctor, all in English, Hindi and Telugu. Key terms are highlighted; summaries can be read aloud.</p></div>
+  <div class="card"><h3>Unified health profile and timeline</h3><p class="small">One caregiver account, many family members. Conditions, current medicines, doctors and clinics are gathered across documents; records sit on a month-by-month timeline.</p></div>
+  <div class="card"><h3>Ask</h3><p class="small">Questions answered only from that person's records, with citations that open the source document. Voice input via Whisper. Self-harm or emergency wording is answered with 112 / 108 / Tele-MANAS before any model runs.</p></div>
+  <div class="card"><h3>ABDM-ready</h3><p class="small">Every document becomes an NRCES-profile FHIR R4 bundle. Mock ABHA link (format-validated), FHIR export per person, and FHIR import back through the same pipeline. Printable visit summary for the doctor.</p></div>
+</div>
+</section>
+
+<section class="sec">
+<h2>3. How it works</h2>
+<svg viewBox="0 0 760 300" width="100%" style="font-family:Geist;font-size:11px">
+ <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#141414"/></marker></defs>
+ <g font-weight="600" font-size="12">
+  <rect x="10" y="20" width="120" height="58" rx="10" fill="#141414"/><text x="70" y="44" fill="#fff" text-anchor="middle">Upload</text><text x="70" y="62" fill="#c4f542" text-anchor="middle" font-weight="500" font-size="10">photo · PDF · FHIR</text>
+  <rect x="170" y="20" width="150" height="58" rx="10" fill="#fbfbf9" stroke="#141414"/><text x="245" y="44" text-anchor="middle">Gemini vision</text><text x="245" y="62" text-anchor="middle" font-weight="500" font-size="10" fill="#6b6b68">fallback: PDF text + Groq</text>
+  <rect x="360" y="20" width="150" height="58" rx="10" fill="#fbfbf9" stroke="#141414"/><text x="435" y="44" text-anchor="middle">Normaliser</text><text x="435" y="62" text-anchor="middle" font-weight="500" font-size="10" fill="#6b6b68">flags from printed ranges</text>
+  <rect x="550" y="20" width="150" height="58" rx="10" fill="#fbfbf9" stroke="#141414"/><text x="625" y="44" text-anchor="middle">FHIR R4 mapper</text><text x="625" y="62" text-anchor="middle" font-weight="500" font-size="10" fill="#6b6b68">NRCES profiles</text>
+  <rect x="360" y="130" width="340" height="64" rx="10" fill="#fbfbf9" stroke="#141414"/><text x="530" y="154" text-anchor="middle">Supabase (Mumbai)</text><text x="530" y="172" text-anchor="middle" font-weight="500" font-size="10" fill="#6b6b68">Postgres + row-level security · private storage · previews · auth</text>
+  <rect x="10" y="130" width="300" height="64" rx="10" fill="#141414"/><text x="160" y="154" fill="#fff" text-anchor="middle">Next.js app</text><text x="160" y="172" fill="#b8b8b4" text-anchor="middle" font-weight="500" font-size="10">overview · timeline · medicines · ask · visit summary</text>
+  <rect x="10" y="230" width="300" height="50" rx="10" fill="#fbfbf9" stroke="#141414"/><text x="160" y="251" text-anchor="middle">Ask copilot</text><text x="160" y="267" text-anchor="middle" font-weight="500" font-size="10" fill="#6b6b68">crisis screen → Groq Qwen, grounded, cited</text>
+  <rect x="360" y="230" width="340" height="50" rx="10" fill="#fbfbf9" stroke="#141414"/><text x="530" y="251" text-anchor="middle">FastAPI</text><text x="530" y="267" text-anchor="middle" font-weight="500" font-size="10" fill="#6b6b68">JWT verified against Supabase JWKS on every request</text>
+ </g>
+ <g stroke="#141414" stroke-width="1.5" fill="none" marker-end="url(#a)">
+  <path d="M130 49H168"/><path d="M320 49H358"/><path d="M510 49H548"/><path d="M625 78V128"/><path d="M360 162H312"/><path d="M160 194V228"/><path d="M310 255H358"/>
+ </g>
+</svg>
+<div class="grid2" style="margin-top:4pt">
+ <div><h3>Reading</h3><p class="small">The original bytes go to Gemini with a strict transcription prompt: no invented fields, Indian day-first dates, every lab row, structured fields in English with Hindi and Telugu only inside the summary, explanations and questions. Models are tried in a chain; a model that reports "quota exceeded" is skipped for the period it names. Digital PDFs fall back to their text layer plus Groq.</p></div>
+ <div><h3>Checking</h3><p class="small">Values like "13,800" and ranges like "4,000-11,000", "&lt; 6" or "12.0 to 15.5" are parsed deterministically. A hyphen between two numbers is a separator, never a minus sign. The computed flag overrides the model's; when they disagree a warning is stored with the record.</p></div>
+ <div><h3>Storing</h3><p class="small">Each record keeps the full extraction, extraction metadata, a name check against the family member, the FHIR bundle, the original file and a downscaled preview. Medicines, lab values and conditions are also written to normalised tables for queries and trends.</p></div>
+ <div><h3>Protecting</h3><p class="small">Every row carries the owner's id and row-level security limits an account to its own family. Originals live in a private bucket under the owner's folder and are served through one-hour signed links. Every view of an original, move, delete, ABHA link and export is audited.</p></div>
+</div>
+<h3>Data model</h3>
+<table><tr><th>Table</th><th>Holds</th></tr>
+<tr><td class="mono">patients</td><td>Family members of one account: name, relation, age, sex, ABHA number / address, sample flag</td></tr>
+<tr><td class="mono">health_records</td><td>Type, date, title, full extraction (three languages), extraction metadata, name check, storage and preview paths, FHIR bundle</td></tr>
+<tr><td class="mono">medications · lab_observations · conditions</td><td>Normalised rows per record: dose, frequency, timing; numeric value, parsed low / high bounds, flag; diagnosis</td></tr>
+<tr><td class="mono">audit_log</td><td>Who did what to which record, when</td></tr></table>
+<p class="small muted">FHIR profiles: PrescriptionRecord, DiagnosticReportRecord, DischargeSummaryRecord bundles with Patient (ABHA id), Practitioner, Organization, Condition, MedicationRequest, Observation and DiagnosticReport.</p>
+</section>
+
+<section class="sec">
+<h2>4. Reading accuracy, measured</h2>
+<p>Seven synthetic documents with known contents were run through the live pipeline. Each check is one fact: a test value, a flag, a medicine strength, a diagnosis, the document date, or the presence of a Hindi and Telugu summary. The two "phone photo" rows are the same documents tilted 4°, blurred, with noise, uneven lighting and heavy JPEG compression.</p>
+<table><tr><th>Document</th><th>Correct</th><th>Model used</th><th>Time</th><th>Missed</th></tr><tr><td>Lab report photo</td><td class='num'>12/12</td><td>gemini-3.8-flash</td><td class='num'>21.5s</td><td>—</td></tr><tr><td>Lab report, phone photo (tilted, blurred, noisy, q45)</td><td class='num'>12/12</td><td>gemini-flash-lite-latest</td><td class='num'>14.6s</td><td>—</td></tr><tr><td>Handwriting-style prescription</td><td class='num'>9/9</td><td>gemini-3.8-flash</td><td class='num'>14.2s</td><td>—</td></tr><tr><td>Same prescription, phone photo</td><td class='num'>9/9</td><td>gemini-flash-lite-latest</td><td class='num'>27.8s</td><td>—</td></tr><tr><td>Discharge summary PDF</td><td class='num'>6/8</td><td>gemini-flash-lite-latest</td><td class='num'>12.9s</td><td>CRP value, date</td></tr><tr><td>Telugu + English prescription</td><td class='num'>8/8</td><td>gemini-flash-lite-latest</td><td class='num'>16.2s</td><td>—</td></tr><tr><td>Hindi + English prescription</td><td class='num'>5/5</td><td>gemini-flash-lite-latest</td><td class='num'>10.7s</td><td>—</td></tr>
+<tr><td><b>Total</b></td><td class="num"><b>61/63</b></td><td colspan="3"></td></tr></table>
+<p class="small muted">The two misses happened on the discharge PDF when the primary model's free-tier daily quota was exhausted during testing and the lightest model answered. With the primary model available, the same PDF scored 8/8. For the live demo the Gemini and Groq keys should be on paid tiers; both free tiers impose per-day and per-minute caps that a demo can exceed.</p>
+<h3>What the checks cover</h3>
+<ul class="small">
+<li>Lab values with thousands separators ("7,400", "13,800") and decimals; flags HIGH / LOW / NORMAL recomputed from the printed range.</li>
+<li>Medicine strengths in mg, mcg and IU; 1-0-1 style schedules expanded to morning / afternoon / night; "SOS" and "once a week" kept as such.</li>
+<li>Diagnoses written in Telugu with English in brackets; instructions written in Hindi under each medicine.</li>
+<li>Day-first dates (02/09/2026 → 2 September).</li>
+<li>A grocery list is refused as "not a medical document"; nothing is saved.</li>
+</ul>
+<h2 style="margin-top:14pt">5. Safety design</h2>
+<ul>
+<li>Not a diagnostic tool. The prompt forbids diagnosis and dose advice; a disclaimer appears on every screen in the selected language.</li>
+<li>Abnormal flags come from the printed reference range, not from the model.</li>
+<li>Values the model marked hard to read are labelled "check the original"; the original is always one click away beside the extraction.</li>
+<li>A document naming a different person is flagged and can be moved or filed under a new family member in one click; it is excluded from that person's profile until resolved.</li>
+<li>Emergency and self-harm wording in English, Hindi or Telugu is answered with 112, 108 and Tele-MANAS (14416) by deterministic rules before any model call.</li>
+<li>All sample people and documents are synthetic and labelled "Sample".</li>
+</ul>
+</section>
+
+<section class="sec">
+<h2>6. Screens</h2>
+<div class="grid2">
+ <div><div class="shot"><img src="screenshots/01-sign-in.png"></div><p class="cap">Sign in. Email and password through Supabase Auth.</p></div>
+ <div><div class="shot"><img src="screenshots/07-dark.png"></div><p class="cap">Overview, dark theme. The headline names what stands out.</p></div>
+</div>
+<div class="shot tall"><img src="screenshots/02-overview.png"></div><p class="cap">Overview: findings headline, the one primary action, unified health profile, out-of-range values on range bars with plain-language meaning, medicine schedule, timeline.</p>
+</section>
+<section class="sec">
+<div class="shot tall"><img src="screenshots/03-record-detail.png"></div><p class="cap">A record: the original beside what was read. Every value sits on a bar against its printed range; key terms are highlighted; questions to ask the doctor follow.</p>
+<div class="grid2" style="margin-top:8pt">
+ <div><div class="shot tall" style="height:95mm"><img src="screenshots/05-ask.png"></div><p class="cap">Ask: grounded answer with citations that open the record.</p></div>
+ <div><div class="shot tall" style="height:95mm"><img src="screenshots/06-visit-summary.png"></div><p class="cap">Visit summary: one printable page for the doctor.</p></div>
+</div>
+</section>
+<section class="sec">
+<div class="grid2">
+ <div><div class="shot tall" style="height:120mm"><img src="screenshots/04-timeline.png"></div><p class="cap">Timeline, grouped by month.</p></div>
+ <div><div class="shot" style="max-width:62mm;margin:0 auto"><img src="screenshots/08-mobile.png"></div><p class="cap" style="text-align:center">Phone width.</p></div>
+</div>
+<h2 style="margin-top:12pt">7. Demo script (about 4 minutes)</h2>
+<ol class="small">
+<li>Sign in. Lakshmi Devi's overview: "Haemoglobin and Vitamin D are low. TSH is high." Point at the range bars and the health profile.</li>
+<li>Open her lab report: original on the left, values on the right. Switch to తెలుగు. Tap "Read aloud".</li>
+<li>Ask: "Which results are not normal?" The answer cites the lab report; click the citation.</li>
+<li>On Venkata Rao, scan <span class="mono">live-demo_suresh_yadav_hindi_prescription.png</span>. The Hindi instructions are read; the app notices the document names Suresh Yadav and offers to add him to the family.</li>
+<li>Scan <span class="mono">live-demo_not_a_medical_document.png</span>. Refused; nothing saved.</li>
+<li>Link an ABHA number, export the FHIR record, import it back. Open "Visit summary" and print.</li>
+</ol>
+</section>
+
+<section class="sec">
+<h2>8. Against the evaluation criteria</h2>
+<table><tr><th style="width:28%">Criterion</th><th>Where it is met</th></tr>
+<tr><td>AI utilization (35%)</td><td>Vision extraction of medicines, doses, values, dates and diagnoses across print, handwriting-style, bilingual and degraded photos (61/63 checks). Plain-language summaries and per-value explanations in three languages. Range-computed flags keep the AI honest.</td></tr>
+<tr><td>Technical architecture (25%)</td><td>FastAPI pipeline with model fallback and quota cooldown; deterministic normaliser; Postgres with RLS, normalised clinical tables, private storage with previews; NRCES-profile FHIR R4 bundles, export and import.</td></tr>
+<tr><td>User experience (20%)</td><td>One primary action; findings headline; original beside extraction; instant switching and record opening; English, Hindi and Telugu across the UI; voice in, read aloud; works at phone width; light and dark.</td></tr>
+<tr><td>Healthcare impact (10%)</td><td>No diagnosis or dose advice; disclaimers everywhere; name-mismatch guard; "hard to read" labels; crisis routing to 112 / 108 / Tele-MANAS; visit summary turns reading into a better consultation.</td></tr>
+<tr><td>Presentation (10%)</td><td>Working prototype with a seeded sample family, two live-demo documents, this document and the README architecture diagram.</td></tr>
+<tr><td>Bonus: multi-language</td><td>Full UI, summaries, explanations, questions and answers in Hindi and Telugu; bilingual prescriptions read.</td></tr>
+<tr><td>Bonus: ABDM / ABHA</td><td>FHIR R4 bundles with ABHA identifiers, mock ABHA link with format validation, export and import.</td></tr></table>
+<h2 style="margin-top:14pt">9. Run it</h2>
+<pre>cd backend && python3.12 -m venv venv && ./venv/bin/pip install -r requirements.txt
+cp .env.example .env            # Gemini, Groq, Supabase keys
+./venv/bin/uvicorn app.main:app --port 8000
+
+supabase link --project-ref &lt;ref&gt; && supabase db push
+
+cd frontend && npm install && npx next dev -p 3010</pre>
+<h2 style="margin-top:14pt">10. Limitations and next steps</h2>
+<ul class="small">
+<li>ABHA linking validates format only; there is no ABDM gateway, consent manager or HIP / HIU integration yet.</li>
+<li>FHIR codes use text where no verified SNOMED CT / LOINC code was available; a terminology service would close this.</li>
+<li>Extraction quality depends on model availability; free-tier quotas should be replaced by paid keys before a public demo.</li>
+<li>Next: let the user correct a misread value and keep the correction; trends when the same test appears over time; medicine reminders; HEIC previews.</li>
+</ul>
+</section>
+</body></html>

@@ -10,5 +10,7 @@ Synthetic documents made for this demo. The people, doctors and values are inven
 | 2026-09-02_lakshmi_prescription.jpg | Handwriting-style prescription that follows the lab report |
 | live-demo_suresh_yadav_hindi_prescription.png | Hindi and English prescription naming a different patient, to show the name check |
 | live-demo_not_a_medical_document.png | A grocery list, to show that non-medical uploads are refused |
+| live-demo_phone_photo_lab_report.jpg | The lab report as a bad phone photo: tilted, blurred, noisy, uneven light, heavy compression. Reads 12/12 facts correctly |
+| live-demo_phone_photo_prescription.jpg | The prescription as a bad phone photo. Reads 9/9 facts correctly |
 
 The first four are preloaded as the sample family. Upload the two `live-demo_` files during a demo.

@@ -21,7 +21,9 @@ from app.services.regex_cleaner import compute_flag, normalize_frequency, split_
 
 logger = logging.getLogger(__name__)
 
-GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"]
+GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-flash-lite-latest"]
+# Models that answered "quota exceeded" are skipped until this time, so each upload does not pay for doomed retries.
+_COOLDOWN_UNTIL: Dict[str, float] = {}
 GROQ_MODEL = "qwen/qwen3.8-27b"
 
 
@@ -106,6 +108,9 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
     part = types.Part.from_bytes(data=file_bytes, mime_type=mime)
     for model in GEMINI_MODELS:
+        if _COOLDOWN_UNTIL.get(model, 0) > time.time():
+            errors.append(f"{model}: cooling down after quota error")
+            continue
         try:
             resp = client.models.generate_content(
                 model=model,
@@ -114,8 +119,12 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
             )
             return json.loads(_strip_fences(resp.text)), model, errors
         except Exception as e:
-            logger.warning(f"Gemini {model} failed: {e}")
+            msg = str(e)
+            logger.warning(f"Gemini {model} failed: {msg[:160]}")
             errors.append(f"{model}: {type(e).__name__}")
+            if "RESOURCE_EXHAUSTED" in msg or " 429" in msg:
+                delay = re.search(r"retryDelay['\"]?: ?['\"]?(\d+)s", msg)
+                _COOLDOWN_UNTIL[model] = time.time() + (int(delay.group(1)) if delay else 900)
     return None, "", errors
 
 
@@ -130,6 +139,7 @@ def _groq_text(text: str) -> Tuple[Optional[Dict[str, Any]], list]:
             messages=[{"role": "system", "content": PROMPT},
                       {"role": "user", "content": f"Document text:\n{text[:12000]}"}],
             temperature=0.0,
+            max_tokens=1000,  # free-tier output cap; a truncated reply fails to parse and falls through to vision
             response_format={"type": "json_object"},
         )
         return json.loads(_strip_fences(resp.choices[0].message.content)), []
@@ -285,10 +295,12 @@ def extract_document(file_bytes: bytes, mime: str, filename: str) -> Tuple[Extra
         record, warnings = normalize(data)
         meta = ExtractionMeta(engine="FHIR import", model=GROQ_MODEL, duration_ms=int((time.monotonic() - started) * 1000), warnings=warnings)
         return record, meta
-    data, model, errors = _gemini(file_bytes, mime)
-    engine = "Gemini vision"
-    if data is None and is_pdf:
-        data, errs = _groq_text(_pdf_text(file_bytes))
+    data, model, errors, engine = None, "", [], "Gemini vision"
+    pdf_text = _pdf_text(file_bytes) if is_pdf else ""
+    data, model, errs = _gemini(file_bytes, mime)
+    errors += errs
+    if data is None and pdf_text:
+        data, errs = _groq_text(pdf_text)
         errors += errs
         engine, model = "PDF text + Groq", GROQ_MODEL
     if data is None:
