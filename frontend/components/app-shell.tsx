@@ -126,10 +126,29 @@ export function AppShell({ email }: { email: string }) {
 }
 
 function HeaderSkeleton() {
+  // Mirrors the overview layout so the page takes shape while the family loads.
   return (
-    <div className="mx-auto max-w-[1240px] px-6 pb-10 pt-12">
-      <Skeleton className="h-14 w-80" /><Skeleton className="mt-3 h-4 w-64" />
-      <div className="mt-8 flex gap-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-9 w-24 rounded-full" />)}</div>
+    <div className="mx-auto max-w-[1240px] px-4 pt-6 sm:px-6" aria-busy="true" aria-label="Loading">
+      <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className="flex flex-col justify-between gap-6">
+          <div>
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="mt-3 h-12 w-72 max-w-full" />
+            <div className="mt-4 flex gap-2"><Skeleton className="h-9 w-28 rounded-full" /><Skeleton className="h-9 w-40 rounded-full" /><Skeleton className="h-9 w-32 rounded-full" /></div>
+          </div>
+          <div><Skeleton className="h-9 w-[28rem] max-w-full" /><Skeleton className="mt-3 h-4 w-44" /></div>
+        </div>
+        <Skeleton className="h-[200px] rounded-xl" />
+      </div>
+      <div className="mt-6 flex gap-5 border-b border-line pb-3">{["w-16", "w-20", "w-20", "w-10"].map((w, i) => <Skeleton key={i} className={`h-4 ${w}`} />)}</div>
+      <Skeleton className="mt-8 h-5 w-32" />
+      <div className="mt-4 grid overflow-hidden rounded-xl border border-line bg-surface/60 sm:grid-cols-2 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => <div key={i} className="space-y-3 p-5"><Skeleton className="h-3 w-24" /><Skeleton className="h-7 w-32" /><Skeleton className="h-3 w-40" /></div>)}
+      </div>
+      <Skeleton className="mt-10 h-5 w-36" />
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2].map((i) => <div key={i} className="space-y-4 rounded-xl border border-line bg-surface/60 p-5"><div className="flex justify-between"><Skeleton className="h-4 w-28" /><Skeleton className="h-5 w-14 rounded-full" /></div><Skeleton className="h-14 w-32" /><Skeleton className="h-1.5 w-full rounded-full" /><Skeleton className="h-3 w-full" /><Skeleton className="h-3 w-5/6" /></div>)}
+      </div>
     </div>
   );
 }
