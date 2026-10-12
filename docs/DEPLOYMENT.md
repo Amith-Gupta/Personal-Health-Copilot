@@ -177,7 +177,9 @@ Vercel for the frontend with App Runner for the backend is also fine; mix freely
 
 ## 5. Supabase settings for the deployed URL (all options)
 
-1. **Auth → URL Configuration → Site URL:** the public frontend URL. **Redirect URLs:** add the same URL and `https://<frontend>/**`. Without this, sign-up confirmation emails link back to localhost.
+Only one setting has to change. The project is otherwise ready as it is.
+
+1. **Auth → URL Configuration.** Site URL is set to `http://localhost:3010` and the redirect allow-list only has localhost. Change **Site URL** to the public frontend URL and add it and `https://<frontend>/**` to **Redirect URLs**. This only affects links inside auth emails (password reset, magic links); sign-in and sign-up work before you do it, but do it anyway.
 2. **Schema:** already applied. If you ever deploy to a fresh project, run from the repo root:
    ```
    supabase link --project-ref <project-ref>
@@ -185,6 +187,17 @@ Vercel for the frontend with App Runner for the backend is also fine; mix freely
    ```
    This creates the tables, row-level-security policies and the private `documents` bucket.
 3. **Keys:** the service key (`SUPABASE_KEY`) is only ever set on the backend host. The browser only sees the publishable key.
+
+Things you do **not** need to touch, checked against the live project:
+
+- **No IP allowlist.** Network restrictions are open (`0.0.0.0/0`), so Render, Vercel, AWS or any other host can reach the database and storage.
+- **No email confirmation.** Auto-confirm is on, so a judge who signs up is logged in immediately with no email round-trip. Leave it on for the demo.
+- **No storage CORS.** Files are served through short-lived signed URLs minted by the backend, and the bucket stays private.
+- **Row-level security** is part of the migrations and is already applied.
+
+One limit to know: Supabase's built-in mailer sends at most 2 emails per hour. Sign-up never sends one, but password reset does, so do not rely on reset during a demo. If you need more, add a custom SMTP provider under Auth → SMTP Settings.
+
+**Demo account.** A demo user with the sample Kumar family already exists in Auth → Users. Its login is shared with the team privately, never in the repo. It is an ordinary Supabase user, so it works unchanged on the deployed site; change its password in Auth → Users before the link goes public.
 
 ---
 
