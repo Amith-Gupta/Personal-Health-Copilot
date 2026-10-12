@@ -82,6 +82,15 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   transition: background-color 9999s ease-out;
 }
 
+/* The stethoscope from the sign-in photo, blurred and faint, as a shadow on the wall. Light theme only. */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: url("/hero-stethoscope.jpg") no-repeat right -6% top -22% / 78% auto;
+  filter: grayscale(1) blur(22px) contrast(1.2);
+  opacity: .5; mix-blend-mode: multiply;
+}
+:root[data-theme="dark"] body::after { display: none; }
+
 /* Frosted panel with real depth, like a sheet resting on the wall. */
 .panel {
   border-radius: 20px;

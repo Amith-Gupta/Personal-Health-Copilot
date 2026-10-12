@@ -9,9 +9,20 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono"
 const deva = Noto_Sans_Devanagari({ subsets: ["devanagari"], variable: "--font-deva", display: "swap" });
 const telu = Noto_Sans_Telugu({ subsets: ["telugu"], variable: "--font-telu", display: "swap" });
 
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3010";
+const DESCRIPTION = "Reads a family's prescriptions, lab reports and discharge summaries, explains them in English, Hindi and Telugu, and keeps one ABDM-ready record per person.";
+
 export const metadata: Metadata = {
-  title: "Health Copilot",
-  description: "Reads a family's prescriptions, lab reports and discharge summaries, explains them in English, Hindi and Telugu, and keeps one ABDM-ready record per person.",
+  metadataBase: new URL(SITE),
+  title: { default: "Health Copilot", template: "%s · Health Copilot" },
+  description: DESCRIPTION,
+  applicationName: "Health Copilot",
+  openGraph: {
+    type: "website", siteName: "Health Copilot", title: "Health Copilot",
+    description: DESCRIPTION, url: SITE,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Health Copilot: your family's prescriptions, lab reports and discharge papers, read and explained." }],
+  },
+  twitter: { card: "summary_large_image", title: "Health Copilot", description: DESCRIPTION, images: ["/og.png"] },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
