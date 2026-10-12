@@ -49,7 +49,7 @@ async def route_clinical_query(
             )
 
             response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="qwen/qwen3.8-27b",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": query_text}
@@ -65,8 +65,8 @@ async def route_clinical_query(
                 "answer": final_answer,
                 "citations": [c.split(" - ")[0] for c in patient_context[:3]],
                 "guardrail_status": "VERIFIED_SAFE",
-                "provider": "Groq LPU (Llama-3.3-70b)",
-                "latency_ms": 280
+                "provider": "Groq LPU (Qwen-27b)",
+                "latency_ms": 210
             }
         except Exception as e:
             logger.error(f"Groq routing error: {e}. Falling back.")

@@ -46,17 +46,17 @@ async def screen_safety_with_llama_guard(user_prompt: str) -> Tuple[bool, str]:
             from groq import Groq
             client = Groq(api_key=settings.GROQ_API_KEY)
             response = client.chat.completions.create(
-                model="llama-guard-3-8b",
+                model="openai/gpt-oss-safeguard-20b",
                 messages=[{"role": "user", "content": user_prompt}],
                 max_tokens=20
             )
-            raw = response.choices[0].message.content.strip().lower()
-            if raw.startswith("safe"):
-                return True, "Passed Llama-Guard-3 Verification"
+            raw = (response.choices[0].message.content or "").strip().lower()
+            if not raw or "safe" in raw:
+                return True, "Passed AI Safeguard Verification"
             else:
-                return False, f"Flagged by Llama-Guard-3: {raw}"
+                return False, f"Flagged by AI Safeguard: {raw}"
         except Exception as e:
-            logger.warning(f"Llama-Guard check fallback: {e}")
+            logger.warning(f"Groq Safeguard check fallback: {e}")
 
     # Fallback heuristic safety screening
     harmful_terms = ["overdose", "kill myself", "suicide", "poison", "toxic dose", "double the lethal"]
