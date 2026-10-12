@@ -60,17 +60,27 @@ mark.hl { color: inherit; background: linear-gradient(104deg, rgb(var(--signal) 
 }
 
 
-/* Daylight: a real photograph of leaf shadows on a plaster wall, fixed behind the app. */
+/* Soft daylight on plaster: a quiet light gradient, no photograph. */
 body::before {
   content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: url("/bg-daylight.jpg") right top / cover no-repeat;
-  opacity: .85; mix-blend-mode: multiply;
+  background:
+    radial-gradient(120% 80% at 85% -10%, rgb(255 255 255 / .9) 0%, rgb(255 255 255 / 0) 60%),
+    radial-gradient(90% 70% at 0% 100%, rgb(214 208 196 / .55) 0%, rgb(214 208 196 / 0) 60%);
 }
-body::after {
-  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: linear-gradient(180deg, rgb(var(--canvas) / 0) 0%, rgb(var(--canvas) / .35) 55%, rgb(var(--canvas) / .7) 100%);
+:root[data-theme="dark"] body::before {
+  background:
+    radial-gradient(120% 80% at 85% -10%, rgb(255 255 255 / .06) 0%, rgb(255 255 255 / 0) 60%),
+    radial-gradient(90% 70% at 0% 100%, rgb(255 255 255 / .03) 0%, rgb(255 255 255 / 0) 60%);
 }
-:root[data-theme="dark"] body::before { filter: invert(1) brightness(.55); opacity: .35; mix-blend-mode: screen; }
+
+/* Browser autofill paints fields light blue; keep them on our surface colour. */
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+  -webkit-text-fill-color: rgb(var(--fg));
+  -webkit-box-shadow: 0 0 0 1000px rgb(var(--surface)) inset;
+  box-shadow: 0 0 0 1000px rgb(var(--surface)) inset;
+  caret-color: rgb(var(--fg));
+  transition: background-color 9999s ease-out;
+}
 
 /* Frosted panel with real depth, like a sheet resting on the wall. */
 .panel {

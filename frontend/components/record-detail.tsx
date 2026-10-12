@@ -90,7 +90,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
               {srcErr || !record.has_source_file ? <p className="py-16 text-center text-sm text-fg-3">Original file not available.</p>
                 : !src ? <Skeleton className="aspect-[3/4] w-full" />
                 : isPdf ? (
-                  <object data={src} type="application/pdf" aria-label={record.source_filename} className="aspect-[3/4] w-full rounded bg-white">
+                  <object data={`${src}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} type="application/pdf" aria-label={record.source_filename} className="aspect-[3/4] w-full rounded bg-white">
                     <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded bg-surface text-sm text-fg-3">
                       <p>PDF preview is not available in this browser.</p>
                       <a href={src} target="_blank" rel="noreferrer" className="rounded-full bg-accent px-4 py-2 font-medium text-accent-fg">{t.openOriginal}</a>

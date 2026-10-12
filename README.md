@@ -117,5 +117,4 @@ A demo account with the sample family is created in Supabase Auth; its login is 
 
 ## Credits
 
-- Background photograph "shadow of leaves on white wall" from [Unsplash](https://unsplash.com/photos/shadow-of-leaves-on-white-wall-GAnCCU7mqIU), used under the Unsplash License.
 - Sign-in photograph "black and silver stethoscope on white surface" from [Unsplash](https://unsplash.com/photos/black-and-silver-stethoscope-on-white-surface-IJ0KiXl4uys), used under the Unsplash License.
