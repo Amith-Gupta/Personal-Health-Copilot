@@ -15,24 +15,24 @@
 }
 /* Dark: explicit choice, or system preference when no choice was made */
 :root[data-theme="dark"] {
-  --canvas: 12 14 20; --surface: 19 22 30; --subtle: 26 30 40; --hover: 33 38 50;
-  --line: 39 44 57; --line-strong: 60 67 84;
-  --fg: 236 239 245; --fg-2: 178 185 199; --fg-3: 124 132 150;
-  --accent: 120 154 255; --accent-fg: 10 14 30; --accent-soft: 28 36 66;
-  --signal: 250 224 80; --signal-fg: 12 14 20;
-  --high: 255 112 104; --high-soft: 58 22 24; --low: 255 112 104; --low-soft: 58 22 24;
-  --ok: 92 206 140; --ok-soft: 16 42 30; --warn: 244 184 80; --warn-soft: 48 36 12;
+  --canvas: 11 11 13; --surface: 21 22 27; --subtle: 28 30 36; --hover: 35 37 44;
+  --line: 38 40 48; --line-strong: 60 63 74;
+  --fg: 245 245 242; --fg-2: 182 184 192; --fg-3: 128 131 142;
+  --accent: 245 245 242; --accent-fg: 11 11 13; --accent-soft: 34 36 44;
+  --signal: 196 245 66; --signal-fg: 11 11 13;
+  --high: 255 110 96; --high-soft: 60 22 22; --low: 255 110 96; --low-soft: 60 22 22;
+  --ok: 120 214 150; --ok-soft: 18 44 30; --warn: 244 184 80; --warn-soft: 48 36 12;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --canvas: 12 14 20; --surface: 19 22 30; --subtle: 26 30 40; --hover: 33 38 50;
-    --line: 39 44 57; --line-strong: 60 67 84;
-    --fg: 236 239 245; --fg-2: 178 185 199; --fg-3: 124 132 150;
-    --accent: 120 154 255; --accent-fg: 10 14 30; --accent-soft: 28 36 66;
-    --signal: 250 224 80; --signal-fg: 12 14 20;
-    --high: 255 112 104; --high-soft: 58 22 24; --low: 255 112 104; --low-soft: 58 22 24;
-    --ok: 92 206 140; --ok-soft: 16 42 30; --warn: 244 184 80; --warn-soft: 48 36 12;
+    --canvas: 11 11 13; --surface: 21 22 27; --subtle: 28 30 36; --hover: 35 37 44;
+    --line: 38 40 48; --line-strong: 60 63 74;
+    --fg: 245 245 242; --fg-2: 182 184 192; --fg-3: 128 131 142;
+    --accent: 245 245 242; --accent-fg: 11 11 13; --accent-soft: 34 36 44;
+    --signal: 196 245 66; --signal-fg: 11 11 13;
+    --high: 255 110 96; --high-soft: 60 22 22; --low: 255 110 96; --low-soft: 60 22 22;
+    --ok: 120 214 150; --ok-soft: 18 44 30; --warn: 244 184 80; --warn-soft: 48 36 12;
     color-scheme: dark;
   }
 }
@@ -48,8 +48,8 @@ input, textarea { caret-color: rgb(var(--fg)); }
 .eyebrow { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: rgb(var(--fg)); }
 /* Highlighter stroke for key terms, the way people mark a report */
 mark.hl { color: inherit; background: linear-gradient(104deg, rgb(var(--signal) / 0) 0.9%, rgb(var(--signal) / .85) 2.4%, rgb(var(--signal) / .6) 5.8%, rgb(var(--signal) / .3) 93%, rgb(var(--signal) / .75) 96%, rgb(var(--signal) / 0) 98%); border-radius: 3px; padding: 0 .15em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
-:root[data-theme="dark"] mark.hl { background: rgb(var(--signal) / .22); color: rgb(var(--fg)); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) mark.hl { background: rgb(var(--signal) / .22); } }
+:root[data-theme="dark"] mark.hl { background: rgb(var(--signal) / .9); color: rgb(11 11 13); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) mark.hl { background: rgb(var(--signal) / .9); color: rgb(11 11 13); } }
 /* Red-pen circle drawn around an out-of-range value */
 @keyframes pen { from { stroke-dashoffset: 1 } to { stroke-dashoffset: 0 } }
 .pen path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: pen .7s .25s cubic-bezier(.65,0,.35,1) forwards; }
@@ -62,7 +62,7 @@ mark.hl { color: inherit; background: linear-gradient(104deg, rgb(var(--signal) 
 
 /* The dark band at the top of the app: scoped dark tokens, so every child adapts. */
 .band {
-  --canvas: 13 13 15; --surface: 23 24 29; --subtle: 30 32 38; --hover: 36 38 45;
+  --canvas: 11 11 13; --surface: 23 24 29; --subtle: 30 32 38; --hover: 36 38 45;
   --line: 40 42 50; --line-strong: 62 65 76;
   --fg: 245 245 242; --fg-2: 182 184 192; --fg-3: 128 131 142;
   --accent: 245 245 242; --accent-fg: 13 13 15; --accent-soft: 34 36 44;

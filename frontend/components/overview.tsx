@@ -201,22 +201,19 @@ function findingsSentence(obs: { test_name: string; flag: string }[]) {
   return <>{part(lows, "low")}{part(highs, "high")}</>;
 }
 
-/** Top-of-page summary: what stands out, plus the one primary action. Sits in the dark band. */
-export function PatientHero({ records, profile, onFile }: { records: HealthRecord[] | null; profile: Profile; onFile: (f: File) => void }) {
+/** One line that says what stands out. Sits under the name in the dark band. */
+export function Findings({ records }: { records: HealthRecord[] | null }) {
   const { t, lang } = useI18n();
-  if (!records) return <div className="grid gap-6 pb-8 pt-2 lg:grid-cols-[1.25fr_1fr]"><Skeleton className="h-40" /><Skeleton className="h-56 rounded-xl" /></div>;
+  if (!records) return <div className="space-y-2"><Skeleton className="h-4 w-48" /><Skeleton className="h-10 w-96 max-w-full" /></div>;
   const tests = latestTests(records);
   const out = tests.filter(({ o }) => isOut(o.flag));
   const meds = currentMedicines(records);
   return (
-    <section className="grid items-stretch gap-6 pb-10 pt-2 lg:grid-cols-[1.25fr_1fr]">
-      <div className="flex flex-col justify-end">
-        <p className="text-sm font-medium text-fg-3">{t.heroSub(tests.length, meds.length, records.length)}</p>
-        <h2 className="display mt-3 max-w-[18ch] text-[34px] font-semibold leading-[1.08] sm:text-[48px]">
-          {records.length === 0 || tests.length === 0 ? (records.length === 0 ? t.heroEmpty : t.heroClear) : out.length === 0 ? t.heroClear : lang === "en" ? findingsSentence(out.map(({ o }) => o)) : <><span className="text-high">{out.length}</span> {t.heroOut(out.length)}</>}
-        </h2>
-      </div>
-      <UploadCta name={profile.name} onFile={onFile} />
-    </section>
+    <div>
+      <h2 className="display max-w-[22ch] text-[26px] font-semibold leading-[1.15] sm:text-[32px]">
+        {records.length === 0 ? t.heroEmpty : tests.length === 0 || out.length === 0 ? t.heroClear : lang === "en" ? findingsSentence(out.map(({ o }) => o)) : <><span className="text-high">{out.length}</span> {t.heroOut(out.length)}</>}
+      </h2>
+      <p className="mt-2 text-sm text-fg-3">{t.heroSub(tests.length, meds.length, records.length)}</p>
+    </div>
   );
 }

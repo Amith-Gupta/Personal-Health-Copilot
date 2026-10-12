@@ -6,7 +6,8 @@ import type { HealthRecord, Profile } from "@/lib/types";
 import { TopBar } from "./top-bar";
 import { FamilyRow } from "./family-row";
 import { PatientHeader } from "./patient-header";
-import { Overview, PatientHero } from "./overview";
+import { Findings, Overview } from "./overview";
+import { UploadCta } from "./upload-cta";
 import { RecordsView } from "./records-view";
 import { MedicinesView } from "./medicines-view";
 import { AskView } from "./ask-view";
@@ -73,7 +74,7 @@ export function AppShell({ email }: { email: string }) {
             <PatientHeader profile={active} tab={tab} onTab={(x) => { setTab(x); setOpenRecord(null); }}
               recordCount={records?.length} onUpload={() => { setUploadFile(null); setUploading(true); setOpenRecord(null); }}
               onProfile={(p) => setProfiles((ps) => (ps || []).map((x) => (x.id === p.id ? p : x)))}
-              hero={<PatientHero records={records} profile={active} onFile={startUpload} />} />
+              findings={<Findings records={records} />} cta={<UploadCta name={active.name} onFile={startUpload} />} />
             </div>
             <div className="mx-auto max-w-[1240px] px-4 pb-16 pt-8 sm:px-6">
               {uploading && (

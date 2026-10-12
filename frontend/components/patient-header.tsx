@@ -7,8 +7,8 @@ import type { Profile } from "@/lib/types";
 import type { Tab } from "./app-shell";
 import { Badge, Button, cx, useToast } from "./ui";
 
-export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onProfile, hero }: {
-  profile: Profile; tab: Tab; onTab: (t: Tab) => void; recordCount?: number; onUpload: () => void; onProfile: (p: Profile) => void; hero?: React.ReactNode;
+export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onProfile, findings, cta }: {
+  profile: Profile; tab: Tab; onTab: (t: Tab) => void; recordCount?: number; onUpload: () => void; onProfile: (p: Profile) => void; findings?: React.ReactNode; cta?: React.ReactNode;
 }) {
   const { t, lang } = useI18n();
   const toast = useToast();
@@ -16,40 +16,40 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
   const [exporting, setExporting] = useState(false);
   const tabs: Tab[] = ["overview", "records", "medicines", "ask"];
   return (
-    <section className="mx-auto max-w-[1240px] px-4 pt-8 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div className="min-w-0 animate-[fade-up_.5s_cubic-bezier(.16,1,.3,1)_both]">
-          <p className="eyebrow flex items-center gap-2">
-            {relationLabel(profile.relation, lang)}{profile.age ? ` · ${ageLabel(profile.age, lang)}` : ""}{profile.sex ? ` · ${profile.sex}` : ""}
-            {profile.is_sample && <Badge>{t.sample}</Badge>}
-          </p>
-          <h1 className="display mt-2 text-[44px] font-semibold leading-[0.95] sm:text-[64px]">{profile.name}</h1>
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-            {profile.abha_linked ? (
-              <button onClick={() => setAbhaOpen((v) => !v)} className="group flex items-center gap-2 rounded-full border border-line py-1 pl-1 pr-3 hover:border-fg/40">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-ok-soft text-ok"><IdentificationCard size={13} weight="fill" /></span>
-                <span className="num text-fg">{profile.abha_number || profile.abha_address}</span>
-                <span className="text-fg-3">ABHA</span>
-              </button>
-            ) : (
-              <button onClick={() => setAbhaOpen((v) => !v)} className="flex items-center gap-1.5 rounded-full border border-dashed border-line-strong px-3 py-1.5 text-fg-2 hover:border-fg hover:text-fg">
-                <IdentificationCard size={15} /> {t.abhaLink}
-              </button>
-            )}
+    <section className="mx-auto max-w-[1240px] px-4 pt-6 sm:px-6">
+      <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col justify-between gap-6">
+          <div>
+            <p className="flex items-center gap-2 text-sm text-fg-2">
+              {relationLabel(profile.relation, lang)}{profile.age ? ` · ${ageLabel(profile.age, lang)}` : ""}{profile.sex ? ` · ${profile.sex}` : ""}
+              {profile.is_sample && <Badge>{t.sample}</Badge>}
+            </p>
+            <h1 className="display mt-1 truncate text-[40px] font-semibold leading-[1] sm:text-[52px]">{profile.name}</h1>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+              {profile.abha_linked ? (
+                <button onClick={() => setAbhaOpen((v) => !v)} className="flex h-9 items-center gap-2 rounded-full border border-line pl-1 pr-3 hover:border-fg/40">
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-ok-soft text-ok"><IdentificationCard size={14} weight="fill" /></span>
+                  <span className="num text-fg">{profile.abha_number || profile.abha_address}</span>
+                  <span className="text-fg-3">ABHA</span>
+                </button>
+              ) : (
+                <button onClick={() => setAbhaOpen((v) => !v)} className="flex h-9 items-center gap-1.5 rounded-full border border-dashed border-line-strong px-3 text-fg-2 hover:border-fg hover:text-fg">
+                  <IdentificationCard size={15} /> {t.abhaLink}
+                </button>
+              )}
+              <Button size="sm" className="h-9" loading={exporting} icon={<DownloadSimple size={15} />} onClick={async () => {
+                setExporting(true);
+                try { await api.exportFhir(profile.id, profile.name); } catch (e) { toast((e as Error).message, "error"); }
+                setExporting(false);
+              }}>{t.exportAbdm}</Button>
+            </div>
           </div>
+          {findings}
         </div>
-        <div className="flex items-center gap-2">
-          <Button loading={exporting} icon={<DownloadSimple size={15} />} onClick={async () => {
-            setExporting(true);
-            try { await api.exportFhir(profile.id, profile.name); } catch (e) { toast((e as Error).message, "error"); }
-            setExporting(false);
-          }}>{t.exportAbdm}</Button>
-          
-        </div>
+        {cta}
       </div>
       {abhaOpen && <AbhaForm profile={profile} onDone={(p) => { if (p) onProfile(p); setAbhaOpen(false); }} />}
-      <div className="mt-8">{hero}</div>
-      <nav className="flex gap-1 overflow-x-auto" aria-label="Sections">
+      <nav className="mt-6 flex gap-1 overflow-x-auto border-b border-line" aria-label="Sections">
         {tabs.map((x) => (
           <button key={x} onClick={() => onTab(x)} aria-current={tab === x ? "page" : undefined}
             className={cx("relative -mb-px whitespace-nowrap border-b-2 px-3 pb-3 pt-1 text-[15px] transition-colors",

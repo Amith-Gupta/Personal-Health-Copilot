@@ -14,13 +14,13 @@ export function UploadCta({ name, onFile, compact }: { name: string; onFile: (f:
       onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
       onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer.files?.[0]; if (f) onFile(f); }}
       className={cx("relative flex flex-col justify-between overflow-hidden rounded-xl bg-[#17191f] p-6 text-white ring-1 ring-white/10 transition-transform",
-        over && "scale-[1.01] ring-4 ring-[#c4f542]", compact ? "min-h-0" : "min-h-[240px]")}>
+        over && "scale-[1.01] ring-4 ring-[#c4f542]", compact ? "min-h-0" : "min-h-0")}>
       <div className="relative">
         <FileArrowUp size={26} weight="duotone" className="text-[#c4f542]" />
-        <p className="display mt-3 text-[24px] font-semibold leading-tight">{over ? t.ctaDrop : t.ctaTitle(name.split(" ")[0])}</p>
+        <p className="display mt-3 text-[22px] font-semibold leading-tight">{over ? t.ctaDrop : t.ctaTitle(name.split(" ")[0])}</p>
         {!compact && <p className="mt-2 max-w-md text-sm leading-relaxed opacity-70">{t.ctaBody}</p>}
       </div>
-      <div className="relative mt-6 flex flex-wrap items-center gap-3">
+      <div className="relative mt-5 flex flex-wrap items-center gap-3">
         <button onClick={() => input.current?.click()}
           className="inline-flex h-11 items-center gap-2 rounded-full bg-[#c4f542] px-5 text-[15px] font-semibold text-[#0d0d0f] transition-transform hover:scale-[1.02] active:scale-[.98]">
           <Camera size={18} weight="bold" /> {t.ctaButton}

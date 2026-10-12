@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
-// Applies the saved theme before paint so there is no flash.
-const themeScript = `try{var t=localStorage.getItem('theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}`;
+// Dark by default; applies a saved choice before paint so there is no flash.
+const themeScript = `try{var t=localStorage.getItem('theme');document.documentElement.dataset.theme=(t==='light'?'light':'dark')}catch(e){document.documentElement.dataset.theme='dark'}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
