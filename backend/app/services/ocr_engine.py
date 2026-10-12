@@ -162,7 +162,7 @@ async def extract_clinical_record(file_bytes: bytes, mime_type: str, filename: s
 
         genai.configure(api_key=settings.GEMINI_API_KEY)
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-3.8-flash",
             system_instruction=SYSTEM_PROMPT,
             generation_config={"response_mime_type": "application/json"}
         )
