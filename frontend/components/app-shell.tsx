@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import type { HealthRecord, Profile } from "@/lib/types";
 import { TopBar } from "./top-bar";
+import { FamilyRow } from "./family-row";
 import { PatientHeader } from "./patient-header";
 import { Overview } from "./overview";
 import { RecordsView } from "./records-view";
@@ -27,6 +28,7 @@ export function AppShell({ email }: { email: string }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [openRecord, setOpenRecord] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
 
   const loadProfiles = useCallback(async (select?: string) => {
     setLoadError(null);
@@ -50,13 +52,15 @@ export function AppShell({ email }: { email: string }) {
 
   function select(id: string) { setActiveId(id); setOpenRecord(null); setUploading(false); setTab("overview"); }
   function openRec(id: string) { setOpenRecord(id); setTab("records"); window.scrollTo({ top: 0 }); }
+  function startUpload(f: File) { setUploadFile(f); setUploading(true); setOpenRecord(null); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function upsert(rec: HealthRecord) {
     setRecords((rs) => [rec, ...(rs || []).filter((r) => r.id !== rec.id)].filter((r) => r.profile_id === activeId).sort(byDate));
   }
 
   return (
     <div className="min-h-[100dvh]">
-      <TopBar email={email} profiles={profiles} activeId={activeId} onSelect={select} onProfilesChanged={loadProfiles} />
+      <TopBar email={email} />
+      {profiles?.length !== 0 && <FamilyRow profiles={profiles} activeId={activeId} onSelect={select} onProfilesChanged={loadProfiles} />}
       <main className="min-w-0">
         {loadError && <div className="p-6"><ErrorNote message={loadError} onRetry={() => loadProfiles()} retryLabel={t.tryAgain} /></div>}
         {!profiles && !loadError && <HeaderSkeleton />}
@@ -64,12 +68,12 @@ export function AppShell({ email }: { email: string }) {
         {active && (
           <>
             <PatientHeader profile={active} tab={tab} onTab={(x) => { setTab(x); setOpenRecord(null); }}
-              recordCount={records?.length} onUpload={() => { setUploading(true); setOpenRecord(null); }}
+              recordCount={records?.length} onUpload={() => { setUploadFile(null); setUploading(true); setOpenRecord(null); }}
               onProfile={(p) => setProfiles((ps) => (ps || []).map((x) => (x.id === p.id ? p : x)))} />
             <div className="mx-auto max-w-[1240px] px-4 pb-16 pt-8 sm:px-6">
               {uploading && (
-                <UploadPanel profile={active} onClose={() => setUploading(false)}
-                  onFiled={(rec) => { upsert(rec); setUploading(false); toast(t.filed(active.name)); openRec(rec.id); }} />
+                <UploadPanel profile={active} file={uploadFile} onClose={() => { setUploading(false); setUploadFile(null); }}
+                  onFiled={(rec) => { upsert(rec); setUploading(false); setUploadFile(null); toast(t.filed(active.name)); openRec(rec.id); }} />
               )}
               {recordsError ? <ErrorNote message={recordsError} onRetry={() => loadRecords(active.id)} retryLabel={t.tryAgain} />
                 : selected ? (
@@ -77,8 +81,8 @@ export function AppShell({ email }: { email: string }) {
                     onMoved={(rec, to) => { setRecords((rs) => (rs || []).filter((r) => r.id !== rec.id)); setOpenRecord(null); toast(t.filed(to.name)); }}
                     onDeleted={(id) => { setRecords((rs) => (rs || []).filter((r) => r.id !== id)); setOpenRecord(null); }}
                     onProfileCreated={() => loadProfiles(active.id)} />
-                ) : tab === "overview" ? <Overview records={records} profile={active} onOpen={openRec} onTab={setTab} onUpload={() => setUploading(true)} />
-                : tab === "records" ? <RecordsView records={records} onOpen={openRec} onUpload={() => setUploading(true)} />
+                ) : tab === "overview" ? <Overview records={records} profile={active} onOpen={openRec} onTab={setTab} onFile={startUpload} />
+                : tab === "records" ? <RecordsView records={records} profile={active} onOpen={openRec} onFile={startUpload} />
                 : tab === "medicines" ? <MedicinesView records={records} onOpen={openRec} />
                 : <AskView profile={active} records={records || []} onOpen={openRec} />}
               <p className="mt-16 flex flex-wrap justify-between gap-2 border-t border-line pt-5 text-xs text-fg-3"><span>{t.disclaimer}</span><span className="font-medium text-fg-2">{t.emergency}</span></p>

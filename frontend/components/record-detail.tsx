@@ -119,7 +119,7 @@ export function RecordDetail({ record, profiles, active, onBack, onMoved, onDele
             {e.diagnoses.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 border-t border-line px-5 py-3">
                 <span className="mr-1 text-xs font-medium text-fg-3">{t.diagnoses}</span>
-                {e.diagnoses.map((d, i) => <Badge key={i} tone="accent">{d}</Badge>)}
+                {e.diagnoses.map((d, i) => <Badge key={i} tone="accent">{d.replace(/\s*\[.*\]/, "")}</Badge>)}
               </div>
             )}
           </Card>

@@ -8,7 +8,7 @@ import { Button, Card, ErrorNote, Spinner, cx } from "./ui";
 
 type State = { kind: "idle" } | { kind: "reading"; name: string; started: number } | { kind: "error"; name: string; message: string; refused: boolean };
 
-export function UploadPanel({ profile, onClose, onFiled }: { profile: Profile; onClose: () => void; onFiled: (r: HealthRecord) => void }) {
+export function UploadPanel({ profile, file, onClose, onFiled }: { profile: Profile; file?: File | null; onClose: () => void; onFiled: (r: HealthRecord) => void }) {
   const { t } = useI18n();
   const [state, setState] = useState<State>({ kind: "idle" });
   const [over, setOver] = useState(false);
@@ -20,6 +20,9 @@ export function UploadPanel({ profile, onClose, onFiled }: { profile: Profile; o
     const id = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(id);
   }, [state.kind]);
+
+  useEffect(() => { if (file) send(file); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file]);
 
   async function send(file: File) {
     const start = Date.now();

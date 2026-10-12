@@ -6,19 +6,29 @@ import { pick, type HealthRecord, type Profile } from "@/lib/types";
 import type { Tab } from "./app-shell";
 import { RangeBar } from "./range-bar";
 import { DocIcon } from "./doc-icon";
+import { Timeline } from "./timeline";
+import { UploadCta } from "./upload-cta";
 import { Badge, Button, Empty, Skeleton, cx } from "./ui";
 
 const SLOTS: { slot: Slot; Icon: typeof Sun }[] = [{ slot: "morning", Icon: SunHorizon }, { slot: "afternoon", Icon: Sun }, { slot: "night", Icon: Moon }];
 
-export function Overview({ records, profile, onOpen, onTab, onUpload }: {
-  records: HealthRecord[] | null; profile: Profile; onOpen: (id: string) => void; onTab: (t: Tab) => void; onUpload: () => void;
+export function Overview({ records, profile, onOpen, onTab, onFile }: {
+  records: HealthRecord[] | null; profile: Profile; onOpen: (id: string) => void; onTab: (t: Tab) => void; onFile: (f: File) => void;
 }) {
   const { t, lang } = useI18n();
   if (!records) return <OverviewSkeleton />;
   if (records.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-line-strong">
-        <Empty icon={<UploadSimple size={30} />} title={t.heroEmpty} body={t.emptyLedger} action={<Button variant="primary" onClick={onUpload}>{t.newRecord}</Button>} />
+      <div className="stagger grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+        <UploadCta name={profile.name} onFile={onFile} />
+        <ol className="grid gap-3">
+          {t.steps.map(([title, body], i) => (
+            <li key={i} className="flex gap-4 rounded-xl border border-line bg-surface p-5">
+              <span className="display grid h-9 w-9 shrink-0 place-items-center rounded-full bg-subtle text-[17px] font-semibold">{i + 1}</span>
+              <span><span className="block font-medium">{title}</span><span className="mt-1 block text-sm leading-relaxed text-fg-3">{body}</span></span>
+            </li>
+          ))}
+        </ol>
       </div>
     );
   }
@@ -27,18 +37,44 @@ export function Overview({ records, profile, onOpen, onTab, onUpload }: {
   const meds = currentMedicines(records);
   const daily = meds.filter(({ m }) => schedule(m).kind === "slots");
   const other = meds.filter(({ m }) => schedule(m).kind !== "slots");
+  const own = records.filter((r) => r.name_check !== "mismatch");
+  const conditions = Array.from(new Map(own.flatMap((r) => r.extracted.diagnoses).map((d) => [d.toLowerCase().replace(/\s*\[.*\]/, ""), d.replace(/\s*\[.*\]/, "")])).values());
+  const team = Array.from(new Set(own.flatMap((r) => [r.extracted.doctor_name, tidyName(r.extracted.facility_name)]).filter(Boolean))) as string[];
+  const latest = own[0];
 
   return (
     <div className="stagger space-y-14">
-      {/* Statement */}
-      <section className="grid items-end gap-6 md:grid-cols-[auto_1fr]">
-        <div className="flex items-end gap-4">
-          <span className={cx("display text-[96px] font-semibold leading-[0.8] sm:text-[132px]", out.length ? "text-fg" : "text-ok")}>{out.length || "✓"}</span>
-        </div>
-        <div className="pb-2">
-          <h2 className="display text-[28px] font-semibold leading-tight sm:text-[36px]">{tests.length === 0 ? t.heroEmpty : out.length ? t.heroOut(out.length) : t.heroClear}</h2>
+      {/* Statement + primary action */}
+      <section className="grid items-stretch gap-6 lg:grid-cols-[1.25fr_1fr]">
+        <div className="flex flex-col justify-end">
+          <span className={cx("display text-[110px] font-semibold leading-[0.8] sm:text-[150px]", out.length ? "text-fg" : "text-ok")}>{out.length || "✓"}</span>
+          <h2 className="display mt-4 text-[30px] font-semibold leading-tight sm:text-[40px]">{tests.length === 0 ? t.heroEmpty : out.length ? t.heroOut(out.length) : t.heroClear}</h2>
           <p className="num mt-2 text-sm text-fg-3">{t.heroSub(tests.length, meds.length, records.length)}</p>
         </div>
+        <UploadCta name={profile.name} onFile={onFile} />
+      </section>
+
+      {/* Unified health profile */}
+      <section aria-label={t.profileTitle}>
+        <p className="eyebrow mb-4">{t.profileTitle}</p>
+        <dl className="grid overflow-hidden rounded-xl border border-line bg-surface sm:grid-cols-2 lg:grid-cols-4">
+          <div className="border-line p-5 sm:border-r lg:border-b-0">
+            <dt className="text-xs text-fg-3">{t.conditions}</dt>
+            <dd className="mt-2 flex flex-wrap gap-1.5">{conditions.length ? conditions.map((c) => <Badge key={c} tone="accent">{c}</Badge>) : <span className="text-sm text-fg-3">–</span>}</dd>
+          </div>
+          <div className="border-t border-line p-5 sm:border-t-0 lg:border-r">
+            <dt className="text-xs text-fg-3">{t.nowMeds}</dt>
+            <dd className="mt-1"><span className="display text-[32px] font-semibold">{meds.length}</span><span className="mt-0.5 block truncate text-sm text-fg-2">{meds.map(({ m }) => m.name).join(", ") || "–"}</span></dd>
+          </div>
+          <div className="border-t border-line p-5 sm:border-r lg:border-t-0">
+            <dt className="text-xs text-fg-3">{t.careTeam}</dt>
+            <dd className="mt-2 space-y-0.5 text-sm">{team.slice(0, 3).map((x) => <span key={x} className="block truncate">{x}</span>)}{team.length > 3 && <span className="text-fg-3">+{team.length - 3}</span>}</dd>
+          </div>
+          <div className="border-t border-line p-5 lg:border-t-0">
+            <dt className="text-xs text-fg-3">{t.lastUpdated}</dt>
+            <dd className="mt-1"><span className="display text-[22px] font-semibold">{latest?.record_date ? formatDate(latest.record_date, lang) : "–"}</span><span className="block text-sm text-fg-2">{latest ? t.types[latest.document_type] : ""}</span></dd>
+          </div>
+        </dl>
       </section>
 
       {/* Results */}
@@ -117,15 +153,13 @@ export function Overview({ records, profile, onOpen, onTab, onUpload }: {
         </section>
       )}
 
-      {/* Records */}
+      {/* Health timeline */}
       <section>
-        <div className="mb-2 flex items-baseline justify-between">
-          <p className="eyebrow">{t.recent}</p>
-          <button onClick={() => onTab("records")} className="flex items-center gap-1 text-sm text-fg-3 hover:text-fg">{t.viewAll}<ArrowRight size={13} /></button>
+        <div className="mb-4 flex items-baseline justify-between">
+          <p className="eyebrow">{t.journey}</p>
+          <button onClick={() => onTab("records")} className="flex items-center gap-1 text-sm text-fg-3 hover:text-fg">{t.seeTimeline}<ArrowRight size={13} /></button>
         </div>
-        <ul className="divide-y divide-line border-y border-line">
-          {records.slice(0, 4).map((r) => <RecordRow key={r.id} r={r} onOpen={onOpen} />)}
-        </ul>
+        <Timeline records={records} onOpen={onOpen} limit={3} />
       </section>
     </div>
   );

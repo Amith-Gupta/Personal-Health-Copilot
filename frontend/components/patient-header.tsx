@@ -16,7 +16,7 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
   const [exporting, setExporting] = useState(false);
   const tabs: Tab[] = ["overview", "records", "medicines", "ask"];
   return (
-    <section className="mx-auto max-w-[1240px] px-4 pt-10 sm:px-6">
+    <section className="mx-auto max-w-[1240px] px-4 pt-8 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="min-w-0 animate-[fade-up_.5s_cubic-bezier(.16,1,.3,1)_both]">
           <p className="eyebrow flex items-center gap-2">
@@ -43,8 +43,8 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
             setExporting(true);
             try { await api.exportFhir(profile.id, profile.name); } catch (e) { toast((e as Error).message, "error"); }
             setExporting(false);
-          }}>FHIR</Button>
-          <Button variant="primary" icon={<Plus size={15} weight="bold" />} onClick={onUpload}>{t.newRecord}</Button>
+          }}>{t.exportAbdm}</Button>
+          {(tab === "medicines" || tab === "ask") && <Button variant="primary" icon={<Plus size={15} weight="bold" />} onClick={onUpload}>{t.ctaButton}</Button>}
         </div>
       </div>
       {abhaOpen && <AbhaForm profile={profile} onDone={(p) => { if (p) onProfile(p); setAbhaOpen(false); }} />}

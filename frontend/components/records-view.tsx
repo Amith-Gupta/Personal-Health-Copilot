@@ -1,23 +1,21 @@
 "use client";
-import { UploadSimple } from "@phosphor-icons/react";
 import { useI18n } from "@/lib/i18n";
-import type { HealthRecord } from "@/lib/types";
-import { RecordRow } from "./overview";
-import { Button, Card, CardHeader, Empty, Skeleton } from "./ui";
+import type { HealthRecord, Profile } from "@/lib/types";
+import { Timeline } from "./timeline";
+import { UploadCta } from "./upload-cta";
+import { Skeleton } from "./ui";
 
-export function RecordsView({ records, onOpen, onUpload }: { records: HealthRecord[] | null; onOpen: (id: string) => void; onUpload: () => void }) {
+export function RecordsView({ records, profile, onOpen, onFile }: { records: HealthRecord[] | null; profile: Profile; onOpen: (id: string) => void; onFile: (f: File) => void }) {
   const { t } = useI18n();
   return (
-    <Card className="animate-fade-up">
-      <CardHeader title={t.tabs.records} note={records ? t.documents(records.length) : undefined}
-        action={<Button size="sm" icon={<UploadSimple size={15} />} onClick={onUpload}>{t.newRecord}</Button>} />
-      {!records ? (
-        <div aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="flex items-center gap-3 border-b border-line px-5 py-3 last:border-0"><Skeleton className="h-8 w-8" /><div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-40" /><Skeleton className="h-3 w-64" /></div><Skeleton className="h-3 w-20" /></div>)}</div>
-      ) : records.length === 0 ? (
-        <Empty icon={<UploadSimple size={28} />} title={t.emptyLedger} action={<Button variant="primary" onClick={onUpload}>{t.newRecord}</Button>} />
-      ) : (
-        <ul className="divide-y divide-line px-3">{records.map((r) => <RecordRow key={r.id} r={r} onOpen={onOpen} />)}</ul>
-      )}
-    </Card>
+    <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+      <section>
+        <div className="mb-5 flex items-baseline justify-between"><h2 className="display text-[28px] font-semibold">{t.journey}</h2>{records && <span className="num text-sm text-fg-3">{t.documents(records.length)}</span>}</div>
+        {!records ? <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}</div>
+          : records.length === 0 ? <p className="text-fg-3">{t.emptyLedger}</p>
+          : <Timeline records={records} onOpen={onOpen} />}
+      </section>
+      <aside className="lg:sticky lg:top-24 lg:self-start"><UploadCta name={profile.name} onFile={onFile} compact /></aside>
+    </div>
   );
 }
