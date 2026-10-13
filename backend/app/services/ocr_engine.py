@@ -21,8 +21,8 @@ from app.services.regex_cleaner import compute_flag, normalize_frequency, split_
 
 logger = logging.getLogger(__name__)
 
-GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-flash-lite-latest"]
-# Models that answered "quota exceeded" are skipped until this time, so each upload does not pay for doomed retries.
+GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-flash-lite-latest", "gemini-3.8-flash"]
+# Models that answered "quota exceeded" or "503 high demand" are skipped until this time, so each upload does not pay for doomed retries.
 _COOLDOWN_UNTIL: Dict[str, float] = {}
 _KEY_COOLDOWN_UNTIL: Dict[str, float] = {}
 GROQ_MODEL = "qwen/qwen3.8-27b"
@@ -116,7 +116,7 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
             errors.append(f"key[{key_idx}]({masked_key}): cooling down ({remaining}s remaining)")
             continue
         try:
-            client = genai.Client(api_key=key)
+            client = genai.Client(api_key=key, http_options=types.HttpOptions(timeout=45000))
         except Exception as e:
             errors.append(f"key[{key_idx}]({masked_key}) client init failed: {e}")
             continue
@@ -138,7 +138,9 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
                 msg = str(e)
                 logger.warning(f"Gemini {model} on key[{key_idx}]({masked_key}) failed: {msg[:160]}")
                 errors.append(f"{model}(key_{key_idx}): {type(e).__name__}")
-                if "RESOURCE_EXHAUSTED" in msg or " 429" in msg or "quota" in msg.lower():
+                is_quota = "RESOURCE_EXHAUSTED" in msg or " 429" in msg or "quota" in msg.lower()
+                is_unavailable = "503" in msg or "UNAVAILABLE" in msg or "high demand" in msg.lower() or "overloaded" in msg.lower()
+                if is_quota:
                     delay = re.search(r"retryDelay['\"]?: ?['\"]?(\d+)s", msg)
                     cooldown = int(delay.group(1)) if delay else 600
                     _KEY_COOLDOWN_UNTIL[key] = time.time() + cooldown
@@ -149,6 +151,12 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
                     )
                     key_quota_exhausted = True
                     break  # Move to the next fallback API key immediately!
+                elif is_unavailable:
+                    _COOLDOWN_UNTIL[model_key] = time.time() + 300
+                    logger.warning(
+                        f"Gemini {model} on key[{key_idx}] hit 503/high demand. "
+                        f"Cooling down {model} and immediately trying next model/key."
+                    )
         if key_quota_exhausted and key_idx < len(keys) - 1:
             logger.info(f"Switched from key[{key_idx}] to fallback key[{key_idx + 1}] for OCR routing.")
     return None, "", errors
