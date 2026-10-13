@@ -11,6 +11,19 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     HF_TOKEN: str = os.getenv("HF_TOKEN", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_API_KEY_FALLBACK: str = os.getenv("GEMINI_API_KEY_FALLBACK", "")
+    GEMINI_API_KEYS: str = os.getenv("GEMINI_API_KEYS", "")
+
+    @property
+    def gemini_keys(self) -> List[str]:
+        keys: List[str] = []
+        if self.GEMINI_API_KEYS:
+            keys.extend([k.strip() for k in self.GEMINI_API_KEYS.split(",") if k.strip()])
+        if self.GEMINI_API_KEY and self.GEMINI_API_KEY.strip() not in keys:
+            keys.append(self.GEMINI_API_KEY.strip())
+        if self.GEMINI_API_KEY_FALLBACK and self.GEMINI_API_KEY_FALLBACK.strip() not in keys:
+            keys.append(self.GEMINI_API_KEY_FALLBACK.strip())
+        return keys
     
     # Supabase credentials (optional fallback to in-memory/mock if not provided)
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")

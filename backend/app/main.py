@@ -29,5 +29,5 @@ def load_sample_family(owner: str = Depends(current_user_id)):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "vision": bool(settings.GEMINI_API_KEY), "language_model": bool(settings.GROQ_API_KEY)}
+    return {"status": "ok", "vision": bool(settings.GEMINI_API_KEY or settings.gemini_keys), "language_model": bool(settings.GROQ_API_KEY)}
 

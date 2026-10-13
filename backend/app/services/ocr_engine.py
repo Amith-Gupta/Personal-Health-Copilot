@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-flash-latest", "gemini-flash-lite-latest"]
 # Models that answered "quota exceeded" are skipped until this time, so each upload does not pay for doomed retries.
 _COOLDOWN_UNTIL: Dict[str, float] = {}
+_KEY_COOLDOWN_UNTIL: Dict[str, float] = {}
 GROQ_MODEL = "qwen/qwen3.8-27b"
 
 
@@ -101,30 +102,55 @@ def _pdf_text(file_bytes: bytes) -> str:
 
 def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str, list]:
     errors = []
-    if not settings.GEMINI_API_KEY:
+    keys = getattr(settings, "gemini_keys", []) or ([settings.GEMINI_API_KEY] if settings.GEMINI_API_KEY else [])
+    if not keys:
         return None, "", ["Gemini key not configured"]
     from google import genai
     from google.genai import types
-    client = genai.Client(api_key=settings.GEMINI_API_KEY)
     part = types.Part.from_bytes(data=file_bytes, mime_type=mime)
-    for model in GEMINI_MODELS:
-        if _COOLDOWN_UNTIL.get(model, 0) > time.time():
-            errors.append(f"{model}: cooling down after quota error")
+
+    for key_idx, key in enumerate(keys):
+        masked_key = f"{key[:8]}...{key[-4:]}" if len(key) >= 12 else "***"
+        if _KEY_COOLDOWN_UNTIL.get(key, 0) > time.time():
+            remaining = int(_KEY_COOLDOWN_UNTIL[key] - time.time())
+            errors.append(f"key[{key_idx}]({masked_key}): cooling down ({remaining}s remaining)")
             continue
         try:
-            resp = client.models.generate_content(
-                model=model,
-                contents=[part, PROMPT],
-                config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.0),
-            )
-            return json.loads(_strip_fences(resp.text)), model, errors
+            client = genai.Client(api_key=key)
         except Exception as e:
-            msg = str(e)
-            logger.warning(f"Gemini {model} failed: {msg[:160]}")
-            errors.append(f"{model}: {type(e).__name__}")
-            if "RESOURCE_EXHAUSTED" in msg or " 429" in msg:
-                delay = re.search(r"retryDelay['\"]?: ?['\"]?(\d+)s", msg)
-                _COOLDOWN_UNTIL[model] = time.time() + (int(delay.group(1)) if delay else 900)
+            errors.append(f"key[{key_idx}]({masked_key}) client init failed: {e}")
+            continue
+
+        key_quota_exhausted = False
+        for model in GEMINI_MODELS:
+            model_key = f"{key[-4:]}:{model}"
+            if _COOLDOWN_UNTIL.get(model_key, 0) > time.time():
+                errors.append(f"{model} on key[{key_idx}]: cooling down")
+                continue
+            try:
+                resp = client.models.generate_content(
+                    model=model,
+                    contents=[part, PROMPT],
+                    config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.0),
+                )
+                return json.loads(_strip_fences(resp.text)), model, errors
+            except Exception as e:
+                msg = str(e)
+                logger.warning(f"Gemini {model} on key[{key_idx}]({masked_key}) failed: {msg[:160]}")
+                errors.append(f"{model}(key_{key_idx}): {type(e).__name__}")
+                if "RESOURCE_EXHAUSTED" in msg or " 429" in msg or "quota" in msg.lower():
+                    delay = re.search(r"retryDelay['\"]?: ?['\"]?(\d+)s", msg)
+                    cooldown = int(delay.group(1)) if delay else 600
+                    _KEY_COOLDOWN_UNTIL[key] = time.time() + cooldown
+                    _COOLDOWN_UNTIL[model_key] = time.time() + cooldown
+                    logger.warning(
+                        f"Gemini key[{key_idx}] ({masked_key}) hit quota / rate limit. "
+                        f"Triggering fallback key routing to next available API key..."
+                    )
+                    key_quota_exhausted = True
+                    break  # Move to the next fallback API key immediately!
+        if key_quota_exhausted and key_idx < len(keys) - 1:
+            logger.info(f"Switched from key[{key_idx}] to fallback key[{key_idx + 1}] for OCR routing.")
     return None, "", errors
 
 
