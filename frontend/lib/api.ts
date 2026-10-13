@@ -1,7 +1,16 @@
 import { supabase } from "./supabase";
 import type { CopilotAnswer, FileUrls, HealthRecord, Lang, Profile } from "./types";
 
-const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "https://urls-too-him-blacks.trycloudflare.com/api/v1";
+export function getBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    const custom = window.localStorage.getItem("copilot_backend_url");
+    if (custom) return custom.replace(/\/+$/, "");
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      return (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api/v1").replace(/\/+$/, "");
+    }
+  }
+  return (process.env.NEXT_PUBLIC_BACKEND_URL || "https://experts-ending-bent-chef.trycloudflare.com/api/v1").replace(/\/+$/, "");
+}
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public code?: string) { super(message); }
@@ -13,8 +22,9 @@ async function call<T>(path: string, init: RequestInit = {}, timeoutMs = 30000):
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;
+  const base = getBaseUrl();
   try {
-    res = await fetch(`${BASE}${path}`, {
+    res = await fetch(`${base}${path}`, {
       ...init,
       signal: controller.signal,
       headers: { ...(init.headers || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -64,7 +74,7 @@ export const api = {
     fd.append("language", language);
     return call<{ text: string }>("/voice/transcribe", { method: "POST", body: fd }, 60000);
   },
-  ttsUrl: (text: string, language: Lang) => `${BASE}/voice/tts?text=${encodeURIComponent(text)}&language=${language}`,
+  ttsUrl: (text: string, language: Lang) => `${getBaseUrl()}/voice/tts?text=${encodeURIComponent(text)}&language=${language}`,
   loadSample: () => call<{ records: number }>("/sample-family", { method: "POST" }, 120000),
   exportFhir: async (profileId: string, name: string) => {
     const bundle = await call<unknown>(`/profiles/${profileId}/fhir`);
