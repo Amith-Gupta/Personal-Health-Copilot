@@ -14,8 +14,21 @@ app = FastAPI(
     description="Reads prescriptions, lab reports and discharge summaries, explains them in English, Hindi and Telugu, and keeps one ABDM-aligned FHIR R4 timeline per family member.",
     version="2.0.0",
 )
-app.add_middleware(CORSMiddleware, allow_origins=settings.CORS_ORIGINS, allow_credentials=False,
-                   allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://mycopilot.qd.je",
+        "http://mycopilot.qd.je",
+        "https://main.d2wddruuen8xa2.amplifyapp.com",
+        "http://localhost:3000",
+        "http://localhost:3010",
+        "*"
+    ],
+    allow_origin_regex=r".*",
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 for r in (profiles, ingestion, search, voice):
     app.include_router(r.router, prefix=settings.API_V1_PREFIX)
