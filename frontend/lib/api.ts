@@ -9,7 +9,7 @@ export function getBaseUrl(): string {
       return (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api/v1").replace(/\/+$/, "");
     }
   }
-  return (process.env.NEXT_PUBLIC_BACKEND_URL || "https://experts-ending-bent-chef.trycloudflare.com/api/v1").replace(/\/+$/, "");
+  return (process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.mycopilot.qd.je/api/v1").replace(/\/+$/, "");
 }
 
 export class ApiError extends Error {
