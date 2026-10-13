@@ -58,8 +58,9 @@ export const api = {
   ask: (query: string, language: Lang, profileId: string) =>
     call<CopilotAnswer>("/copilot/query", json({ query, language, profile_id: profileId }), 90000),
   transcribe: (audio: Blob, language: Lang) => {
+    const ext = audio.type.includes("mp4") ? "mp4" : audio.type.includes("wav") ? "wav" : audio.type.includes("ogg") ? "ogg" : "webm";
     const fd = new FormData();
-    fd.append("audio", audio, "speech.webm");
+    fd.append("audio", audio, `speech.${ext}`);
     fd.append("language", language);
     return call<{ text: string }>("/voice/transcribe", { method: "POST", body: fd }, 60000);
   },
