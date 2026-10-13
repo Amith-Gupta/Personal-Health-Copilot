@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 import type { CopilotAnswer, FileUrls, HealthRecord, Lang, Profile } from "./types";
 
-const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.mycopilot.qd.je/api/v1";
+const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "https://urls-too-him-blacks.trycloudflare.com/api/v1";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public code?: string) { super(message); }
