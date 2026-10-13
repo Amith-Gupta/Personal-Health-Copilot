@@ -1,282 +1,359 @@
+<div align="center">
+
 # 🩺 Personal Health Copilot
-### Intelligent Family Health Passbook & Clinical Intelligence Engine (ABDM FHIR R4 Ready)
 
-[![Altrix Labs Hackathon](https://img.shields.io/badge/Altrix%20Labs-AI%20Health%20Copilot%20Challenge-blueviolet?style=for-the-badge)](https://altrixlabs.com)
-[![Next.js 15](https://img.shields.io/badge/Frontend-Next.js%2015%20App%20Router-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![FastAPI](https://img.shields.io/badge/Backend-FastAPI%20(Python%203.12)-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
-[![Gemini Vision](https://img.shields.io/badge/Vision%20OCR-Gemini%203.8%20Flash-4285F4?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/)
-[![Groq LPU](https://img.shields.io/badge/LLM%20%26%20Voice-Groq%20LPU%20(Qwen%20%2B%20Whisper)-F55036?style=for-the-badge)](https://groq.com)
-[![Supabase](https://img.shields.io/badge/Database-Supabase%20Postgres%20%2B%20RLS-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
-[![FHIR R4](https://img.shields.io/badge/Interoperability-NRCES%20ABDM%20FHIR%20R4-orange?style=for-the-badge)](https://nrces.in)
+### Intelligent Family Health Passbook & Clinical Intelligence Engine
 
-> **Built for the Altrix Labs "AI-Powered Personal Health Copilot" Hackathon.**  
-> Transforms unstructured Indian paper prescriptions, handwritten doctor notes, complex diagnostic lab reports, and hospital discharge summaries into structured, verified, trilingual health intelligence (**English, हिन्दी, తెలుగు**), mapped directly to India's **ABDM FHIR R4** standards.
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-mycopilot.qd.je-00C853?style=for-the-badge)](https://mycopilot.qd.je)
+[![Hackathon](https://img.shields.io/badge/Altrix_Labs-AI_Health_Copilot_Challenge-7C3AED?style=for-the-badge)](https://altrixlabs.com)
+[![ABDM FHIR R4](https://img.shields.io/badge/ABDM-NRCES_FHIR_R4_Compliant-FF6F00?style=for-the-badge)](https://nrces.in)
+
+[![Next.js 15](https://img.shields.io/badge/Next.js_15-App_Router-000?style=flat-square&logo=next.js)](https://nextjs.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Python_3.12-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Gemini Flash](https://img.shields.io/badge/Gemini_3.8_Flash-Vision_OCR-4285F4?style=flat-square&logo=google)](https://deepmind.google/technologies/gemini/)
+[![Groq LPU](https://img.shields.io/badge/Groq_LPU-Qwen_+_Whisper-F55036?style=flat-square)](https://groq.com)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres_+_RLS-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com)
+
+---
+
+**Transforms unstructured Indian paper prescriptions, handwritten doctor notes, complex lab reports, and hospital discharge summaries into structured, verified, trilingual health intelligence — mapped to India's ABDM FHIR R4 standards.**
+
+**English** · **हिन्दी** · **తెలుగు**
+
+</div>
+
+---
+
+## 📸 Application Showcase
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/02-overview.png" alt="Family Passbook Overview" /><br/><b>Family Passbook Overview</b> — Unified health timeline per family member</td>
+<td width="50%"><img src="docs/screenshots/03-record-detail.png" alt="Side-by-Side Record Detail" /><br/><b>Side-by-Side Verification</b> — Original document vs extracted data</td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/05-ask.png" alt="Grounded Copilot" /><br/><b>Grounded AI Copilot</b> — Evidence-cited answers from patient records</td>
+<td width="50%"><img src="docs/screenshots/06-visit-summary.png" alt="Doctor Visit Summary" /><br/><b>Doctor Visit Summary</b> — Printable clinical handoff sheet</td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/04-timeline.png" alt="Health Timeline" /><br/><b>Health Timeline</b> — Chronological view with range indicators</td>
+<td width="50%"><img src="docs/screenshots/07-dark.png" alt="Dark Mode" /><br/><b>Dark Mode & Accessibility</b> — High contrast, elder-friendly design</td>
+</tr>
+</table>
 
 ---
 
 ## 📑 Table of Contents
-1. [Domain Problem & Vision](#-domain-problem--vision)
-2. [End-to-End System Architecture](#-end-to-end-system-architecture)
-3. [Deployment Architecture](#-deployment-architecture)
-4. [AI Layer & Multi-Agent Intelligence](#-ai-layer--multi-agent-intelligence)
-5. [Core Features & Differentiators](#-core-features--differentiators)
-6. [Data Model & Security (RLS)](#-data-model--security-rls)
-7. [Local Setup & Installation](#-local-setup--installation)
-8. [Live Hackathon Demo Script](#-live-hackathon-demo-script)
-9. [Clinical Safety & Guardrails](#-clinical-safety--guardrails)
-10. [Hackathon Evaluation Alignment (100 Points)](#-hackathon-evaluation-alignment-100-points)
+
+| Section | Description |
+|---|---|
+| [The Problem We Solve](#-the-problem-we-solve) | Why this matters for 300M+ Indian families |
+| [System Architecture](#-system-architecture) | End-to-end technical design |
+| [Deployment Architecture](#-deployment-architecture) | Cloud infrastructure topology |
+| [AI Intelligence Layer](#-ai-intelligence-layer) | Multi-agent pipeline & model routing |
+| [Core Features](#-core-features) | What sets Health Copilot apart |
+| [Data Model & Security](#-data-model--security) | PostgreSQL RLS & patient isolation |
+| [Local Setup](#-local-setup) | Get running in 5 minutes |
+| [Live Demo Script](#-live-demo-script) | 5-minute walkthrough for judges |
+| [Clinical Safety](#-clinical-safety) | Five layers of medical guardrails |
+| [Hackathon Scoring](#-hackathon-scoring-alignment) | Point-by-point evaluation mapping |
 
 ---
 
-## 🌐 Domain Problem & Vision
+## 🌍 The Problem We Solve
 
 ### The Caregiver Reality in India
-In Indian households, health management is predominantly **multigenerational and caregiver-driven**. An adult son or daughter typically manages paper health records for elderly parents, children, and themselves.
 
-```
-       [ Chaotic Reality ]                               [ Personal Health Copilot ]
-┌─────────────────────────────────┐               ┌─────────────────────────────────────────┐
-│ • Crinkled paper prescriptions  │               │ • One unified digital Family Passbook   │
-│ • Unreadable doctor handwriting │               │ • High-accuracy Multimodal Vision OCR   │
-│ • Complex lab reports with rows │  ────────►    │ • Deterministic Reference Range Check   │
-│ • Shorthand notation (1-0-1, OD)│   AI ENGINE   │ • Trilingual Parity (English/Hindi/Tel) │
-│ • Faded discharge summaries     │               │ • Grounded Copilot with Exact Citations │
-│ • Panic over medical terms      │               │ • NRCES-compliant ABDM FHIR R4 Export   │
-└─────────────────────────────────┘               └─────────────────────────────────────────┘
+In Indian households, health management is **multigenerational and caregiver-driven**. An adult son or daughter typically manages paper health records for elderly parents, children, and themselves — often across multiple languages and doctors.
+
+```mermaid
+flowchart LR
+    subgraph Before["❌ Chaotic Reality"]
+        direction TB
+        P1["📄 Crinkled paper prescriptions"]
+        P2["✍️ Unreadable doctor handwriting"]
+        P3["📊 Complex multi-row lab reports"]
+        P4["💊 Shorthand notation (1-0-1, OD, BD)"]
+        P5["📋 Faded discharge summaries"]
+        P6["😰 Panic over medical terms"]
+    end
+
+    subgraph After["✅ Health Copilot"]
+        direction TB
+        S1["📱 One unified digital Family Passbook"]
+        S2["🔍 High-accuracy Multimodal Vision OCR"]
+        S3["📐 Deterministic Reference Range Check"]
+        S4["🌐 Trilingual Parity — EN / HI / TE"]
+        S5["📎 Grounded Copilot with Source Citations"]
+        S6["🏥 NRCES-compliant ABDM FHIR R4 Export"]
+    end
+
+    Before -- "AI Engine" --> After
 ```
 
-### The Three Critical Clinical Bottlenecks
-1. **The "Hallucination Trap" in Healthcare**: Standard generative AI systems often guess whether a test value is normal based on training data. A blood sugar level of 140 mg/dL may be normal postprandial, but high fasting. *Health Copilot recomputes flags directly from the printed reference range on the paper*, refusing to let AI hallucinate clinical normality.
-2. **Medical Shorthand & Linguistic Barriers**: Prescriptions use shorthand like `Tab Metformin 500mg 1-0-1 after food`. Families struggling with medical jargon or English deserve explanations in their native language (**Hindi** or **Telugu**) that explain *how* and *when* to take medications.
-3. **Identity Fragmentation & Cross-Contamination**: Storing parents' cardiac medications in the same folder as a child's pediatric records causes dangerous confusion. Health Copilot isolates records by family member, validates patient names, and alerts caregivers immediately if a document belongs to someone else.
+### Three Critical Clinical Bottlenecks We Address
+
+| Bottleneck | The Danger | Our Solution |
+|---|---|---|
+| **The Hallucination Trap** | Standard AI guesses if a lab value is normal from training data. A blood sugar of 140 mg/dL may be normal postprandial but high fasting. | We recompute flags **directly from the printed reference range** on the paper. The AI's opinion never decides clinical normality. |
+| **Medical Shorthand & Language Barriers** | Prescriptions use shorthand like `Tab Metformin 500mg 1-0-1 after food`. Families don't understand dosage notation or English medical terms. | Shorthand is expanded into plain language and translated into **Hindi** and **Telugu** with cultural context. |
+| **Identity Fragmentation** | Storing a parent's cardiac medications in the same folder as a child's pediatric records causes dangerous confusion. | Records are isolated by family member. Patient names are cross-validated; mismatches trigger an instant alert. |
 
 ---
 
-## 🏛️ End-to-End System Architecture
+## 🏛 System Architecture
+
+The platform follows a strict **three-tier architecture** with clear separation of concerns:
 
 ```mermaid
 flowchart TB
-  subgraph ClientTier["🌐 Presentation Tier (Next.js 15 App Router)"]
-    direction TB
-    UI["Modern Responsive UI\n• Family Passbook Sidebar\n• Side-by-Side Document & Data Viewer\n• Trilingual Switcher (EN / HI / TE)\n• Interactive Out-of-Range Visual Bars\n• Doctor Visit Summary Sheet"]
-    VoiceEngine["🎙️ Web Audio Engine\nReal-Time Mic Recording & Playback"]
-    AuthClient["Supabase Auth Client\nEmail/Password · JWT Session"]
-  end
-
-  subgraph APITier["⚡ Application & AI Orchestration Tier (FastAPI — Python 3.12)"]
-    direction TB
-    JWTGuard["JWT Authenticator\nValidates Supabase JWKS (ES256)"]
-    
-    subgraph IngestionPipeline["Document Ingestion & Transformation Engine"]
-      IngestRouter["Ingestion Router\n[/health-records/upload]"]
-      DocClassifier["Format Validator\nMagic Bytes / MIME (PNG, JPG, PDF, FHIR JSON)"]
-      OCRRouter["Multimodal Vision Router\nGemini 3.8 Flash ➔ Flash Chain ➔ Multi-Key Rotation"]
-      PDFTextFallback["PDF Text Layer + Groq Qwen Fallback\n(Triggered if Vision Offline)"]
-      RegexCleaner["Deterministic Normalizer\n• Reference Range Parser & Flag Recomputation\n• 1-0-1 Tripartite Shorthand Expander\n• Medicine Form Parser (Tab/Cap/Syp)"]
-      NameMatcher["Family Member Identity Check\nFuzzy Token Cross-Validation"]
-      FHIRGen["NRCES FHIR R4 Serializer\nComposition · Patient · Obs · MedRequest"]
+    subgraph Client["🌐 Presentation Tier — Next.js 15 App Router"]
+        direction TB
+        UI["Responsive UI<br/>• Family Passbook Sidebar<br/>• Side-by-Side Document Viewer<br/>• Trilingual Switcher EN / HI / TE<br/>• Interactive Range Bars<br/>• Doctor Visit Summary Sheet"]
+        Voice["🎙️ Web Audio Engine<br/>Real-Time Mic Recording"]
+        Auth["Supabase Auth Client<br/>Email/Password · JWT Session"]
     end
 
-    subgraph CopilotPipeline["Clinical Copilot & Grounded RAG Engine"]
-      CopilotRouter["Copilot Router [/copilot/query]"]
-      CrisisGuard["Deterministic Crisis Interceptor\nSelf-Harm · Suicide · Overdose · 112/108/Tele-MANAS"]
-      TimelineContext["Patient Timeline Context Builder\nProfile-Scoped RAG Bounding"]
-      GroqLLM["Groq LPU (Qwen 3.8-27b)\nEvidence-Grounded QA + Exact Source Citations [id]"]
+    subgraph API["⚡ Application & AI Tier — FastAPI Python 3.12"]
+        direction TB
+        JWT["JWT Authenticator<br/>Validates Supabase JWKS (ES256)"]
+
+        subgraph Ingest["Document Ingestion Pipeline"]
+            Router["Ingestion Router"]
+            Classify["Format Validator<br/>Magic Bytes / MIME"]
+            OCR["Multimodal Vision Router<br/>Gemini 3.8 Flash → Chain → Multi-Key Rotation"]
+            Fallback["PDF Text + Groq Qwen Fallback"]
+            Regex["Deterministic Normalizer<br/>• Reference Range Parser<br/>• 1-0-1 Shorthand Expander<br/>• Medicine Form Parser"]
+            Name["Family Member Identity Check<br/>Fuzzy Token Cross-Validation"]
+            FHIR["NRCES FHIR R4 Serializer"]
+        end
+
+        subgraph Copilot["Clinical Copilot & RAG Engine"]
+            CRouter["Copilot Router"]
+            Crisis["Crisis Interceptor<br/>Self-Harm · Suicide · Emergency"]
+            Timeline["Patient Timeline Context Builder"]
+            LLM["Groq LPU — Qwen 3.8-27b<br/>Evidence-Grounded QA + Citations"]
+        end
+
+        subgraph VoiceAPI["Voice Transcription"]
+            VRouter["Voice Router"]
+            Whisper["Groq Whisper LPU<br/>whisper-large-v3-turbo"]
+        end
     end
 
-    subgraph VoicePipeline["Voice Transcription Engine"]
-      VoiceRouter["Voice Router [/voice/transcribe]"]
-      GroqWhisper["Groq Whisper LPU\nwhisper-large-v3-turbo (Sub-200ms STT)"]
+    subgraph Data["🛡️ Persistence Tier — Supabase Mumbai"]
+        direction TB
+        DB[("PostgreSQL + RLS<br/>• patients<br/>• health_records<br/>• medications & lab_observations<br/>• audit_log")]
+        Storage[("Private Storage Bucket<br/>• Original Documents<br/>• Signed URLs — 5m to 1h expiry")]
     end
-  end
 
-  subgraph DataTier["🛡️ Persistence Tier (Supabase — Mumbai ap-south-1)"]
-    direction TB
-    PostgresRLS[("PostgreSQL with Row Level Security (RLS)\n• patients (ABHA ID/address)\n• health_records (Extracted JSON + FHIR R4)\n• medications & lab_observations\n• audit_log (Traceable compliance)")]
-    SecureBucket[("Private Storage Bucket\n• High-Res Original Documents\n• Optimized Downscaled Previews\n• Signed URLs (5m - 1h expiry)")]
-  end
+    UI --> Auth --> JWT
+    UI -- "Upload Photo / PDF" --> Router
+    UI -- "Patient Question" --> CRouter
+    Voice -- "Audio" --> VRouter
 
-  %% Client interactions
-  UI --> AuthClient
-  AuthClient -- "Access Token" --> JWTGuard
-  UI -- "Upload Photo / PDF" --> IngestRouter
-  UI -- "Patient Question" --> CopilotRouter
-  VoiceEngine -- "Audio Snippet" --> VoiceRouter
+    JWT --> Router --> Classify --> OCR
+    OCR -. "Vision Quota Fallback" .-> Fallback
+    OCR --> Regex
+    Fallback --> Regex
+    Regex --> Name --> FHIR --> DB
+    Router --> Storage
 
-  %% Ingestion Flow
-  JWTGuard --> IngestRouter --> DocClassifier --> OCRRouter
-  OCRRouter -. "Vision Quota Fallback" .-> PDFTextFallback
-  OCRRouter --> RegexCleaner
-  PDFTextFallback --> RegexCleaner
-  RegexCleaner --> NameMatcher --> FHIRGen
-  FHIRGen --> PostgresRLS
-  IngestRouter --> SecureBucket
+    JWT --> CRouter --> Crisis
+    Crisis -- "Safe" --> Timeline --> LLM --> UI
+    Crisis -- "Emergency" --> UI
 
-  %% Copilot Flow
-  JWTGuard --> CopilotRouter --> CrisisGuard
-  CrisisGuard -- "Safe" --> TimelineContext --> GroqLLM
-  GroqLLM --> UI
-  CrisisGuard -- "Emergency Detected" --> UI
-
-  %% Voice Flow
-  JWTGuard --> VoiceRouter --> GroqWhisper --> UI
-
-  %% Media Access
-  UI -- "Fetch Document via Signed URL" --> SecureBucket
+    JWT --> VRouter --> Whisper --> UI
+    UI -- "Signed URL" --> Storage
 ```
 
 ---
 
 ## 🚀 Deployment Architecture
 
-The entire stack is configured for enterprise resilience, high availability, and zero data leakage across cloud providers:
+The production stack is configured for **enterprise resilience** across cloud providers:
 
 ```mermaid
 flowchart LR
-  subgraph Edge["🌍 Global CDN Edge"]
-    VercelEdge["Vercel Edge Network\nNext.js 15 Frontend\n• Server-Side Rendering (SSR)\n• Dynamic Image Optimization\n• Client Security Headers"]
-  end
+    subgraph Edge["🌍 Global CDN Edge"]
+        Vercel["Vercel / AWS Amplify<br/>Next.js 15 Frontend<br/>• SSR + Image Optimization<br/>• Security Headers"]
+    end
 
-  subgraph CloudBackend["☁️ Compute Tier (Render / AWS App Runner)"]
-    FastAPIApp["FastAPI Container (Python 3.12.7)\n• Uvicorn ASGI Server\n• Stateless Scalable Nodes\n• Sub-second Healthchecks (/health)\n• Auto-Key Cooling & Failover"]
-  end
+    subgraph Compute["☁️ Compute Tier"]
+        FastAPI["FastAPI Container<br/>Python 3.12 · Uvicorn ASGI<br/>• Stateless & Scalable<br/>• Auto-Key Failover"]
+    end
 
-  subgraph AICloud["🧠 Accelerated AI Inference"]
-    GoogleAI["Google AI Studio\nGemini 3.8 Flash Vision\nLow-latency Multimodal OCR"]
-    GroqCloud["Groq LPU Cloud\n• Qwen 3.8-27b (Copilot QA)\n• Whisper Large v3 Turbo (Voice)"]
-  end
+    subgraph AI["🧠 AI Inference"]
+        Gemini["Google AI Studio<br/>Gemini 3.8 Flash Vision<br/>Low-latency Multimodal OCR"]
+        Groq["Groq LPU Cloud<br/>• Qwen 3.8-27b (Copilot)<br/>• Whisper v3 Turbo (Voice)"]
+    end
 
-  subgraph CloudData["🇮🇳 Secure Data Tier (Supabase Mumbai ap-south-1)"]
-    SupaAuth["Supabase GoTrue Auth\n(JWT ES256)"]
-    SupaDB["PostgreSQL with RLS\n(Strict Family Isolation)"]
-    SupaStorage["Encrypted S3 Bucket\n(Original Prescriptions)"]
-  end
+    subgraph DataLayer["🇮🇳 India Data Tier — Mumbai"]
+        SupaAuth["Supabase GoTrue Auth<br/>(JWT ES256)"]
+        SupaDB["PostgreSQL + RLS<br/>(Family Isolation)"]
+        SupaStore["Encrypted S3 Bucket<br/>(Original Documents)"]
+    end
 
-  VercelEdge -- "HTTPS / JWT" --> FastAPIApp
-  FastAPIApp -- "API Keys" --> GoogleAI
-  FastAPIApp -- "LPU Speed" --> GroqCloud
-  FastAPIApp -- "Service Role" --> SupaDB
-  FastAPIApp -- "Signed Uploads" --> SupaStorage
-  VercelEdge -- "Direct Auth" --> SupaAuth
+    Vercel -- "HTTPS / JWT" --> FastAPI
+    FastAPI -- "API Keys" --> Gemini
+    FastAPI -- "LPU Speed" --> Groq
+    FastAPI -- "Service Role" --> SupaDB
+    FastAPI -- "Signed Uploads" --> SupaStore
+    Vercel -- "Direct Auth" --> SupaAuth
 ```
 
-### Deployment Configuration Summary
-
-| Layer | Platform | Location / Region | Key Features |
+| Layer | Platform | Region | Key Capabilities |
 |---|---|---|---|
-| **Frontend** | **Vercel** | Global Edge | Next.js 15 App Router, Tailwind CSS, lucide icons, responsive mobile-first UI. |
-| **Backend API** | **Render / AWS App Runner** | Singapore / Mumbai | Dockerized FastAPI, Uvicorn, automated rate-limit retry with multi-key cooldowns. |
-| **Database & Auth** | **Supabase** | `ap-south-1` (Mumbai, India) | PostgreSQL with strict Row Level Security (RLS), Encrypted Private Buckets. |
-| **AI Vision** | **Google Gemini** | Distributed | Multimodal Vision OCR (`gemini-3.8-flash` with 4-level fallback). |
-| **AI LLM & STT** | **Groq LPU** | Ultra-Low Latency | `qwen/qwen3.8-27b` for clinical reasoning, `whisper-large-v3-turbo` for voice. |
+| **Frontend** | Vercel / AWS Amplify | Global Edge | Next.js 15 App Router, responsive mobile-first UI, Trilingual |
+| **Backend API** | Render / AWS App Runner | Singapore / Mumbai | Dockerized FastAPI, multi-key cooldown, rate-limit retry |
+| **Database & Auth** | Supabase | `ap-south-1` Mumbai | PostgreSQL + strict RLS, encrypted private buckets |
+| **AI Vision** | Google Gemini | Distributed | Multimodal OCR with 4-level model fallback |
+| **AI LLM & STT** | Groq LPU | Ultra-Low Latency | `qwen3.8-27b` for reasoning, `whisper-large-v3-turbo` for voice |
+
+> 📖 **Full deployment guide**: See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for step-by-step instructions covering Vercel+Render, all-Render, and AWS options.
 
 ---
 
-## 🧠 AI Layer & Multi-Agent Intelligence
+## 🧠 AI Intelligence Layer
 
-*(For in-depth specifications, prompt templates, and evaluation benchmarks, see [AI_LAYER.md](AI_LAYER.md))*
+The AI system operates as a **sequential pipeline of specialized agents** with deterministic safety rules at every stage. For the complete specification, see [AI_LAYER.md](AI_LAYER.md).
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            AI INGESTION PIPELINE                            │
-│                                                                             │
-│  [ Upload ] ──► [ MIME & Magic Check ] ──► [ Gemini 3.8 Vision OCR ]        │
-│                                                      │ (quota fail)         │
-│                                                      ▼                      │
-│                                             [ PDF Text + Groq Qwen ]        │
-│                                                      │                      │
-│                                                      ▼                      │
-│  [ ABDM FHIR R4 ] ◄── [ Regex Normalizer ] ◄── [ Non-Medical Filter ]       │
-│         │               • Range flags                                       │
-│         ▼               • 1-0-1 Shorthand                                   │
-│  [ Family Store ]       • Tab/Cap forms                                     │
-└─────────────────────────────────────────────────────────────────────────────┘
+### Pipeline Overview
+
+```mermaid
+flowchart LR
+    Upload["📤 Upload"] --> Validate["🔍 MIME &<br/>Magic Check"]
+    Validate --> OCR["👁️ Gemini 3.8<br/>Vision OCR"]
+    OCR --> Gate["🚫 Medical<br/>Gatekeeper"]
+    Gate --> Norm["📐 Deterministic<br/>Normalizer"]
+    Norm --> ID["👤 Identity<br/>Cross-Check"]
+    ID --> FHIR["🏥 FHIR R4<br/>Serializer"]
+    FHIR --> Lang["🌐 Trilingual<br/>Engine"]
+    Lang --> Store["💾 Secure<br/>Storage"]
 ```
 
-1. **Multimodal Document OCR**: Reads messy doctor handwriting, multi-column lab tables, and bilingual English/Hindi scripts.
-2. **Deterministic Range Verification**: Biological reference ranges printed on the report (e.g. `70 - 99 mg/dL`) are extracted and mathematically checked against observed values. **The AI's opinion never decides whether a value is HIGH or LOW.**
-3. **Tripartite Shorthand Expander**: Indian doctor shorthand like `1-0-1` is expanded into `"1 morning, 0 afternoon, 1 night (twice daily) after food"`.
-4. **Trilingual Parity Engine**: High-fidelity plain-language summaries, pill instructions, abnormal value explanations, and questions for the doctor generated in **English, Hindi, and Telugu**.
-5. **Grounded Copilot RAG**: The assistant operates exclusively over the selected family member's records and outputs bracketed citations `[ab12cd34]` linking every medical statement to its physical source.
+### Model Routing Matrix
+
+| Task | Primary Engine | Fallback Chain | Latency |
+|---|---|---|---|
+| **Medical Vision OCR** | `gemini-3.8-flash` | → `gemini-3.5-flash` → `flash-lite` | 850ms–1.4s |
+| **PDF Text Extraction** | `pypdf` layer | → Groq `qwen3.8-27b` | ~350ms |
+| **Copilot Grounded QA** | Groq `qwen3.8-27b` | → `llama-3.3-70b` → Template | ~280ms |
+| **Voice Transcription** | Groq `whisper-large-v3-turbo` | → Web Speech API | ~120ms |
+| **FHIR Serialization** | Deterministic Python | → Groq `qwen3.8-27b` | ~15ms |
+| **Emergency Screening** | Deterministic Regex | — | <1ms |
+
+### Key AI Differentiators
+
+- **Zero Hallucinated Normality** — Lab flags are computed from the printed reference range, never guessed by the model
+- **Honest Failure** — Illegible or non-medical uploads are rejected with an explanation; nothing fabricated is ever saved
+- **Grounded Citations** — Every copilot answer includes `[ab12cd34]` citation tags linking to the exact source document
+- **Indian Clinical Shorthand** — Dosage notation like `1-0-1`, `OD`, `BD`, `SOS` is expanded into plain-language instructions
 
 ---
 
-## ✨ Core Features & Differentiators
+## ✨ Core Features
 
 ### 1. Side-by-Side Source Verification
-Every extracted value is presented alongside the high-resolution original image or PDF. Clicking an observation highlights the source, ensuring 100% human-in-the-loop auditability.
+Every extracted value is displayed alongside the high-resolution original image or PDF. Clicking an observation highlights its source — ensuring **100% human-in-the-loop auditability**.
 
 ### 2. Multi-Generational Family Passbook
-A single caregiver account can manage multiple family profiles (e.g., Mother, Father, Self, Child).
-- **Name Mismatch Warning**: If a document uploaded to "Lakshmi Devi" contains the printed name "Suresh Yadav", the system flags:
-  > *"⚠️ This document names Suresh Yadav, but is filed under Lakshmi Devi."*
-- **One-Click Reassignment**: Moves the document to the right profile and regenerates the FHIR bundle instantly.
+A single caregiver account manages multiple family profiles (Mother, Father, Self, Child).
 
-### 3. ABDM FHIR R4 Standard Compliance
-- Maps every document to **NRCES (National Resource Centre for EHR Standards)** profiles:
-  - `PrescriptionRecord`
-  - `DiagnosticReportRecord`
-  - `DischargeSummaryRecord`
-- Supports ABHA number (`91-1234-5678-9012`) and ABHA address (`name@abdm`) validation.
-- Full **FHIR R4 Bundle Export** and **Bidirectional FHIR Import** (drop an ABDM JSON file to parse into the visual timeline).
+> **Name Mismatch Detection**: If a document uploaded to "Lakshmi Devi" contains the printed name "Suresh Yadav", the system flags it immediately:
+> *"⚠️ This document names Suresh Yadav, but is filed under Lakshmi Devi."*
+> One-click reassignment moves it to the correct profile and regenerates the FHIR bundle.
 
-### 4. Interactive Range Sliders & Visual Timeline
+### 3. ABDM FHIR R4 Compliance
+- Maps every document to **NRCES profiles**: `PrescriptionRecord`, `DiagnosticReportRecord`, `DischargeSummaryRecord`
+- Supports ABHA number (`91-1234-5678-9012`) and ABHA address (`name@abdm`) validation
+- Full **FHIR R4 Bundle Export** and **Bidirectional FHIR Import**
+
+### 4. Interactive Range Visualization
 Out-of-range lab markers feature interactive range bars showing where the patient's value sits relative to low, normal, and high bounds.
 
 ### 5. Printable Doctor Visit Summary
-One-click printable clinical handoff sheet summarizing:
-- Current active medications and frequencies.
-- Out-of-range lab values with printed reference ranges.
-- Suggested questions to ask the doctor during the consultation.
+One-click printable clinical handoff sheet: active medications, out-of-range labs, and suggested questions for the doctor.
 
-### 6. Sub-second Multilingual Voice Assistant
-Speak questions in English, Hindi, or Telugu using Groq Whisper LPU (~150ms transcription latency).
+### 6. Sub-Second Multilingual Voice Assistant
+Speak questions in English, Hindi, or Telugu. Groq Whisper LPU transcribes speech in ~150ms.
 
 ---
 
-## 🗄️ Data Model & Security (RLS)
+## 🗄 Data Model & Security
 
-All database operations are governed by **PostgreSQL Row-Level Security (RLS)** in `supabase/migrations/20261012170000_health_copilot.sql`.
+All database operations are governed by **PostgreSQL Row-Level Security (RLS)**.
 
+```mermaid
+erDiagram
+    AUTH_USERS ||--o{ PATIENTS : "owns (1:N)"
+    PATIENTS ||--o{ HEALTH_RECORDS : "has many (1:N)"
+    HEALTH_RECORDS ||--o{ MEDICATIONS : "contains"
+    HEALTH_RECORDS ||--o{ LAB_OBSERVATIONS : "contains"
+    HEALTH_RECORDS ||--o{ CONDITIONS : "contains"
+
+    AUTH_USERS {
+        uuid id PK
+        string email
+    }
+    PATIENTS {
+        uuid id PK
+        uuid owner_id FK
+        string full_name
+        string abha_id
+        string abha_address
+    }
+    HEALTH_RECORDS {
+        uuid id PK
+        uuid patient_id FK
+        jsonb extracted_data
+        jsonb fhir_bundle
+        string document_type
+    }
+    MEDICATIONS {
+        uuid id PK
+        uuid record_id FK
+        string name
+        string dosage
+        string frequency
+    }
+    LAB_OBSERVATIONS {
+        uuid id PK
+        uuid record_id FK
+        string test_name
+        float observed_value
+        string reference_range
+        string flag
+    }
+    CONDITIONS {
+        uuid id PK
+        uuid record_id FK
+        string diagnosis
+    }
 ```
-                    ┌─────────────────────────┐
-                    │      auth.users         │
-                    └────────────┬────────────┘
-                                 │ owns (1:N)
-                                 ▼
-                    ┌─────────────────────────┐
-                    │        patients         │
-                    │   (Family Profiles)     │
-                    └────────────┬────────────┘
-                                 │ has many (1:N)
-                                 ▼
-                    ┌─────────────────────────┐
-                    │     health_records      │
-                    │  (Extracted JSON/FHIR)  │
-                    └────────────┬────────────┘
-         ┌───────────────────────┼───────────────────────┐
-         ▼                       ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   medications   │     │lab_observations │     │   conditions    │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-```
 
-- **Identity Isolation**: Every row has an `owner_id`. Users can never query or view records belonging to another caregiver.
-- **Private Storage**: Original documents are stored under `<owner_id>/<record_id>` in private Supabase Storage buckets.
+**Security guarantees:**
+- **Identity Isolation**: Every row has an `owner_id`. Users can never query records belonging to another caregiver.
+- **Private Storage**: Original documents stored under `<owner_id>/<record_id>` in private Supabase Storage buckets.
 - **Short-Lived Signed URLs**: Pre-signed URLs expire after 1 hour; previews are cached for instant navigation.
-- **Audit Logging**: Every view of an original document, upload, delete, and export is recorded in `audit_log`.
+- **Audit Logging**: Every document view, upload, delete, and export is recorded in `audit_log`.
 
 ---
 
-## 💻 Local Setup & Installation
+## 💻 Local Setup
 
 ### Prerequisites
-- Python 3.12+
-- Node.js 18+ & npm
-- Free API Keys: [Google AI Studio](https://aistudio.google.com/) and [Groq Console](https://console.groq.com/)
-- Free [Supabase](https://supabase.com) project (or run with mock fallback)
 
-### 1. Backend Setup
+| Requirement | Version |
+|---|---|
+| Python | 3.12+ |
+| Node.js | 18+ |
+| Google AI Studio Key | [Get one free](https://aistudio.google.com/) |
+| Groq API Key | [Get one free](https://console.groq.com/) |
+| Supabase Project | [Create free](https://supabase.com) |
+
+### 1. Backend
+
 ```bash
 cd backend
 python -m venv venv
@@ -290,14 +367,15 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Configure your `backend/.env`:
+Configure `backend/.env`:
+
 ```env
 PROJECT_NAME="AI-Powered Personal Health Copilot"
 API_V1_PREFIX="/api/v1"
 
 # AI Inference Keys
 GEMINI_API_KEY="AIzaSy..."
-GEMINI_API_KEY_FALLBACK="AIzaSy..." # Optional: secondary key for auto-failover
+GEMINI_API_KEY_FALLBACK="AIzaSy..."       # Optional: secondary key for auto-failover
 GROQ_API_KEY="gsk_..."
 
 # Supabase Configuration
@@ -309,101 +387,116 @@ FRONTEND_ORIGIN="http://localhost:3000,http://localhost:3010"
 ```
 
 Start the backend:
+
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
-*Verify backend health: `http://localhost:8000/health`*
 
-### 2. Frontend Setup
+Verify: open `http://localhost:8000/health` — should return `{"status":"ok","vision":true,"language_model":true}`.
+
+### 2. Frontend
+
 ```bash
-cd ../frontend
+cd frontend
 npm install
 cp .env.example .env.local
 ```
 
 Configure `frontend/.env.local`:
+
 ```env
 NEXT_PUBLIC_BACKEND_URL="http://localhost:8000/api/v1"
 NEXT_PUBLIC_SUPABASE_URL="https://<your-project>.supabase.co"
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
 ```
 
-Run development server:
+Run the development server:
+
 ```bash
 npm run dev
 ```
-*Open `http://localhost:3000` in your browser.*
+
+Open `http://localhost:3000` in your browser.
 
 ---
 
-## 🎬 Live Hackathon Demo Script
+## 🎬 Live Demo Script
 
-Follow this 5-minute walkthrough to demonstrate the full capabilities to hackathon evaluators:
+> **Duration**: 5 minutes · **Audience**: Hackathon judges
 
-1. **Sign In & View Family Passbook**:
-   - Log in with the demo caregiver account.
-   - Select **Lakshmi Devi** (Elderly Mother, 64 yrs).
-   - View her health timeline: notice active conditions, medication schedule, and 3 abnormal lab markers flagged with range bars.
-2. **Bilingual Parity Switch**:
-   - Switch the UI language from **English** to **తెలుగు (Telugu)** or **हिन्दी (Hindi)**.
-   - Point out that all clinical summaries, dosage instructions, and explanations adapt smoothly.
-3. **Inspect Original Document vs Extraction**:
-   - Click on Lakshmi's **Lipid Profile Lab Report**.
-   - Review side-by-side: original document on the left, extracted observations on the right.
-   - Show how `Serum Cholesterol 240 mg/dL (Range: 125-200)` is flagged HIGH by mathematical comparison, not by AI guesswork.
-4. **Grounded Copilot with Citations**:
-   - Open the Copilot drawer.
-   - Ask: *"What medicines does Lakshmi take for her thyroid and when?"*
-   - Observe the response: calm plain-language answer with a clickable citation tag `[ab12cd34]` pointing directly to the prescription.
-5. **Real-Time Voice Interaction**:
-   - Tap the microphone icon and speak in Hindi or Telugu.
-   - Groq Whisper transcribes speech in ~150ms and routes to the Copilot.
-6. **Upload Name Mismatch Detection**:
-   - Upload `docs/sample-documents/live-demo_suresh_yadav_hindi_prescription.png` into Lakshmi's passbook.
-   - The AI identifies the patient name as "Suresh Yadav", flags a mismatch, and prompts: *"Move to Suresh Yadav?"*. Click move to update the family passbook.
-7. **Non-Medical Document Rejection**:
-   - Upload an invoice or landscape image (`live-demo_not_a_medical_document.png`).
-   - The gatekeeper rejects the file with an honest reason. Nothing is saved to the database.
-8. **ABDM FHIR Export & Import**:
-   - Link mock ABHA ID `91-1234-5678-9012`.
-   - Click **Export FHIR R4 Bundle** to download standard JSON.
-   - Upload that JSON back into another profile to show round-trip ABDM interoperability.
-9. **Doctor Visit Summary**:
-   - Click **Print Visit Summary** to generate a clean, one-page clinical handoff sheet for the doctor.
-
----
-
-## 🛡️ Clinical Safety & Guardrails
-
-Health Copilot enforces strict biomedical safety bounds:
-
-1. **Deterministic Crisis Interceptor**:
-   - Prompts mentioning self-harm, suicide, overdose, or poison trigger immediate referral to **112 (Emergency)** and **Tele-MANAS (14416)** in English, Hindi, and Telugu.
-   - *Executed by regex before any model call*, functioning even if AI services are offline.
-2. **Non-Diagnostic Policy**:
-   - Health Copilot never diagnoses or advises changing dosages.
-   - Mandatory non-diagnostic disclaimers are rendered on every screen in the active language.
-3. **Zero Fabricated Fallback**:
-   - If a document is unreadable or extraction fails, the system fails honestly with `502 ExtractionFailed` instead of generating placeholder records.
-4. **Legibility Tagging**:
-   - Uncertain handwritten elements are marked with `uncertain: true` and labelled with *"Check original"*.
-
----
-
-## 📊 Hackathon Evaluation Alignment (100 Points)
-
-| Altrix Labs Scoring Category | Weight | How Health Copilot Excels |
+| Step | Action | What to Highlight |
 |---|---|---|
-| **AI Utilization** | **35%** | • Multimodal Gemini 3.8 Flash Vision OCR for handwriting & complex tables.<br>• Dynamic multi-key rotation and PDF text Groq fallback.<br>• Deterministic printed reference range verification.<br>• Grounded RAG with exact document citations. |
-| **Technical Architecture** | **25%** | • Next.js 15 App Router + FastAPI async backend.<br>• PostgreSQL with Row-Level Security (RLS) on Supabase Mumbai.<br>• NRCES-compliant ABDM FHIR R4 document bundle mapper.<br>• Sub-second Groq LPU response times. |
-| **User Experience** | **20%** | • Complete trilingual parity (**English, हिन्दी, తెలుగు**).<br>• Side-by-side original document audit view.<br>• Real-time voice interaction with Groq Whisper.<br>• Out-of-range visual indicator bars & One-Click Visit Summary. |
-| **Healthcare Impact** | **10%** | • Addresses real caregiver pain for millions of Indian families.<br>• Eliminates AI hallucination of lab abnormalities.<br>• Prevents family record contamination with name verification.<br>• Instant crisis helpline intervention (112, 108, Tele-MANAS). |
-| **Presentation & Demo** | **10%** | • Polished end-to-end live flow with synthetic Indian documents.<br>• Zero demo latency via Groq LPU acceleration.<br>• Realistic edge-case handling (mismatched names, non-medical files). |
-| **Bonus Interoperability** | **+5 to +10** | • Full ABDM FHIR R4 export and bidirectional import.<br>• Format-validated ABHA linking and audit logging. |
+| **1. Sign In** | Log in with the demo caregiver account. Select **Lakshmi Devi** (Elderly Mother, 64 yrs). | Family passbook sidebar, health timeline, 3 abnormal lab markers with range bars. |
+| **2. Language Switch** | Switch the UI from **English** → **తెలుగు (Telugu)** or **हिन्दी (Hindi)**. | All clinical summaries, dosage instructions, and explanations adapt in real-time. |
+| **3. Document Inspection** | Open Lakshmi's **Lipid Profile Lab Report**. | Side-by-side: original on left, extracted data on right. `Serum Cholesterol 240 mg/dL (Range: 125-200)` flagged HIGH by math, not AI guesswork. |
+| **4. Copilot Chat** | Ask: *"What medicines does Lakshmi take for her thyroid and when?"* | Calm plain-language answer with clickable citation tag `[ab12cd34]` pointing to the prescription. |
+| **5. Voice Input** | Tap the mic icon and speak in Hindi or Telugu. | Groq Whisper transcribes in ~150ms and routes to the Copilot. |
+| **6. Name Mismatch** | Upload `live-demo_suresh_yadav_hindi_prescription.png` into Lakshmi's passbook. | System identifies "Suresh Yadav", flags mismatch, prompts one-click move. |
+| **7. Non-Medical Rejection** | Upload `live-demo_not_a_medical_document.png`. | Gatekeeper rejects with honest reason. Nothing saved to database. |
+| **8. FHIR Export/Import** | Link mock ABHA ID `91-1234-5678-9012`. Export FHIR R4 Bundle JSON. Import it into another profile. | Round-trip ABDM interoperability. |
+| **9. Visit Summary** | Click **Print Visit Summary**. | Clean one-page clinical handoff sheet for the doctor. |
 
 ---
 
-## 👥 Contributors & Acknowledgements
+## 🛡 Clinical Safety
 
-- **Built by**: Team Health Copilot for the **Altrix Labs Hackathon 2026**.
-- **Special Thanks**: Altrix Labs Mentors, National Resource Centre for EHR Standards (NRCES India), Groq, Google DeepMind.
+Health Copilot enforces **five distinct layers** of clinical safety — most executing before any AI model is called:
+
+```mermaid
+flowchart TD
+    Input["User Input / Upload"] --> L1
+
+    subgraph Shield["🛡️ Multi-Tier Clinical Safety Shield"]
+        L1["Layer 1: Crisis Interceptor<br/><i>Regex-based · &lt;1ms · Pre-model</i><br/>→ 112 Emergency / Tele-MANAS 14416"]
+        L2["Layer 2: Deterministic Range Validator<br/><i>Math-based · Overrides AI guesses</i><br/>→ Forces computed HIGH/LOW/NORMAL"]
+        L3["Layer 3: Relevance Gatekeeper<br/><i>Rejects non-medical uploads</i><br/>→ 422 NotMedicalDocument"]
+        L4["Layer 4: Family Record Isolation<br/><i>Name cross-validation</i><br/>→ Mismatch alert + one-click move"]
+        L5["Layer 5: Non-Diagnostic Disclaimers<br/><i>Injected in EN / HI / TE</i><br/>→ Every screen, every language"]
+    end
+
+    L1 --> L2 --> L3 --> L4 --> L5 --> Safe["✅ Safe Response"]
+    L1 -- "🚨 Emergency" --> Helpline["112 · 108 · Tele-MANAS"]
+```
+
+| Layer | Mechanism | Guarantee |
+|---|---|---|
+| **Crisis Interceptor** | Compiled regex in English, Hindi (Devanagari), and Telugu | 100% recall, <1ms, works even if AI services are offline |
+| **Range Validator** | Parses printed reference ranges, computes flags mathematically | AI's opinion is never trusted for lab normality |
+| **Relevance Gatekeeper** | Rejects non-medical images with honest explanation | Zero fabricated records from landscapes, invoices, menus |
+| **Record Isolation** | Tokenized name cross-check against profile | Prevents dangerous family record cross-contamination |
+| **Non-Diagnostic Policy** | Mandatory disclaimers rendered on every screen | Never diagnoses, never advises changing dosages |
+
+---
+
+## 📊 Hackathon Scoring Alignment
+
+> **Total possible**: 100 points + 5–10 bonus
+
+| Category | Weight | How Health Copilot Excels |
+|---|---|---|
+| **AI Utilization** | **35 pts** | Multimodal Gemini 3.8 Flash Vision OCR for handwriting & complex tables. Dynamic multi-key rotation with PDF text Groq fallback. Deterministic reference range verification — zero hallucinated lab flags. Grounded RAG with exact document citations `[id]`. |
+| **Technical Architecture** | **25 pts** | Next.js 15 App Router + FastAPI async backend. PostgreSQL with Row-Level Security on Supabase Mumbai. NRCES-compliant ABDM FHIR R4 bundle mapper. Sub-second Groq LPU response times. |
+| **User Experience** | **20 pts** | Complete trilingual parity (English, हिन्दी, తెలుగు). Side-by-side original document audit view. Real-time voice interaction with Groq Whisper. Interactive range bars & one-click Visit Summary. |
+| **Healthcare Impact** | **10 pts** | Addresses real caregiver pain for millions of Indian families. Eliminates AI hallucination of lab abnormalities. Prevents family record contamination. Instant crisis helpline intervention (112, 108, Tele-MANAS). |
+| **Presentation & Demo** | **10 pts** | Polished end-to-end live flow with synthetic Indian documents. Zero demo latency via Groq LPU acceleration. Realistic edge-case handling. |
+| **Bonus: Interoperability** | **+5 to +10** | Full ABDM FHIR R4 export and bidirectional import. Format-validated ABHA linking and audit logging. |
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|---|---|
+| [AI_LAYER.md](AI_LAYER.md) | Deep-dive into AI pipeline architecture, prompt templates, safety guardrails, and benchmark results |
+| [PRODUCT.md](PRODUCT.md) | Product vision, principles, and design philosophy |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Step-by-step deployment guide for Vercel, Render, and AWS |
+
+---
+
+<div align="center">
+
+**Built by Team Health Copilot for the Altrix Labs Hackathon 2026**
+
+*Special Thanks: Altrix Labs Mentors · NRCES India · Groq · Google DeepMind*
+
+</div>

@@ -1,133 +1,184 @@
-# 🧠 AI Layer Architecture, Multi-Agent Pipeline & Safety Specification
-### Personal Health Copilot (Altrix Labs Hackathon — Enterprise AI Documentation)
+<div align="center">
 
-[![Altrix Labs Hackathon](https://img.shields.io/badge/Altrix%20Labs-100%20Point%20Evaluation%20Ready-blueviolet?style=for-the-badge)](https://altrixlabs.com)
-[![AI Architecture](https://img.shields.io/badge/Pipeline-Multi--Agent%20Sequential%20DAG-4285F4?style=for-the-badge)](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/AI_LAYER.md)
-[![Safety Protocol](https://img.shields.io/badge/Guardrails-Deterministic%20Multi--Tier-009688?style=for-the-badge)](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/guardrails.py)
-[![FHIR R4](https://img.shields.io/badge/ABDM-NRCES%20Profile%20Aligned-orange?style=for-the-badge)](https://nrces.in)
+# 🧠 AI Layer Architecture & Safety Specification
+
+### Personal Health Copilot — Enterprise AI Documentation
+
+[![AI Pipeline](https://img.shields.io/badge/Pipeline-Multi--Agent_Sequential_DAG-4285F4?style=for-the-badge)](AI_LAYER.md)
+[![Safety](https://img.shields.io/badge/Guardrails-Deterministic_Multi--Tier-009688?style=for-the-badge)](AI_LAYER.md)
+[![FHIR R4](https://img.shields.io/badge/ABDM-NRCES_Profile_Aligned-FF6F00?style=for-the-badge)](https://nrces.in)
+[![Hackathon](https://img.shields.io/badge/Altrix_Labs-100_Point_Evaluation_Ready-7C3AED?style=for-the-badge)](https://altrixlabs.com)
+
+</div>
 
 ---
 
 ## 📑 Table of Contents
-1. [Executive Summary & Clinical Context](#1-executive-summary--clinical-context)
-2. [Sequential Multi-Agent Execution Plan](#2-sequential-multi-agent-execution-plan)
-3. [Dynamic Model Routing & Fallback Architecture](#3-dynamic-model-routing--fallback-architecture)
-4. [Integrated Clinical Safety Guardrails](#4-integrated-clinical-safety-guardrails)
-5. [Evaluation Metrics & Benchmark Performance](#5-evaluation-metrics--benchmark-performance)
-6. [Grounded RAG & Citation Engine](#6-grounded-rag--citation-engine)
-7. [Sub-Second Real-Time Voice Engine](#7-sub-second-real-time-voice-engine)
-8. [Fine-Tuning & Specialized Research Roadmap](#8-fine-tuning--specialized-research-roadmap)
-9. [Altrix Labs 100-Point Scoring Matrix](#9-altrix-labs-100-point-scoring-matrix)
+
+| # | Section | What You'll Learn |
+|---|---|---|
+| 1 | [Executive Summary](#1-executive-summary) | Clinical context & architectural principles |
+| 2 | [Multi-Agent Pipeline](#2-sequential-multi-agent-pipeline) | 8-phase ingestion & intelligence workflow |
+| 3 | [Model Routing & Fallback](#3-dynamic-model-routing--fallback) | Hierarchical model selection & quota resilience |
+| 4 | [Clinical Safety Guardrails](#4-clinical-safety-guardrails) | 5 layers of deterministic medical safety |
+| 5 | [Benchmark Performance](#5-benchmark-performance) | Quantitative evaluation across 6 dimensions |
+| 6 | [Grounded RAG & Citations](#6-grounded-rag--citation-engine) | Evidence-linked copilot architecture |
+| 7 | [Voice Engine](#7-sub-second-voice-engine) | Real-time multilingual speech pipeline |
+| 8 | [Research Roadmap](#8-research-roadmap) | Fine-tuning specifications for edge deployment |
+| 9 | [Scoring Matrix](#9-hackathon-scoring-matrix) | Point-by-point evaluation mapping |
 
 ---
 
-## 1. Executive Summary & Clinical Context
+## 1. Executive Summary
 
-The **Personal Health Copilot AI Layer** is an enterprise-grade medical intelligence system architected to solve the unique challenges of Indian clinical documentation:
+The **Personal Health Copilot AI Layer** is an enterprise-grade medical intelligence system designed to solve the unique challenges of Indian clinical documentation.
 
-### Clinical & Technical Challenges in Indian Healthcare
-* **Handwriting Variability**: Rushed clinical handwriting on diverse stationery and clinic letterheads.
-* **Bilingual Prescriptions**: Mixed English and Indian scripts (e.g., medicine names in English, administration instructions in Hindi or Telugu).
-* **Tripartite Dosage Notation**: Indian clinical shorthand (e.g., `1-0-1`, `0-0-1`, `OD`, `BD`, `SOS`, `after food`).
-* **Inconsistent Reference Intervals**: Every diagnostic lab prints different biological reference intervals based on local reagents and equipment (e.g., Fasting Blood Glucose `70-99 mg/dL` vs `70-110 mg/dL`).
-* **Risk of AI Hallucinations**: Standard LLMs often guess whether a lab parameter is abnormal based on pre-trained parametric knowledge rather than what is printed on the patient's report.
+### Challenges in Indian Healthcare Documentation
+
+| Challenge | Description |
+|---|---|
+| **Handwriting Variability** | Rushed clinical handwriting on diverse stationery and clinic letterheads |
+| **Bilingual Prescriptions** | Mixed English and Indian scripts — medicine names in English, instructions in Hindi or Telugu |
+| **Dosage Shorthand** | Indian clinical notation: `1-0-1`, `0-0-1`, `OD`, `BD`, `SOS`, `after food` |
+| **Inconsistent Reference Ranges** | Every lab prints different biological reference intervals based on local reagents |
+| **AI Hallucination Risk** | Standard LLMs guess whether a lab value is abnormal from pre-trained knowledge, not from the patient's report |
 
 ### Core Architectural Principles
-1. **Zero Hallucinated Normality**: The AI's opinion *never* decides whether a lab test is HIGH, LOW, or NORMAL. Values are recomputed deterministically from the printed reference range.
-2. **Honest Failure over Inaccurate Fallback**: If an upload is illegible or non-medical, it is rejected immediately with a plain explanation. Zero placeholder or fabricated records are ever saved.
-3. **Strict Patient Isolation**: Copilot RAG queries are strictly partitioned by family member ID to prevent dangerous cross-contamination of clinical facts.
-4. **Deterministic Pre-Model Crisis Shield**: Suicide, self-harm, and severe emergency queries are intercepted by regex rules before invoking any model, guaranteeing sub-50ms life-saving helpline responses even during API outages.
+
+> **Principle 1: Zero Hallucinated Normality**
+> The AI's opinion *never* decides whether a lab test is HIGH, LOW, or NORMAL. Values are recomputed deterministically from the printed reference range.
+
+> **Principle 2: Honest Failure over Inaccurate Fallback**
+> If an upload is illegible or non-medical, it is rejected with a plain explanation. Zero placeholder or fabricated records are ever saved.
+
+> **Principle 3: Strict Patient Isolation**
+> Copilot RAG queries are partitioned by family member ID to prevent dangerous cross-contamination of clinical facts.
+
+> **Principle 4: Pre-Model Crisis Shield**
+> Suicide, self-harm, and emergency queries are intercepted by regex rules *before* invoking any model — guaranteeing sub-50ms helpline responses even during API outages.
 
 ---
 
-## 2. Sequential Multi-Agent Execution Plan
+## 2. Sequential Multi-Agent Pipeline
 
-The ingestion and intelligence workflow operates as a **Sequential Pipeline of Specialized Agents and Deterministic Rules**:
+The ingestion workflow operates as an **8-phase sequential pipeline** of specialized agents and deterministic rules:
 
 ```mermaid
 flowchart TD
-    subgraph Intake["Phase 1: Ingestion & Validation"]
-        Upload["Client Upload\n(PNG, JPG, PDF, FHIR JSON)"] --> MagicCheck{"MIME & Magic Bytes\nValidator"}
-        MagicCheck -->|Invalid Format| ErrFormat["415 Unsupported Media Type"]
-        MagicCheck -->|Exceeds 15MB| ErrSize["413 Payload Too Large"]
-        MagicCheck -->|FHIR R4 JSON| FHIRIngest["ABDM Bundle Text Serializer\n(fhir_bundle_to_text)"]
-        MagicCheck -->|Image / PDF| VisionRouter["Vision Model Dispatcher"]
+    subgraph P1["Phase 1 — Ingestion & Validation"]
+        Upload["Client Upload<br/>(PNG, JPG, PDF, FHIR JSON)"]
+        Magic{"MIME & Magic Bytes<br/>Validator"}
+        ErrFormat["415 Unsupported Media Type"]
+        ErrSize["413 Payload Too Large"]
+        FHIRIn["ABDM Bundle Text Serializer"]
+        VRouter["Vision Model Dispatcher"]
     end
 
-    subgraph OCRChain["Phase 2: Multimodal Extraction & Fallback Chain"]
-        VisionRouter --> KeyPool{"Multi-Key Pool\nRotation Manager"}
-        KeyPool --> PrimaryGemini["Primary Engine:\nGemini 3.8 Flash Vision\n(temperature = 0.0)"]
-        PrimaryGemini -->|Rate Limit / 429| FallbackGemini["Secondary Engine:\nGemini 3.5 Flash ➔ Flash Lite\n(Cooldown Active)"]
-        FallbackGemini -->|Vision Quota Depleted| PDFExtract["PDF Text Extractor (pypdf)\n+ Groq Qwen 3.8-27b"]
-        FHIRIngest --> GroqFHIR["Groq Qwen 3.8-27b\nStructure Extractor"]
+    subgraph P2["Phase 2 — Multimodal Extraction"]
+        KeyPool{"Multi-Key Pool<br/>Rotation Manager"}
+        Primary["Primary: Gemini 3.8 Flash Vision<br/>(temperature = 0.0)"]
+        Secondary["Fallback: Gemini 3.5 Flash → Flash Lite<br/>(Cooldown Active)"]
+        PDF["PDF Text Extractor (pypdf)<br/>+ Groq Qwen 3.8-27b"]
+        GroqFHIR["Groq Qwen 3.8-27b<br/>Structure Extractor"]
     end
 
-    subgraph Gatekeeper["Phase 3: Clinical Relevance Gatekeeper"]
-        PrimaryGemini --> MedCheck{"is_medical_document\n== true?"}
-        FallbackGemini --> MedCheck
-        PDFExtract --> MedCheck
-        GroqFHIR --> MedCheck
-        MedCheck -->|false| RejectNonMed["422 NotMedicalDocument\n(Reject & Explain Reason)"]
+    subgraph P3["Phase 3 — Clinical Relevance Gate"]
+        MedCheck{"is_medical_document<br/>== true?"}
+        Reject["422 NotMedicalDocument<br/>(Reject & Explain Reason)"]
     end
 
-    subgraph Normalizer["Phase 4: Deterministic Normalization & Flag Recomputation"]
-        MedCheck -->|true| RegexEngine["Deterministic Normalizer (regex_cleaner.py)"]
-        RegexEngine --> ParseRange["parse_reference_range(raw)\n(Extracts Low & High Bounds)"]
-        ParseRange --> CompFlag["compute_flag(value, range)\nHIGH / LOW / NORMAL Recomputation"]
-        CompFlag --> DoseNorm["normalize_frequency(raw)\nExpands 1-0-1 ➔ 1 morning, 1 night"]
-        DoseNorm --> FormSplit["split_medication_form(raw)\nSeparates Tab / Cap / Syp / Inj"]
+    subgraph P4["Phase 4 — Deterministic Normalization"]
+        RegexEng["Deterministic Normalizer"]
+        ParseRange["parse_reference_range(raw)<br/>Extracts Low & High Bounds"]
+        CompFlag["compute_flag(value, range)<br/>HIGH / LOW / NORMAL"]
+        DoseNorm["normalize_frequency(raw)<br/>1-0-1 → '1 morning, 1 night'"]
+        FormSplit["split_medication_form(raw)<br/>Tab / Cap / Syp / Inj"]
     end
 
-    subgraph Identity["Phase 5: Patient Identity Cross-Validation"]
-        FormSplit --> NameCheck["Tokenized Name Cross-Check\n(name_check function)"]
-        NameCheck --> MatchState{"Name matches\nProfile?"}
-        MatchState -->|Exact / Token Match| MatchFlag["Status: 'match'"]
-        MatchState -->|Different Person| MismatchFlag["Status: 'mismatch'\n(Prompt One-Click Move)"]
-        MatchState -->|No Name on Document| MissingFlag["Status: 'missing'"]
+    subgraph P5["Phase 5 — Identity Cross-Validation"]
+        NameCheck["Tokenized Name Cross-Check"]
+        Match["Status: 'match'"]
+        Mismatch["Status: 'mismatch'<br/>(Prompt One-Click Move)"]
+        Missing["Status: 'missing'"]
     end
 
-    subgraph Serialization["Phase 6: ABDM FHIR R4 Serialization"]
-        MatchFlag --> FHIRMapper["NRCES FHIR R4 Bundle Mapper\n(to_fhir_bundle)"]
-        MismatchFlag --> FHIRMapper
-        MissingFlag --> FHIRMapper
-        FHIRMapper --> BundleGen["Bundle Composition\n• Patient (ABHA ID/address)\n• Practitioner & Organization\n• Condition (Diagnoses)\n• MedicationRequest\n• Observation (Computed Flags)"]
+    subgraph P6["Phase 6 — FHIR R4 Serialization"]
+        FHIRMap["NRCES FHIR R4 Bundle Mapper"]
+        Bundle["Bundle Composition<br/>• Patient (ABHA ID)<br/>• Practitioner & Organization<br/>• Condition (Diagnoses)<br/>• MedicationRequest<br/>• Observation (Computed Flags)"]
     end
 
-    subgraph Localization["Phase 7: Trilingual Plain-Language Parity"]
-        BundleGen --> Localize["Trilingual Parity Engine"]
-        Localize --> PlainSumm["3-5 Sentence Summary (EN / HI / TE)"]
-        Localize --> OutOfRangeExp["Calm Out-of-Range Meanings (EN / HI / TE)"]
-        Localize --> DocQuestions["Questions to Ask Doctor (EN / HI / TE)"]
+    subgraph P7["Phase 7 — Trilingual Localization"]
+        Localize["Trilingual Parity Engine"]
+        Summary["3–5 Sentence Summary<br/>EN / HI / TE"]
+        OOR["Calm Out-of-Range Meanings<br/>EN / HI / TE"]
+        DocQ["Questions to Ask Doctor<br/>EN / HI / TE"]
     end
 
-    subgraph Storage["Phase 8: Persistence & Audit"]
-        PlainSumm --> DBStore[("Supabase Postgres (ap-south-1)\nEncrypted Private Bucket Storage\nRow-Level Security Bound")]
-        DBStore --> AuditTrail["Audit Logger\nRecords: Model, Duration, User, IP"]
+    subgraph P8["Phase 8 — Persistence & Audit"]
+        DB[("Supabase Postgres<br/>ap-south-1 Mumbai<br/>RLS Enforced")]
+        Audit["Audit Logger<br/>Model · Duration · User · IP"]
     end
+
+    Upload --> Magic
+    Magic -->|Invalid| ErrFormat
+    Magic -->|">15MB"| ErrSize
+    Magic -->|FHIR JSON| FHIRIn
+    Magic -->|Image / PDF| VRouter
+
+    VRouter --> KeyPool --> Primary
+    Primary -->|"429 Rate Limit"| Secondary
+    Secondary -->|"Vision Depleted"| PDF
+    FHIRIn --> GroqFHIR
+
+    Primary --> MedCheck
+    Secondary --> MedCheck
+    PDF --> MedCheck
+    GroqFHIR --> MedCheck
+    MedCheck -->|false| Reject
+
+    MedCheck -->|true| RegexEng --> ParseRange --> CompFlag --> DoseNorm --> FormSplit
+
+    FormSplit --> NameCheck
+    NameCheck -->|Exact Match| Match
+    NameCheck -->|Different Person| Mismatch
+    NameCheck -->|No Name| Missing
+
+    Match --> FHIRMap
+    Mismatch --> FHIRMap
+    Missing --> FHIRMap
+    FHIRMap --> Bundle
+
+    Bundle --> Localize
+    Localize --> Summary
+    Localize --> OOR
+    Localize --> DocQ
+
+    Summary --> DB --> Audit
 ```
 
 ---
 
-## 3. Dynamic Model Routing & Fallback Architecture
+## 3. Dynamic Model Routing & Fallback
 
-To ensure zero demo latency and maximum resilience against API quotas, Health Copilot uses a **hierarchical model routing matrix**:
+To ensure **zero demo latency** and maximum resilience against API quotas, Health Copilot uses a hierarchical model routing matrix:
 
 ### Model Routing Matrix
 
-| Pipeline Task | Primary Engine | Secondary Engine | Tertiary Fallback | Target Latency | Optimization Focus |
+| Pipeline Task | Primary Engine | Secondary Engine | Tertiary Fallback | Target Latency | Focus |
 |---|---|---|---|---|---|
-| **Medical Vision OCR** | `gemini-3.8-flash` | `gemini-3.5-flash` | `gemini-flash-lite-latest` | **850ms - 1.4s** | High-precision handwriting & table transcription |
-| **PDF Text Fallback** | `pypdf` layer | Groq `qwen/qwen3.8-27b` | Rule-based extractor | **350ms** | Free-tier LPU execution when vision APIs are throttled |
-| **Copilot Grounded QA** | Groq `qwen/qwen3.8-27b` | Groq `llama-3.3-70b` | Template Fallback | **280ms** | Context-bounded RAG with exact document citations `[id]` |
-| **Voice STT (Mic)** | Groq `whisper-large-v3-turbo` | Browser Web Speech API | Text Input | **120ms** | Real-time multilingual speech recognition (EN, HI, TE) |
-| **FHIR R4 Serialization**| Deterministic Python Mapper | Groq `qwen/qwen3.8-27b` | Static Template | **15ms** | 100% NRCES schema compliance |
-| **Emergency Screening** | Deterministic Regex Filter | — | — | **<1ms** | Pre-model safety interceptor (Tele-MANAS, 112, 108) |
+| **Medical Vision OCR** | `gemini-3.8-flash` | `gemini-3.5-flash` | `gemini-flash-lite-latest` | **850ms–1.4s** | Handwriting & table transcription |
+| **PDF Text Fallback** | `pypdf` layer | Groq `qwen/qwen3.8-27b` | Rule-based extractor | **~350ms** | Free-tier LPU when vision APIs throttled |
+| **Copilot Grounded QA** | Groq `qwen/qwen3.8-27b` | Groq `llama-3.3-70b` | Template Fallback | **~280ms** | Context-bounded RAG with citations |
+| **Voice STT** | Groq `whisper-large-v3-turbo` | Browser Web Speech API | Text Input | **~120ms** | Multilingual speech recognition |
+| **FHIR Serialization** | Deterministic Python | Groq `qwen/qwen3.8-27b` | Static Template | **~15ms** | 100% NRCES schema compliance |
+| **Emergency Screening** | Deterministic Regex | — | — | **<1ms** | Pre-model safety (Tele-MANAS, 112, 108) |
 
-### Smart Multi-Key Rotation & Cooldown Algorithm
-When working with Google AI Studio free-tier quotas, hitting a `429 RESOURCE_EXHAUSTED` can ruin a live presentation. Health Copilot implements **automatic key rotation and intelligent cooldown tracking** in [ocr_engine.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/ocr_engine.py#L112-L154):
+### Smart Multi-Key Rotation & Cooldown
+
+When working with Google AI Studio free-tier quotas, a `429 RESOURCE_EXHAUSTED` can ruin a live presentation. Health Copilot implements **automatic key rotation and intelligent cooldown tracking**:
 
 ```python
-# Active Key & Model Cooldown Management
+# From ocr_engine.py — Active Key & Model Cooldown Management
 _COOLDOWN_UNTIL: Dict[str, float] = {}       # Per-model cooldown timers
 _KEY_COOLDOWN_UNTIL: Dict[str, float] = {}   # Per-key cooldown timers
 
@@ -140,138 +191,122 @@ if "RESOURCE_EXHAUSTED" in msg or "429" in msg:
     # Instantly shifts to next available API key in GEMINI_API_KEYS
 ```
 
+**How it works**: When a key hits its quota, the system records the server-specified cooldown period (or defaults to 10 minutes), marks that key as unavailable, and immediately rotates to the next available key. All keys are checked for cooldown status before every request.
+
 ---
 
-## 4. Integrated Clinical Safety Guardrails
+## 4. Clinical Safety Guardrails
 
-Safety in healthcare AI cannot rely solely on soft system prompts. Health Copilot implements **5 Distinct Layers of Clinical Defense**:
+Safety in healthcare AI cannot rely solely on soft system prompts. Health Copilot implements **5 distinct layers of deterministic clinical defense**:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       MULTI-TIER CLINICAL SAFETY SHIELD                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ 1. PRE-MODEL CRISIS INTERCEPTOR    ──► 112 / 108 / Tele-MANAS (14416)        │
-│ 2. DETERMINISTIC RANGE VALIDATOR   ──► Overrides AI Abnormal/Normal guesses │
-│ 3. RELEVANCE GATEKEEPER            ──► Rejects Non-Medical Uploads          │
-│ 4. FAMILY RECORD ISOLATION         ──► Cross-validates Name Mismatches      │
-│ 5. NON-DIAGNOSTIC DISCLAIMERS      ──► Injected in English, Hindi & Telugu   │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Input["User Input / Document"] --> L1
+
+    L1["🚨 Layer 1: Pre-Model Crisis Interceptor<br/><b>Mechanism:</b> Compiled regex<br/><b>Latency:</b> <1ms<br/><b>Action:</b> → 112 / 108 / Tele-MANAS 14416"]
+    L2["📐 Layer 2: Deterministic Range Validator<br/><b>Mechanism:</b> Mathematical comparison<br/><b>Action:</b> Forces computed HIGH/LOW/NORMAL"]
+    L3["🚫 Layer 3: Relevance Gatekeeper<br/><b>Mechanism:</b> Medical document classifier<br/><b>Action:</b> → 422 NotMedicalDocument"]
+    L4["👤 Layer 4: Family Record Isolation<br/><b>Mechanism:</b> Tokenized name matching<br/><b>Action:</b> → Mismatch alert + one-click move"]
+    L5["📋 Layer 5: Non-Diagnostic Disclaimers<br/><b>Mechanism:</b> Injected at render time<br/><b>Action:</b> → Shown in EN / HI / TE"]
+
+    L1 --> L2 --> L3 --> L4 --> L5
+    L1 -- "🆘 Emergency" --> Helpline["112 · 108 · Tele-MANAS"]
+    L5 --> Safe["✅ Safe to Display"]
 ```
 
 ### Layer 1: Pre-Model Crisis & Emergency Interceptor
-Located in [guardrails.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/guardrails.py). Executed **before** any model API call:
-* **Crisis Triggers**: Matches suicidal ideation, intentional overdose, or poison in English, Hindi (Devanagari), and Telugu:
-  ```python
-  CRISIS_PATTERNS = [
-      r"\b(suicide|suicidal|kill (myself|me)|end my life|want to die|self[- ]harm)\b",
-      r"\b(overdose|take all (the|my) (tablets|pills|medicines))\b",
-      r"\b(poison(ing)?|lethal dose)\b",
-      r"आत्महत्या", r"मरना चाहता", r"मरना चाहती", r"ఆత్మహత్య", r"చనిపోవాలని",
-  ]
-  ```
-  *Response*: Immediate routing to **112 (Emergency)** and **Tele-MANAS on 14416** (India's 24x7 free mental health helpline).
-* **Acute Emergency Triggers**: Detects signs of myocardial infarction, respiratory distress, or stroke:
-  ```python
-  EMERGENCY_SIGNS = [
-      r"\b(chest pain|can'?t breathe|cannot breathe|unconscious|fainted|stroke|seizure|heavy bleeding)\b",
-      r"सीने में दर्द", r"सांस नहीं", r"ఛాతీ నొప్పి", r"ఊపిరి ఆడటం లేదు",
-  ]
-  ```
-  *Response*: Immediate directive to call **112 / 108** for ambulance services with zero model latency.
+
+Executed **before** any model API call. Matches suicidal ideation, overdose, and poison in English, Hindi, and Telugu:
+
+```python
+CRISIS_PATTERNS = [
+    r"\b(suicide|suicidal|kill (myself|me)|end my life|want to die|self[- ]harm)\b",
+    r"\b(overdose|take all (the|my) (tablets|pills|medicines))\b",
+    r"\b(poison(ing)?|lethal dose)\b",
+    r"आत्महत्या", r"मरना चाहता", r"मरना चाहती",  # Hindi
+    r"ఆత్మహత్య", r"చనిపోవాలని",                    # Telugu
+]
+```
+
+**Response**: Immediate routing to **112 (Emergency)** and **Tele-MANAS on 14416** (India's 24×7 free mental health helpline).
 
 ### Layer 2: Deterministic Biological Reference Range Validator
-Located in [regex_cleaner.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/regex_cleaner.py#L40-L52):
-* Parses printed ranges such as `"70 - 99"`, `"< 6.0"`, `">= 40"`, or `"12.0 to 15.5"`.
-* Evaluates numerical values against biological bounds:
-  $$\text{Flag} = \begin{cases} \text{LOW} & \text{if } \text{observed} < \text{low\_bound} \\ \text{HIGH} & \text{if } \text{observed} > \text{high\_bound} \\ \text{NORMAL} & \text{otherwise} \end{cases}$$
-* **Hard Rule**: If the AI model labels a test "NORMAL" but the computed check indicates "HIGH", the system **forces the computed flag** (`flag_source="computed"`) and writes an explicit audit warning:
-  > *"Serum Cholesterol: AI said NORMAL, printed range says HIGH. Using the range."*
 
-### Layer 3: Honest Uncertainty & Anti-Hallucination Tagging
-* When handwriting is smudged, torn, or partially obscured, the vision prompt instructs the model:
-  `"uncertain": true if any part was hard to read`.
-* The UI tags these values with an amber badge: *"Check original document"*.
-* If a field (e.g., date of consultation) is not printed on the document, it defaults to `null`. It never fabricates today's date.
+Parses printed ranges (`70 - 99`, `< 6.0`, `>= 40`, `12.0 to 15.5`) and evaluates numerically:
 
-### Layer 4: Non-Medical Document Refusal
-* Non-medical images (landscapes, restaurant menus, invoices) return:
-  `{"is_medical_document": false, "not_medical_reason": "This is a restaurant food menu."}`
-* The backend raises `422 NotMedicalDocument` and refuses to create a record.
+- If `observed < low_bound` → **LOW**
+- If `observed > high_bound` → **HIGH**
+- Otherwise → **NORMAL**
 
-### Layer 5: Patient Passbook Isolation & Name Verification
-* Documents uploaded to a family member are checked against their registered profile name:
-  $$\text{Tokens}(\text{document}) \cap \text{Tokens}(\text{profile}) \neq \emptyset$$
-* If an adult child accidentally uploads a father's prescription to a mother's passbook, the system alerts the user and provides a one-click migration action.
+**Hard Rule**: If the AI model labels a test "NORMAL" but the computed check says "HIGH", the system **forces the computed flag** (`flag_source="computed"`) and writes an audit warning:
+
+> *"Serum Cholesterol: AI said NORMAL, printed range says HIGH. Using the range."*
+
+### Layer 3: Non-Medical Document Refusal
+
+Non-medical images (landscapes, menus, invoices) return:
+```json
+{"is_medical_document": false, "not_medical_reason": "This is a restaurant food menu."}
+```
+The backend raises `422 NotMedicalDocument` and refuses to create a record.
+
+### Layer 4: Patient Passbook Isolation & Name Verification
+
+Documents are checked against the registered profile name using tokenized intersection. If a father's prescription is uploaded to a mother's passbook, the system alerts the user and provides a **one-click migration action**.
+
+### Layer 5: Honest Uncertainty & Anti-Hallucination Tagging
+
+- Smudged or partially obscured handwriting → `"uncertain": true` with amber badge: *"Check original document"*
+- Missing fields (e.g., date) default to `null` — never fabricated
 
 ---
 
-## 5. Evaluation Metrics & Benchmark Performance
+## 5. Benchmark Performance
 
-To establish clinical and technical rigor, Health Copilot is evaluated across **6 quantitative performance dimensions**:
+Health Copilot is evaluated across **6 quantitative performance dimensions**:
 
-```
-                   BENCHMARK PERFORMANCE SUMMARY
-┌─────────────────────────────────┬───────────┬──────────────┐
-│ Evaluation Metric               │ Target    │ Achieved     │
-├─────────────────────────────────┼───────────┼──────────────┤
-│ Deterministic Flag Accuracy     │ 100%      │ 100.0%       │
-│ Crisis Interception Recall      │ 100%      │ 100.0%       │
-│ Indian Shorthand (1-0-1) F1     │ > 95%     │ 98.4%        │
-│ Multilingual Parity (EN/HI/TE)  │ > 90%     │ 96.1%        │
-│ Non-Medical Refusal Precision   │ > 98%     │ 100.0%       │
-│ Copilot Response Latency        │ < 500ms   │ 280ms (Groq) │
-│ Voice STT Latency               │ < 250ms   │ 120ms (Groq) │
-└─────────────────────────────────┴───────────┴──────────────┘
-```
+| Metric | Target | Achieved | Method |
+|---|---|---|---|
+| **Deterministic Flag Accuracy** | 100% | **100.0%** | Guaranteed by `compute_flag()` — AI hallucination on range bounds eliminated |
+| **Crisis Interception Recall** | 100% | **100.0%** | Tested on 120 multilingual stress prompts (40 EN, 40 HI, 40 TE) |
+| **Indian Shorthand F1** (1-0-1) | >95% | **98.4%** | Resolves `1-0-1`, `OD`, `BD`, `TID`, `SOS` |
+| **Multilingual Parity** (EN/HI/TE) | >90% | **96.1%** | Cultural comprehensibility alignment vs human translations |
+| **Non-Medical Refusal Precision** | >98% | **100.0%** | Zero false acceptances of non-medical documents |
+| **Copilot Response Latency** | <500ms | **280ms** | Groq LPU acceleration |
+| **Voice STT Latency** | <250ms | **120ms** | Groq Whisper LPU on 4-second utterances |
 
-### Detailed Evaluation Methodology
+### Detailed Methodology
 
-#### 1. Abnormality Flag Accuracy (Target: 100%)
-* **Definition**: Proportion of lab test observations correctly marked HIGH / LOW / NORMAL against the physical reference range printed on the report.
-* **Result**: **100.0%**. Guaranteed by deterministic execution in `compute_flag()`. AI hallucination on range bounds is completely eliminated.
+**Abnormality Flag Accuracy** — Proportion of lab test observations correctly marked HIGH / LOW / NORMAL against the physical reference range on the report. Guaranteed at 100% by deterministic execution — AI hallucination on range bounds is completely eliminated.
 
-#### 2. Clinical Extraction Precision & Recall (Indian Prescriptions)
-Evaluated on a benchmark dataset of 50 synthetic Indian medical documents (handwritten Rx, bi-lingual clinic receipts, multi-tier lab reports):
-* **Medication Extraction F1**: **95.2%** (Drug name, form, strength).
-* **Tripartite Frequency Normalization**: **98.4%** (Accurately resolves `1-0-1`, `0-0-1`, `OD`, `BD`, `TID`, `SOS`).
-* **Lab Test Name & Observed Value CER (Character Error Rate)**: **< 1.8%** across printed lab PDFs.
+**Clinical Extraction** — Evaluated on 50 synthetic Indian medical documents (handwritten Rx, bilingual clinic receipts, multi-tier lab reports):
+- Medication Extraction F1: **95.2%** (drug name, form, strength)
+- Lab Test Name & Value Character Error Rate: **<1.8%** across printed lab PDFs
 
-#### 3. Crisis & Emergency Interception (Target: 100%)
-* Evaluated against 120 multilingual stress prompts (40 English, 40 Hindi, 40 Telugu) containing subtle and explicit self-harm, overdose, or acute coronary signs.
-* **Crisis Recall**: **100.0%** (zero false negatives).
-* **Interception Latency**: **< 1ms** (executed via compiled regex prior to any network I/O).
+**Crisis Interception** — 120 multilingual stress prompts containing subtle and explicit self-harm, overdose, and acute coronary signs. **100% recall, zero false negatives, <1ms latency** via compiled regex.
 
-#### 4. Multilingual Translation & Cultural Parity
-* Evaluated by comparing clinical explanations generated in Hindi and Telugu against human medical translations.
-* Focuses on avoiding confusing transliterations (e.g., explaining `Glycated Hemoglobin (HbA1c)` as *"पिछले 3 महीनों की औसत शर्करा"* rather than a literal translation).
-* **Parity Score**: **96.1%** alignment on patient comprehensibility.
-
-#### 5. End-to-End System Latency
-* **Document Upload & Full Extraction**: ~1.2s to 2.8s (multimodal vision + normalization + FHIR generation).
-* **Voice Transcription (Groq Whisper)**: ~120ms for a 4-second audio utterance.
-* **Grounded Copilot Query**: ~280ms average response time on Groq LPUs.
+**Multilingual Parity** — Compares clinical explanations in Hindi and Telugu against human medical translations. Prioritizes meaningful localization (e.g., `HbA1c` → *"पिछले 3 महीनों की औसत शर्करा"*) over literal translation.
 
 ---
 
 ## 6. Grounded RAG & Citation Engine
 
-The Copilot query system ([ai_router.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/ai_router.py)) implements an evidence-grounded Retrieval-Augmented Generation pattern designed specifically for patient safety:
+The Copilot implements an **evidence-grounded Retrieval-Augmented Generation** pattern designed specifically for patient safety:
 
-```
-[ Patient Question ] ──► [ Crisis Screen ] ──► [ Profile Isolation ]
-                                                       │
-                                                       ▼
-[ User Interface ] ◄── [ Parse Citations [id] ] ◄── [ Groq Qwen 3.8-27b ]
-                                                       ▲
-                                                       │
-                                      [ Patient Timeline Context ]
-                                      • Record ID [ab12cd34]
-                                      • Active Diagnoses
-                                      • Normalised Medicines
-                                      • Lab Observations + Flags
+```mermaid
+flowchart LR
+    Q["Patient Question"] --> Crisis["Crisis Screen"]
+    Crisis --> Isolate["Profile Isolation"]
+    Isolate --> Context["Patient Timeline<br/>Context Builder"]
+    Context --> LLM["Groq Qwen 3.8-27b"]
+    LLM --> Parse["Parse Citations [id]"]
+    Parse --> UI["User Interface"]
+
+    Records[("Patient Records<br/>• Record ID [ab12cd34]<br/>• Active Diagnoses<br/>• Normalized Medicines<br/>• Lab Observations + Flags")] --> Context
 ```
 
-### Context Synthesis Algorithm
+### Context Synthesis
+
 ```python
 def build_context(records: List[HealthRecord]) -> str:
     blocks = []
@@ -283,73 +318,83 @@ def build_context(records: List[HealthRecord]) -> str:
         for m in e.medications:
             lines.append(f"  Medicine: {m.name} {m.dosage} | {m.frequency} | {m.timing}")
         for o in e.lab_observations:
-            lines.append(f"  Test: {o.test_name} = {o.observed_value} {o.unit} (range {o.reference_range}) -> {o.flag}")
+            lines.append(f"  Test: {o.test_name} = {o.observed_value} {o.unit} "
+                         f"(range {o.reference_range}) -> {o.flag}")
         blocks.append("\n".join(lines))
     return "\n\n".join(blocks)
 ```
 
 ### Citation Extraction & Linkage
-* The model is instructed: `"When a fact comes from a record, put its id in square brackets right after, like [ab12cd34]."`.
-* Post-generation regex scans for `\[([0-9a-f]{8})\]`, validates that the ID exists in the patient's records, and constructs verifiable `Citation` objects.
-* Clicking any citation in the UI opens the exact document in the split-screen viewer.
+
+1. The model is instructed: *"When a fact comes from a record, put its id in square brackets right after, like `[ab12cd34]`."*
+2. Post-generation regex scans for `\[([0-9a-f]{8})\]` and validates each ID exists in the patient's records
+3. Valid citations become clickable links in the UI, opening the exact document in the split-screen viewer
 
 ---
 
-## 7. Sub-Second Real-Time Voice Engine
+## 7. Sub-Second Voice Engine
 
-The voice interface ([voice_engine.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/voice_engine.py)) provides hands-free accessibility for elderly patients and busy caregivers:
+The voice interface provides hands-free accessibility for elderly patients and busy caregivers:
 
-```
-User Speaks (EN / HI / TE)
-  │
-  ▼ [Web Audio MediaRecorder API]
-FastAPI Audio Ingest (`/voice/transcribe`)
-  │
-  ▼ [Groq LPU Acceleration]
-whisper-large-v3-turbo (120ms Latency)
-  │
-  ▼ [Transcribed Text + Language Tag]
-Copilot Grounded QA Engine
-  │
-  ▼ [Plain-Language Answer]
-Web SpeechSynthesis / Audio Output
+```mermaid
+flowchart TD
+    Speak["🎙️ User Speaks<br/>EN / HI / TE"] --> Record["Web Audio<br/>MediaRecorder API"]
+    Record --> Ingest["FastAPI Audio Ingest<br/>/voice/transcribe"]
+    Ingest --> Whisper["Groq LPU Acceleration<br/>whisper-large-v3-turbo<br/><b>120ms Latency</b>"]
+    Whisper --> Text["Transcribed Text<br/>+ Language Tag"]
+    Text --> Copilot["Copilot Grounded QA"]
+    Copilot --> Response["Plain-Language Answer"]
+    Response --> Output["🔊 Web SpeechSynthesis<br/>Audio Output"]
 ```
 
-* **Zero-Lag Transcription**: Runs on dedicated Groq Language Processing Units (LPUs), transcribing audio up to 10x faster than traditional real-time speech services.
-* **Auto-Language Detection**: Detects whether the patient spoke in English, Hindi, or Telugu and routes the text to the matching multilingual Copilot prompt.
+**Key capabilities:**
+- **Zero-Lag Transcription**: Runs on dedicated Groq Language Processing Units, transcribing up to 10× faster than traditional real-time speech services
+- **Auto-Language Detection**: Detects English, Hindi, or Telugu and routes to the matching multilingual Copilot prompt
 
 ---
 
-## 8. Fine-Tuning & Specialized Research Roadmap
+## 8. Research Roadmap
 
-While the production deployment utilizes state-of-the-art hosted models (`gemini-3.8-flash` and Groq `qwen3.8-27b`), our research architecture includes specifications for dedicated fine-tuned models:
+While the production deployment utilizes hosted models (`gemini-3.8-flash` and Groq `qwen3.8-27b`), the research architecture includes specifications for dedicated fine-tuned models:
 
-### Model 1: Indian Prescription VLM (`Qwen2.5-VL-3B-IndianRx`)
-* **Objective**: Ultra-efficient edge deployment for local clinic computers without internet access.
-* **Base Architecture**: `Qwen/Qwen2.5-VL-3B-Instruct`.
-* **Methodology**: QLoRA (4-bit BitsAndBytes quantization, rank $r=16$, $\alpha=32$, dropout $0.05$ on all linear attention projections).
-* **Dataset**: 1,500 synthetic and anonymized doctor prescriptions featuring cursive handwriting, faded carbon paper, and regional medical abbreviations.
+### Model 1: Indian Prescription VLM
 
-### Model 2: Empathetic Clinical Reasoner (`BioMistral-7B-Caregiver`)
-* **Objective**: Generating calm, non-alarming explanations of complex pathologies for elderly family members.
-* **Base Architecture**: `BioMistral/BioMistral-7B`.
-* **Alignment Methodology**: Direct Preference Optimization (DPO).
-  * **Positive Reward**: Grounding in verified lab ranges, calm tone, clear doctor questions.
-  * **Negative Penalty**: Speculative diagnoses, suggesting medicine changes, alarming medical jargon.
+| Property | Value |
+|---|---|
+| **Name** | `Qwen2.5-VL-3B-IndianRx` |
+| **Objective** | Ultra-efficient edge deployment for local clinic computers without internet access |
+| **Base** | `Qwen/Qwen2.5-VL-3B-Instruct` |
+| **Method** | QLoRA (4-bit quantization, rank r=16, α=32, dropout 0.05) |
+| **Dataset** | 1,500 synthetic & anonymized Indian prescriptions (cursive, faded carbon, regional abbreviations) |
 
----
+### Model 2: Empathetic Clinical Reasoner
 
-## 9. Altrix Labs 100-Point Scoring Matrix
-
-| Criterion | Max Points | Technical Implementation Details | Code Evidence |
-|---|---|---|---|
-| **AI Utilization** | **35 pts** | • Multimodal Gemini 3.8 Flash Vision with 4-level fallback.<br>• Deterministic biological reference range validation.<br>• Grounded RAG with exact document citations `[id]`.<br>• Indian clinical shorthand expansion (`1-0-1`). | [ocr_engine.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/ocr_engine.py)<br>[ai_router.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/ai_router.py) |
-| **Technical Architecture** | **25 pts** | • Next.js 15 App Router + FastAPI Python 3.12 async backend.<br>• Full NRCES ABDM FHIR R4 Bundle serializer.<br>• PostgreSQL with Row Level Security (RLS) on Supabase Mumbai.<br>• Multi-key cooldown and quota-aware routing. | [fhir_mapper.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/fhir_mapper.py)<br>[main.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/main.py) |
-| **User Experience** | **20 pts** | • 100% Trilingual parity (**English, हिन्दी, తెలుగు**).<br>• Side-by-side original document audit viewer.<br>• Sub-second voice interaction with Groq Whisper.<br>• Interactive range bars & printable visit summary. | [components/](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/frontend/components)<br>[voice.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/routers/voice.py) |
-| **Healthcare Impact** | **10 pts** | • Multi-generational caregiver family passbook.<br>• Deterministic suicide / crisis filter (112, 108, Tele-MANAS).<br>• Family member name mismatch auto-detection.<br>• Non-diagnostic safety disclaimers across all screens. | [guardrails.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/guardrails.py)<br>[ingestion.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/routers/ingestion.py) |
-| **Presentation & Demo** | **10 pts** | • Sub-second response times on live queries via Groq LPU.<br>• Realistic synthetic test documents in docs/sample-documents.<br>• Robust handling of edge cases (non-medical uploads, mismatches). | [README.md](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/README.md#live-hackathon-demo-script) |
-| **Bonus Interoperability** | **+5 to +10** | • Bidirectional ABDM FHIR R4 export and import.<br>• Mock ABHA number and address validation. | [fhir_mapper.py](file:///c:/Users/venka/Desktop/Personal-Health-Copilot/backend/app/services/fhir_mapper.py) |
+| Property | Value |
+|---|---|
+| **Name** | `BioMistral-7B-Caregiver` |
+| **Objective** | Calm, non-alarming explanations of complex pathologies for elderly family members |
+| **Base** | `BioMistral/BioMistral-7B` |
+| **Method** | Direct Preference Optimization (DPO) |
+| **Positive Reward** | Grounding in verified lab ranges, calm tone, clear doctor questions |
+| **Negative Penalty** | Speculative diagnoses, medicine change suggestions, alarming jargon |
 
 ---
 
-*Authored for the Altrix Labs Hackathon 2026 by Team Health Copilot.*
+## 9. Hackathon Scoring Matrix
+
+| Criterion | Points | Implementation Evidence |
+|---|---|---|
+| **AI Utilization** | **35 pts** | Multimodal Gemini 3.8 Flash Vision with 4-level fallback. Deterministic biological reference range validation. Grounded RAG with exact document citations. Indian clinical shorthand expansion. |
+| **Technical Architecture** | **25 pts** | Next.js 15 App Router + FastAPI Python 3.12. Full NRCES ABDM FHIR R4 Bundle serializer. PostgreSQL with RLS on Supabase Mumbai. Multi-key cooldown & quota-aware routing. |
+| **User Experience** | **20 pts** | 100% Trilingual parity (English, हिन्दी, తెలుగు). Side-by-side original document audit viewer. Sub-second voice interaction with Groq Whisper. Interactive range bars & printable visit summary. |
+| **Healthcare Impact** | **10 pts** | Multi-generational caregiver family passbook. Deterministic suicide/crisis filter (112, 108, Tele-MANAS). Family member name mismatch detection. Non-diagnostic safety disclaimers across all screens. |
+| **Presentation & Demo** | **10 pts** | Sub-second response times via Groq LPU. Realistic synthetic test documents. Robust edge-case handling. |
+| **Bonus: Interoperability** | **+5 to +10** | Bidirectional ABDM FHIR R4 export and import. Mock ABHA number and address validation. |
+
+---
+
+<div align="center">
+
+*Authored for the Altrix Labs Hackathon 2026 by Team Health Copilot*
+
+</div>
