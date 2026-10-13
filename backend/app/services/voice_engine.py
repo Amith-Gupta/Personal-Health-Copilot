@@ -51,3 +51,31 @@ def transcribe(audio_bytes: bytes, filename: str, language: str | None = None) -
     detected_lang = getattr(t, "language", language or "en")
     return {"text": recognized_text, "language": detected_lang}
 
+
+def synthesize_speech(text: str, language: str = "te") -> bytes:
+    """Generates crystal-clear neural MP3 speech audio for Telugu, Hindi, or English."""
+    import re
+    import urllib.parse
+    import urllib.request
+
+    # Clean citations and markdown
+    clean = re.sub(r"\[[0-9a-f]{8}\]", "", text)
+    clean = re.sub(r"[*#_`~>]", "", clean)
+    clean = re.sub(r"\s+", " ", clean).strip()
+    if not clean:
+        clean = "సరే" if language == "te" else "ठीक है" if language == "hi" else "Okay"
+
+    # Truncate to reasonable length for one audio stream chunk (under 200 chars)
+    snippet = clean[:200]
+    target_lang = "te" if language == "te" else "hi" if language == "hi" else "en-IN"
+    url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={urllib.parse.quote(snippet)}&tl={target_lang}&client=tw-ob"
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.read()
+    except Exception as e:
+        logger.error(f"Speech synthesis error for language={language}: {e}")
+        raise VoiceUnavailable(f"TTS failed: {e}")
+
+

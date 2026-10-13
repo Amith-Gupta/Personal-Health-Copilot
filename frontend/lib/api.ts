@@ -64,6 +64,7 @@ export const api = {
     fd.append("language", language);
     return call<{ text: string }>("/voice/transcribe", { method: "POST", body: fd }, 60000);
   },
+  ttsUrl: (text: string, language: Lang) => `${BASE}/voice/tts?text=${encodeURIComponent(text)}&language=${language}`,
   loadSample: () => call<{ records: number }>("/sample-family", { method: "POST" }, 120000),
   exportFhir: async (profileId: string, name: string) => {
     const bundle = await call<unknown>(`/profiles/${profileId}/fhir`);

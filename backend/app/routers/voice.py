@@ -22,3 +22,16 @@ async def transcribe_voice(
     except Exception as e:
         raise HTTPException(500, f"Transcription error: {e}")
 
+
+@router.get("/tts")
+def stream_tts(text: str, language: str = "te"):
+    """Streams high-quality neural speech (MP3) for Telugu, Hindi, or English."""
+    from fastapi.responses import Response
+    from app.services.voice_engine import synthesize_speech
+    try:
+        audio_data = synthesize_speech(text, language)
+        return Response(content=audio_data, media_type="audio/mpeg")
+    except Exception as e:
+        raise HTTPException(500, f"TTS generation failed: {e}")
+
+

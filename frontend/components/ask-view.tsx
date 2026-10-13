@@ -125,13 +125,8 @@ export function AskView({ profile, records, onOpen }: { profile: Profile; record
 
         recognition.onerror = (event: any) => {
           console.warn("SpeechRecognition error:", event.error);
-          if (event.error !== "no-speech") {
-            setMicErr(`Voice input: ${event.error}. Trying microphone recording...`);
-            // Fall back to MediaRecorder
-            startMediaRecorderFallback();
-          } else {
-            setMicState("idle");
-          }
+          // If native recognition has an error or language issue, fall back to MediaRecorder + Whisper
+          startMediaRecorderFallback();
         };
 
         recognition.onend = () => {
@@ -139,8 +134,12 @@ export function AskView({ profile, records, onOpen }: { profile: Profile; record
           // If we captured speech, automatically send with Gemini voice response
           if (liveTranscript.trim()) {
             ask(liveTranscript.trim(), true);
+          } else if (lang === "te") {
+            // On desktop browsers with incomplete Telugu speech models, seamlessly record via Whisper
+            startMediaRecorderFallback();
           }
         };
+
 
         recognitionRef.current = recognition;
         recognition.start();

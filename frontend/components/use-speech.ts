@@ -1,11 +1,12 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { api } from "@/lib/api";
 import type { Lang } from "@/lib/types";
 
 const VOICE_LANG: Record<Lang, string[]> = {
   en: ["en-IN", "en-GB", "en-US", "en"],
   hi: ["hi-IN", "hi"],
-  te: ["te-IN", "te", "en-IN"],
+  te: ["te-IN", "te"],
 };
 
 // Clean and expand medical text so it sounds natural when spoken aloud
@@ -51,18 +52,18 @@ function sanitizeForSpeech(raw: string): string {
 function splitIntoSentences(text: string): string[] {
   const clean = sanitizeForSpeech(text);
   if (!clean) return [];
-  // Split on periods, exclamation marks, question marks, or colons followed by space or newline
+  // Split on periods, exclamation marks, question marks, colons, or newlines
   const rawParts = clean.split(/(?<=[.!?:\n])\s+/);
   const result: string[] = [];
   for (const part of rawParts) {
     const trimmed = part.trim();
     if (!trimmed) continue;
-    // If a sentence is unusually long (> 160 chars), break on commas or conjunctions
-    if (trimmed.length > 160) {
+    // If a sentence is unusually long (> 140 chars), break on commas or conjunctions
+    if (trimmed.length > 140) {
       const subParts = trimmed.split(/(?<=[,;])\s+/);
       let current = "";
       for (const sub of subParts) {
-        if ((current + " " + sub).length > 140 && current) {
+        if ((current + " " + sub).length > 120 && current) {
           result.push(current.trim());
           current = sub;
         } else {
@@ -79,36 +80,43 @@ function splitIntoSentences(text: string): string[] {
 
 export function useSpeech() {
   const [speaking, setSpeaking] = useState(false);
-  const [supported, setSupported] = useState(false);
+  const [supported, setSupported] = useState(true);
   const [currentSentence, setCurrentSentence] = useState<string>("");
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const queueRef = useRef<string[]>([]);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const activeLangRef = useRef<Lang>("en");
   const onFinishRef = useRef<(() => void) | null>(null);
 
   // Load and cache voices across browsers
   useEffect(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setSupported(false);
-      return;
-    }
-    setSupported(true);
+    if (typeof window === "undefined") return;
 
     const loadVoices = () => {
-      const vs = window.speechSynthesis.getVoices();
-      if (vs && vs.length > 0) {
-        voicesRef.current = vs;
+      if ("speechSynthesis" in window) {
+        const vs = window.speechSynthesis.getVoices();
+        if (vs && vs.length > 0) {
+          voicesRef.current = vs;
+        }
       }
     };
 
     loadVoices();
-    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    }
 
     return () => {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
-        window.speechSynthesis.cancel();
+      if (typeof window !== "undefined") {
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+          window.speechSynthesis.cancel();
+        }
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
       }
     };
   }, []);
@@ -143,20 +151,16 @@ export function useSpeech() {
       if (match) return match;
     }
 
-    // 4. Fallback to English natural voice
-    const fallbackNatural = voices.find(
-      (v) =>
-        v.lang.toLowerCase().startsWith("en") &&
-        (v.name.includes("Google") || v.name.includes("Natural") || v.name.includes("Neural"))
-    );
-    if (fallbackNatural) return fallbackNatural;
-
-    return voices[0] || null;
+    return null;
   }, []);
 
   const stop = useCallback(() => {
     queueRef.current = [];
     currentUtteranceRef.current = null;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -169,7 +173,7 @@ export function useSpeech() {
   }, []);
 
   const playNextInQueue = useCallback(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (typeof window === "undefined") return;
     if (queueRef.current.length === 0) {
       setSpeaking(false);
       setCurrentSentence("");
@@ -183,46 +187,83 @@ export function useSpeech() {
     const sentence = queueRef.current.shift()!;
     setCurrentSentence(sentence);
 
-    const u = new SpeechSynthesisUtterance(sentence);
-    const voice = pickBestVoice(activeLangRef.current);
-    if (voice) {
-      u.voice = voice;
-      u.lang = voice.lang;
-    } else {
-      u.lang = VOICE_LANG[activeLangRef.current][0] || "en-IN";
+    const lang = activeLangRef.current;
+    const voice = pickBestVoice(lang);
+
+    // If language is Telugu (te), or if OS does not have a native voice for the language:
+    // Stream authentic neural audio directly from the backend endpoint!
+    const needsNeuralAudio = lang === "te" || !voice;
+
+    if (needsNeuralAudio) {
+      try {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+        const streamUrl = api.ttsUrl(sentence, lang);
+        const audio = new Audio(streamUrl);
+        audioRef.current = audio;
+
+        audio.onended = () => {
+          playNextInQueue();
+        };
+
+        audio.onerror = (e) => {
+          console.warn("Neural audio stream failed, skipping sentence:", e);
+          playNextInQueue();
+        };
+
+        audio.play().catch((err) => {
+          console.warn("Audio play prevented:", err);
+          playNextInQueue();
+        });
+        return;
+      } catch (err) {
+        console.warn("Neural audio play error:", err);
+        playNextInQueue();
+        return;
+      }
     }
 
-    // Slightly warmer, natural cadence like Gemini
-    u.rate = activeLangRef.current === "en" ? 0.98 : 0.92;
-    u.pitch = 1.0;
-
-    u.onend = () => {
-      // Continue with next sentence
-      playNextInQueue();
-    };
-
-    u.onerror = (e) => {
-      // Interrupted error is normal when user clicks Stop
-      if (e.error !== "interrupted" && e.error !== "canceled") {
-        console.warn("Speech synthesis error:", e.error);
-        playNextInQueue();
+    // Otherwise use native browser SpeechSynthesis (for English / Hindi when installed)
+    if ("speechSynthesis" in window) {
+      const u = new SpeechSynthesisUtterance(sentence);
+      if (voice) {
+        u.voice = voice;
+        u.lang = voice.lang;
       } else {
-        setSpeaking(false);
-        setCurrentSentence("");
+        u.lang = VOICE_LANG[lang][0] || "en-IN";
       }
-    };
 
-    // Keep reference on window to avoid Chromium garbage collection bug
-    currentUtteranceRef.current = u;
-    (window as unknown as { __activeUtterance?: SpeechSynthesisUtterance }).__activeUtterance = u;
+      u.rate = lang === "en" ? 0.98 : 0.92;
+      u.pitch = 1.0;
 
-    window.speechSynthesis.speak(u);
+      u.onend = () => {
+        playNextInQueue();
+      };
+
+      u.onerror = (e) => {
+        if (e.error !== "interrupted" && e.error !== "canceled") {
+          console.warn("Speech synthesis error:", e.error);
+          playNextInQueue();
+        } else {
+          setSpeaking(false);
+          setCurrentSentence("");
+        }
+      };
+
+      currentUtteranceRef.current = u;
+      (window as unknown as { __activeUtterance?: SpeechSynthesisUtterance }).__activeUtterance = u;
+      window.speechSynthesis.speak(u);
+    } else {
+      playNextInQueue();
+    }
   }, [pickBestVoice]);
 
   const speak = useCallback(
     (text: string, lang: Lang, onFinish?: () => void) => {
-      if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
+      if (typeof window === "undefined") return;
+      stop();
 
       activeLangRef.current = lang;
       onFinishRef.current = onFinish || null;
@@ -238,7 +279,7 @@ export function useSpeech() {
       setSpeaking(true);
       playNextInQueue();
     },
-    [playNextInQueue]
+    [stop, playNextInQueue]
   );
 
   return {
