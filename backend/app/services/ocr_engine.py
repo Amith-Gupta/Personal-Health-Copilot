@@ -26,6 +26,10 @@ GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-flash-lite-late
 _COOLDOWN_UNTIL: Dict[str, float] = {}
 _KEY_COOLDOWN_UNTIL: Dict[str, float] = {}
 GROQ_MODEL = "qwen/qwen3.8-27b"
+# Total seconds the vision chain may spend on one document. The browser waits 180 s for an
+# upload, so the chain must give up (or fall back to the PDF text path) well before that.
+VISION_BUDGET_S = 110
+PER_CALL_S = 45
 
 
 class NotMedicalDocument(Exception):
@@ -108,17 +112,13 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
     from google import genai
     from google.genai import types
     part = types.Part.from_bytes(data=file_bytes, mime_type=mime)
+    deadline = time.monotonic() + VISION_BUDGET_S
 
     for key_idx, key in enumerate(keys):
         masked_key = f"{key[:8]}...{key[-4:]}" if len(key) >= 12 else "***"
         if _KEY_COOLDOWN_UNTIL.get(key, 0) > time.time():
             remaining = int(_KEY_COOLDOWN_UNTIL[key] - time.time())
             errors.append(f"key[{key_idx}]({masked_key}): cooling down ({remaining}s remaining)")
-            continue
-        try:
-            client = genai.Client(api_key=key, http_options=types.HttpOptions(timeout=45000))
-        except Exception as e:
-            errors.append(f"key[{key_idx}]({masked_key}) client init failed: {e}")
             continue
 
         key_quota_exhausted = False
@@ -127,7 +127,15 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
             if _COOLDOWN_UNTIL.get(model_key, 0) > time.time():
                 errors.append(f"{model} on key[{key_idx}]: cooling down")
                 continue
+            remaining = deadline - time.monotonic()
+            if remaining < 8:
+                errors.append("vision time budget used up")
+                return None, "", errors
             try:
+                # One attempt per call (no hidden SDK retries) and never longer than the budget left.
+                client = genai.Client(api_key=key, http_options=types.HttpOptions(
+                    timeout=int(min(PER_CALL_S, remaining) * 1000),
+                    retry_options=types.HttpRetryOptions(attempts=1)))
                 resp = client.models.generate_content(
                     model=model,
                     contents=[part, PROMPT],
