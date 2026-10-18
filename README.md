@@ -10,7 +10,7 @@
 
 [![Next.js 15](https://img.shields.io/badge/Next.js_15-App_Router-000?style=flat-square&logo=next.js)](https://nextjs.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python_3.12-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
-[![Gemini Flash](https://img.shields.io/badge/Gemini_3.8_Flash-Vision_OCR-4285F4?style=flat-square&logo=google)](https://deepmind.google/technologies/gemini/)
+[![Gemini Flash](https://img.shields.io/badge/Gemini_Flash-Vision_OCR-4285F4?style=flat-square&logo=google)](https://deepmind.google/technologies/gemini/)
 [![Groq LPU](https://img.shields.io/badge/Groq_LPU-Qwen_+_Whisper-F55036?style=flat-square)](https://groq.com)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres_+_RLS-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com)
 
@@ -121,7 +121,7 @@ flowchart TB
         subgraph Ingest["Document Ingestion Pipeline"]
             Router["Ingestion Router"]
             Classify["Format Validator<br/>Magic Bytes / MIME"]
-            OCR["Multimodal Vision Router<br/>Gemini 3.8 Flash → Chain → Multi-Key Rotation"]
+            OCR["Multimodal Vision Router<br/>Gemini Flash chain, 110 s budget"]
             Fallback["PDF Text + Groq Qwen Fallback"]
             Regex["Deterministic Normalizer<br/>• Reference Range Parser<br/>• 1-0-1 Shorthand Expander<br/>• Medicine Form Parser"]
             Name["Family Member Identity Check<br/>Fuzzy Token Cross-Validation"]
@@ -132,7 +132,7 @@ flowchart TB
             CRouter["Copilot Router"]
             Crisis["Crisis Interceptor<br/>Self-Harm · Suicide · Emergency"]
             Timeline["Patient Timeline Context Builder"]
-            LLM["Groq LPU — Qwen 3.8-27b<br/>Evidence-Grounded QA + Citations"]
+            LLM["Groq — gpt-oss-120b<br/>Evidence-Grounded QA + Citations"]
         end
 
         subgraph VoiceAPI["Voice Transcription"]
@@ -184,14 +184,14 @@ flowchart LR
     end
 
     subgraph AI["🧠 AI Inference"]
-        Gemini["Google AI Studio<br/>Gemini 3.8 Flash Vision<br/>Low-latency Multimodal OCR"]
-        Groq["Groq LPU Cloud<br/>• Qwen 3.8-27b (Copilot)<br/>• Whisper v3 Turbo (Voice)"]
+        Gemini["Google AI Studio<br/>Gemini Flash vision chain<br/>Multimodal OCR"]
+        Groq["Groq Cloud<br/>• gpt-oss-120b, Qwen 3.8-27b (Copilot)<br/>• Whisper v3 Turbo (Voice)"]
     end
 
     subgraph DataLayer["🇮🇳 India Data Tier — Mumbai"]
         SupaAuth["Supabase GoTrue Auth<br/>(JWT ES256)"]
         SupaDB["PostgreSQL + RLS<br/>(Family Isolation)"]
-        SupaStore["Encrypted S3 Bucket<br/>(Original Documents)"]
+        SupaStore["Private Supabase Storage bucket<br/>(Original Documents, signed URLs)"]
     end
 
     Vercel -- "HTTPS / JWT" --> FastAPI
@@ -208,7 +208,7 @@ flowchart LR
 | **Backend API** | Render / AWS App Runner | Singapore / Mumbai | Dockerized FastAPI, multi-key cooldown, rate-limit retry |
 | **Database & Auth** | Supabase | `ap-south-1` Mumbai | PostgreSQL + strict RLS, encrypted private buckets |
 | **AI Vision** | Google Gemini | Distributed | Multimodal OCR with 4-level model fallback |
-| **AI LLM & STT** | Groq LPU | Ultra-Low Latency | `qwen3.8-27b` for reasoning, `whisper-large-v3-turbo` for voice |
+| **AI LLM & STT** | Groq LPU | Ultra-Low Latency | `gpt-oss-120b` (fallback `qwen3.8-27b`) for answers, `whisper-large-v3-turbo` for voice |
 
 > 📖 **Full deployment guide**: See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for step-by-step instructions covering Vercel+Render, all-Render, and AWS options.
 
@@ -223,7 +223,7 @@ The AI system operates as a **sequential pipeline of specialized agents** with d
 ```mermaid
 flowchart LR
     Upload["📤 Upload"] --> Validate["🔍 MIME &<br/>Magic Check"]
-    Validate --> OCR["👁️ Gemini 3.8<br/>Vision OCR"]
+    Validate --> OCR["👁️ Gemini Flash<br/>Vision OCR"]
     OCR --> Gate["🚫 Medical<br/>Gatekeeper"]
     Gate --> Norm["📐 Deterministic<br/>Normalizer"]
     Norm --> ID["👤 Identity<br/>Cross-Check"]
@@ -234,14 +234,14 @@ flowchart LR
 
 ### Model Routing Matrix
 
-| Task | Primary Engine | Fallback Chain | Latency |
-|---|---|---|---|
-| **Medical Vision OCR** | `gemini-3.8-flash` | → `gemini-3.5-flash` → `flash-lite` | 850ms–1.4s |
-| **PDF Text Extraction** | `pypdf` layer | → Groq `qwen3.8-27b` | ~350ms |
-| **Copilot Grounded QA** | Groq `qwen3.8-27b` | → `llama-3.3-70b` → Template | ~280ms |
-| **Voice Transcription** | Groq `whisper-large-v3-turbo` | → Web Speech API | ~120ms |
-| **FHIR Serialization** | Deterministic Python | → Groq `qwen3.8-27b` | ~15ms |
-| **Emergency Screening** | Deterministic Regex | — | <1ms |
+| Task | Engines, in the order tried | Measured time |
+|---|---|---|
+| **Medical vision OCR** | `gemini-3.5-flash` → `gemini-3.7-flash` → `flash-lite` → `gemini-3.8-flash` | ≈ 15 s per document ([results](backend/eval/results.md)) |
+| **PDF text fallback** | `pypdf` text layer → Groq `qwen3.8-27b` | not benchmarked |
+| **Copilot grounded Q&A** | Groq `gpt-oss-120b` → Groq `qwen3.8-27b` | not benchmarked |
+| **Voice to text** | Groq `whisper-large-v3-turbo` | not benchmarked |
+| **Lab trends, FHIR, flags** | Deterministic Python, no model | instant |
+| **Emergency screening** | Deterministic regex, before any model | instant |
 
 ### Key AI Differentiators
 
@@ -255,7 +255,7 @@ flowchart LR
 ## ✨ Core Features
 
 ### 1. Side-by-Side Source Verification
-Every extracted value is displayed alongside the high-resolution original image or PDF. Clicking an observation highlights its source — ensuring **100% human-in-the-loop auditability**.
+Every extracted value is displayed alongside the original image or PDF, so a family member can check each number against the paper it came from.
 
 ### 2. Multi-Generational Family Passbook
 A single caregiver account manages multiple family profiles (Mother, Father, Self, Child).
@@ -460,7 +460,7 @@ flowchart TD
 
 | Layer | Mechanism | Guarantee |
 |---|---|---|
-| **Crisis Interceptor** | Compiled regex in English, Hindi (Devanagari), and Telugu | 100% recall, <1ms, works even if AI services are offline |
+| **Crisis Interceptor** | Compiled regex in English, Hindi (Devanagari), and Telugu | Runs before any model and works even if AI services are offline; covered by `tests/test_guardrails.py` |
 | **Range Validator** | Parses printed reference ranges, computes flags mathematically | AI's opinion is never trusted for lab normality |
 | **Relevance Gatekeeper** | Rejects non-medical images with honest explanation | Zero fabricated records from landscapes, invoices, menus |
 | **Record Isolation** | Tokenized name cross-check against profile | Prevents dangerous family record cross-contamination |
@@ -468,18 +468,20 @@ flowchart TD
 
 ---
 
-## 📊 Hackathon Scoring Alignment
+## 📊 Round 2 Evaluation Map
 
-> **Total possible**: 100 points + 5–10 bonus
+Each HacXLerate Round 2 criterion, and where a judge can see the evidence.
 
-| Category | Weight | How Health Copilot Excels |
-|---|---|---|
-| **AI Utilization** | **35 pts** | Multimodal Gemini 3.8 Flash Vision OCR for handwriting & complex tables. Dynamic multi-key rotation with PDF text Groq fallback. Deterministic reference range verification — zero hallucinated lab flags. Grounded RAG with exact document citations `[id]`. |
-| **Technical Architecture** | **25 pts** | Next.js 15 App Router + FastAPI async backend. PostgreSQL with Row-Level Security on Supabase Mumbai. NRCES-compliant ABDM FHIR R4 bundle mapper. Sub-second Groq LPU response times. |
-| **User Experience** | **20 pts** | Complete trilingual parity (English, हिन्दी, తెలుగు). Side-by-side original document audit view. Real-time voice interaction with Groq Whisper. Interactive range bars & one-click Visit Summary. |
-| **Healthcare Impact** | **10 pts** | Addresses real caregiver pain for millions of Indian families. Eliminates AI hallucination of lab abnormalities. Prevents family record contamination. Instant crisis helpline intervention (112, 108, Tele-MANAS). |
-| **Presentation & Demo** | **10 pts** | Polished end-to-end live flow with synthetic Indian documents. Zero demo latency via Groq LPU acceleration. Realistic edge-case handling. |
-| **Bonus: Interoperability** | **+5 to +10** | Full ABDM FHIR R4 export and bidirectional import. Format-validated ABHA linking and audit logging. |
+| Criterion | What to look at |
+|---|---|
+| **Problem understanding** | One passbook per family member; the name on every document is checked against the person it is filed under; explanations in English, Hindi and Telugu. |
+| **Solution quality** | Upload → plain-language summary → abnormal values → medicine schedule → timeline → lab trends across reports → grounded Q&A with citations → visit summary → FHIR export |
+| **Technical execution** | Deterministic flags, trends and FHIR around the models; 79 backend tests in CI (`backend/tests`, `.github/workflows/ci.yml`) |
+| **Innovation** | Lab trends judged against each report's printed range, fed back into the copilot so it can answer "is it improving?" with citations |
+| **User experience** | Trilingual UI, voice questions, read-aloud answers, side-by-side original document, printable visit summary |
+| **Data / AI intelligence** | 107/107 facts on the sample set, regenerable with `python -m eval.run_eval` ([results](backend/eval/results.md)); model output is checked, never trusted for flags |
+| **Deployment & scalability** | Live at mycopilot.qd.je (EC2 Mumbai + Caddy, Amplify); per-user rate limits, locked CORS, Dockerfile, 110 s extraction budget; [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
+| **Impact** | Families who juggle paper records across clinics, in their own language, with ABDM-ready FHIR export |
 
 ---
 
