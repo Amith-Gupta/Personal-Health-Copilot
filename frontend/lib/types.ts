@@ -50,4 +50,12 @@ export function pickList(l: LocalizedList | null | undefined, lang: Lang): strin
   return l.english;
 }
 
+export type TrendVerdict = "improving" | "worsening" | "steady" | "in_range" | "watch";
+export interface TrendPoint { record_id: string; date: string; value: number; raw: string; flag: Flag }
+export interface Trend {
+  key: string; test_name: string; unit: string; reference_range?: string | null; low?: number | null; high?: number | null;
+  points: TrendPoint[]; first: number; latest: number; change_pct: number; direction: "up" | "down" | "steady";
+  verdict: TrendVerdict; sentence: string;
+}
+
 export type FileUrls = Record<string, { original: string | null; preview: string | null }>;

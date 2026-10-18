@@ -6,6 +6,7 @@ from app.schemas.payloads import ABHALinkRequest, Profile, ProfileCreate
 from app.services import store
 from app.services.auth import current_user_id
 from app.services.fhir_mapper import profile_collection
+from app.services.trends import Trend, build_trends
 
 router = APIRouter(prefix="/profiles", tags=["Family profiles"])
 
@@ -81,3 +82,11 @@ def export_fhir(profile_id: str, owner: str = Depends(current_user_id)):
     safe = re.sub(r"[^a-z0-9]+", "-", profile.name.lower()).strip("-")
     return JSONResponse(profile_collection(profile, bundles), media_type="application/fhir+json",
                         headers={"Content-Disposition": f'attachment; filename="{safe}-fhir-r4.json"'})
+
+
+@router.get("/{profile_id}/trends", response_model=list[Trend])
+def trends(profile_id: str, owner: str = Depends(current_user_id)):
+    """Tests repeated across this person's reports, oldest to newest, judged against the printed range."""
+    if not store.get_profile(owner, profile_id):
+        raise HTTPException(404, "Profile not found")
+    return build_trends(store.list_records(owner, profile_id))

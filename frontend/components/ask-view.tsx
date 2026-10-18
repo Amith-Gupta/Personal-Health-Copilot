@@ -131,7 +131,7 @@ export function AskView({ profile, records, onOpen }: { profile: Profile; record
 
         recognition.onend = () => {
           setMicState("idle");
-          // If we captured speech, automatically send with Gemini voice response
+          // If we captured speech, send it and read the answer aloud
           if (liveTranscript.trim()) {
             ask(liveTranscript.trim(), true);
           } else if (lang === "te") {
@@ -204,14 +204,14 @@ export function AskView({ profile, records, onOpen }: { profile: Profile; record
 
   return (
     <Card className="flex min-h-[60vh] animate-fade-up flex-col">
-      {/* Copilot Header with Gemini Intelligence Badge and Live Voice Controls */}
+      {/* Copilot header with live voice controls */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-soft text-accent">
             <Sparkle size={14} weight="fill" />
           </span>
-          <span className="text-sm font-semibold text-fg">Gemini Health Copilot</span>
-          <Badge tone="accent" className="text-[11px] font-medium">120B Intelligence</Badge>
+          <span className="text-sm font-semibold text-fg">Health Copilot</span>
+          <Badge tone="accent" className="text-[11px] font-medium">Cites their records</Badge>
         </div>
 
         <div className="flex items-center gap-3">
@@ -286,7 +286,7 @@ export function AskView({ profile, records, onOpen }: { profile: Profile; record
                 {!turn.a && !turn.error && (
                   <p className="flex items-center gap-2 py-2 text-sm text-fg-3">
                     <Spinner />
-                    <span>Analyzing medical records with Gemini intelligence...</span>
+                    <span>Reading the records…</span>
                   </p>
                 )}
                 {turn.error && (

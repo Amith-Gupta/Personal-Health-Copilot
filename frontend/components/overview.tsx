@@ -2,18 +2,19 @@
 import { ArrowRight, ArrowUpRight, CheckCircle, Moon, Sun, SunHorizon, UploadSimple } from "@phosphor-icons/react";
 import { currentMedicines, isOut, latestTests, schedule, tidyName, type Slot } from "@/lib/clinical";
 import { formatDate, useI18n } from "@/lib/i18n";
-import { pick, type HealthRecord, type Profile } from "@/lib/types";
+import { pick, type HealthRecord, type Profile, type Trend } from "@/lib/types";
 import type { Tab } from "./app-shell";
 import { RangeBar } from "./range-bar";
 import { DocIcon } from "./doc-icon";
 import { Timeline } from "./timeline";
+import { Trends } from "./trends";
 import { highlight, termVariants } from "@/lib/highlight";
 import { Badge, Button, Empty, Skeleton, cx } from "./ui";
 
 const SLOTS: { slot: Slot; Icon: typeof Sun }[] = [{ slot: "morning", Icon: SunHorizon }, { slot: "afternoon", Icon: Sun }, { slot: "night", Icon: Moon }];
 
-export function Overview({ records, profile, onOpen, onTab, onFile }: {
-  records: HealthRecord[] | null; profile: Profile; onOpen: (id: string) => void; onTab: (t: Tab) => void; onFile: (f: File) => void;
+export function Overview({ records, profile, trends = [], onOpen, onTab, onFile }: {
+  records: HealthRecord[] | null; profile: Profile; trends?: Trend[]; onOpen: (id: string) => void; onTab: (t: Tab) => void; onFile: (f: File) => void;
 }) {
   const { t, lang } = useI18n();
   if (!records) return <OverviewSkeleton />;
@@ -100,6 +101,9 @@ export function Overview({ records, profile, onOpen, onTab, onFile }: {
       {tests.length > 0 && out.length === 0 && (
         <p className="flex items-center gap-2 text-ok"><CheckCircle size={20} weight="fill" />{t.allClear}</p>
       )}
+
+      {/* Same test across reports */}
+      <Trends trends={trends} onOpen={onOpen} />
 
       {/* Day */}
       {meds.length > 0 && (

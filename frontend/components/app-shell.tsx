@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { cachedImage } from "@/lib/image-cache";
 import { useI18n } from "@/lib/i18n";
-import type { FileUrls, HealthRecord, Profile } from "@/lib/types";
+import type { FileUrls, HealthRecord, Profile, Trend } from "@/lib/types";
 import { TopBar } from "./top-bar";
 import { FamilyRow } from "./family-row";
 import { PatientHeader } from "./patient-header";
@@ -35,6 +35,7 @@ export function AppShell({ email }: { email: string }) {
   const [uploading, setUploading] = useState(false);
   const [visit, setVisit] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [trends, setTrends] = useState<Record<string, Trend[]>>({});
 
   // Everything for the whole family in two parallel calls; switching people is then instant.
   const inflight = useRef(false);
@@ -65,6 +66,15 @@ export function AppShell({ email }: { email: string }) {
       if (u) cachedImage(u).catch(() => {});
     });
   }, [records, fileUrls]);
+
+  // Trends are computed server-side (same rules the copilot uses); refetch when this person's records change.
+  const recordKey = records ? records.map((r) => r.id).join(",") : null;
+  useEffect(() => {
+    if (!activeId || recordKey === null) return;
+    let live = true;
+    api.trends(activeId).then((ts) => { if (live) setTrends((m) => ({ ...m, [activeId]: ts })); }).catch(() => {});
+    return () => { live = false; };
+  }, [activeId, recordKey]);
 
   const active = useMemo(() => profiles?.find((p) => p.id === activeId) || null, [profiles, activeId]);
   const selected = records?.find((r) => r.id === openRecord) || null;
@@ -112,7 +122,7 @@ export function AppShell({ email }: { email: string }) {
                     onMoved={(rec, to) => { upsert(rec); setOpenRecord(null); toast(t.filed(to.name)); }}
                     onDeleted={(id) => { setAllRecords((rs) => (rs || []).filter((r) => r.id !== id)); setOpenRecord(null); }}
                     onProfileCreated={() => loadProfiles(active.id)} />
-                ) : tab === "overview" ? <Overview records={records} profile={active} onOpen={openRec} onTab={setTab} onFile={startUpload} />
+                ) : tab === "overview" ? <Overview records={records} profile={active} trends={trends[active.id] || []} onOpen={openRec} onTab={setTab} onFile={startUpload} />
                 : tab === "records" ? <RecordsView records={records} onOpen={openRec} />
                 : tab === "medicines" ? <MedicinesView records={records} onOpen={openRec} />
                 : <AskView profile={active} records={records || []} onOpen={openRec} />}
