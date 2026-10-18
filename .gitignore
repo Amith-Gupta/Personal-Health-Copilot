@@ -45,7 +45,3 @@ backend/data/
 
 # Private team notes (never committed)
 .private/
-# Design-tool working files
-.impeccable/
-frontend/public/design-options.html
-frontend/public/og-source.html
