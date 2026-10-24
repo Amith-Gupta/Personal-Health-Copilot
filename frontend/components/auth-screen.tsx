@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "./lang-switch";
 import { ThemeToggle } from "./theme-toggle";
 import { Button, ErrorNote } from "./ui";
+import { CustomSelect } from "./custom-select";
 
 const DEMO_EMAIL = "demo.kumar.family@example.com";
 const DEMO_PASSWORD = "Kumar-family-250da3";
@@ -174,21 +175,22 @@ export function AuthScreen() {
                   </label>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <label className="block space-y-1.5">
+                    <div className="block space-y-1.5">
                       <span className="text-sm font-medium text-fg-2">{t.relation}</span>
-                      <select
+                      <CustomSelect
                         value={relation}
-                        onChange={(e) => setRelation(e.target.value)}
-                        className={select}
-                      >
-                        <option value="Self">Self (Myself)</option>
-                        <option value="Father">Father</option>
-                        <option value="Mother">Mother</option>
-                        <option value="Spouse">Spouse</option>
-                        <option value="Child">Child</option>
-                        <option value="Family member">Family member</option>
-                      </select>
-                    </label>
+                        onChange={setRelation}
+                        className="h-11 rounded-xl bg-surface/80"
+                        options={[
+                          { value: "Self", label: "Self (Myself)" },
+                          { value: "Father", label: "Father" },
+                          { value: "Mother", label: "Mother" },
+                          { value: "Spouse", label: "Spouse" },
+                          { value: "Child", label: "Child" },
+                          { value: "Family member", label: "Family member" },
+                        ]}
+                      />
+                    </div>
 
                     <label className="block space-y-1.5">
                       <span className="text-sm font-medium text-fg-2">{t.phone}</span>
@@ -214,18 +216,19 @@ export function AuthScreen() {
                       />
                     </label>
 
-                    <label className="block space-y-1.5">
+                    <div className="block space-y-1.5">
                       <span className="text-sm font-medium text-fg-2">{t.sex}</span>
-                      <select
+                      <CustomSelect
                         value={sex}
-                        onChange={(e) => setSex(e.target.value as "M" | "F" | "O")}
-                        className={select}
-                      >
-                        <option value="M">Male (M)</option>
-                        <option value="F">Female (F)</option>
-                        <option value="O">Other (O)</option>
-                      </select>
-                    </label>
+                        onChange={(v) => setSex(v as "M" | "F" | "O")}
+                        className="h-11 rounded-xl bg-surface/80"
+                        options={[
+                          { value: "M", label: "Male (M)" },
+                          { value: "F", label: "Female (F)" },
+                          { value: "O", label: "Other (O)" },
+                        ]}
+                      />
+                    </div>
                   </div>
 
                   <label className="block space-y-1.5">

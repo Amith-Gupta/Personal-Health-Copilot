@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
-import { Camera, CaretDown, FileArrowUp, FileText, Flask, Pill, Sparkle, X } from "@phosphor-icons/react";
+import { ArrowRight, Camera, CaretDown, FileArrowUp, FileText, Flask, Pill, Sparkle, X } from "@phosphor-icons/react";
 import { useI18n } from "@/lib/i18n";
 import { Spinner, cx, useToast } from "./ui";
 
@@ -121,91 +121,136 @@ export function UploadCta({ name, onFile, compact }: { name: string; onFile: (f:
           {/* Sample Selector Modal/Popover */}
           {sampleOpen && (
             <>
-              {/* Dimmed backdrop to close on outside click and improve contrast */}
+              {/* Dimmed backdrop to close on outside click */}
               <div
-                className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px]"
+                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-[2px] transition-opacity"
                 onClick={() => setSampleOpen(false)}
               />
               <div
                 id="sample-menu-popover"
-                style={{ backgroundColor: "#141416" }}
-                className="absolute right-0 top-full z-50 mt-2 w-84 origin-top-right rounded-2xl border border-[#32323a] p-3 text-white shadow-[0_25px_60px_rgba(0,0,0,0.9)] animate-fade-up ring-1 ring-white/10"
+                className="absolute right-0 top-full z-50 mt-2.5 w-[360px] sm:w-[420px] max-w-[calc(100vw-32px)] origin-top-right rounded-2xl border border-white/15 bg-[#14151a]/95 p-4 text-white shadow-[0_24px_64px_-12px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-2xl animate-fade-up ring-1 ring-white/10"
               >
-                <div className="flex items-center justify-between border-b border-[#27272e] pb-2.5 px-2">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#c4f542]">
-                      CHOOSE SAMPLE DOCUMENT
-                    </p>
-                    <p className="text-[11px] font-medium text-zinc-400">
-                      Real photo / PDF for live AI extraction
+                {/* Header */}
+                <div className="flex items-start justify-between border-b border-white/10 pb-3">
+                  <div className="space-y-1">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#c4f542]/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#c4f542]">
+                      <Sparkle size={11} weight="fill" />
+                      Instant Test Records
+                    </span>
+                    <h4 className="text-[15px] font-semibold tracking-tight text-white">
+                      Choose a Sample Document
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Real photo &amp; PDF records ready for live AI extraction and verification
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSampleOpen(false)}
-                    className="rounded-full p-1 text-zinc-400 hover:bg-[#27272e] hover:text-white transition-colors"
+                    aria-label="Close"
+                    className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
                   >
-                    <X size={15} />
+                    <X size={16} />
                   </button>
                 </div>
 
-                <div className="mt-2 space-y-1.5">
+                {/* Document Options */}
+                <div className="mt-3 space-y-2">
+                  {/* Prescription */}
                   <button
                     type="button"
                     id="sample-prescription-btn"
                     onClick={() => handleLoadSample("prescription")}
-                    className="group flex w-full items-start gap-3 rounded-xl bg-[#1c1c20] p-2.5 text-left border border-transparent hover:border-[#c4f542]/40 hover:bg-[#24242a] transition-all"
+                    className="group relative flex w-full items-center gap-3.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3 text-left transition-all duration-200 hover:border-[#c4f542]/40 hover:bg-white/[0.08] hover:shadow-lg active:scale-[0.99]"
                   >
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c4f542]/20 text-[#c4f542] border border-[#c4f542]/30 transition-transform group-hover:scale-105">
-                      <Pill size={20} weight="duotone" />
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#c4f542]/15 text-[#c4f542] border border-[#c4f542]/30 shadow-inner transition-transform group-hover:scale-105">
+                      <Pill size={22} weight="duotone" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-semibold text-white group-hover:text-[#c4f542] transition-colors">
-                        {t.samplePrescription}
-                      </p>
-                      <p className="text-[12px] font-normal leading-snug text-zinc-300">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[14px] font-semibold text-white group-hover:text-[#c4f542] transition-colors">
+                          {t.samplePrescription}
+                        </span>
+                        <span className="rounded-md border border-[#c4f542]/30 bg-[#c4f542]/10 px-2 py-0.5 text-[10px] font-medium text-[#c4f542]">
+                          Pediatric Rx · JPG
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-zinc-400 leading-relaxed group-hover:text-zinc-200">
                         {t.samplePrescriptionDesc}
                       </p>
                     </div>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-zinc-500 transition-all duration-200 group-hover:bg-white/10 group-hover:text-[#c4f542] group-hover:translate-x-0.5">
+                      <ArrowRight size={14} weight="bold" />
+                    </div>
                   </button>
 
+                  {/* Lab Report */}
                   <button
                     type="button"
                     id="sample-lab-report-btn"
                     onClick={() => handleLoadSample("lab_report")}
-                    className="group flex w-full items-start gap-3 rounded-xl bg-[#1c1c20] p-2.5 text-left border border-transparent hover:border-sky-400/40 hover:bg-[#24242a] transition-all"
+                    className="group relative flex w-full items-center gap-3.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3 text-left transition-all duration-200 hover:border-sky-400/40 hover:bg-white/[0.08] hover:shadow-lg active:scale-[0.99]"
                   >
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 transition-transform group-hover:scale-105">
-                      <Flask size={20} weight="duotone" />
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-sky-500/15 text-sky-400 border border-sky-500/30 shadow-inner transition-transform group-hover:scale-105">
+                      <Flask size={22} weight="duotone" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-semibold text-white group-hover:text-sky-300 transition-colors">
-                        {t.sampleLabReport}
-                      </p>
-                      <p className="text-[12px] font-normal leading-snug text-zinc-300">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[14px] font-semibold text-white group-hover:text-sky-300 transition-colors">
+                          {t.sampleLabReport}
+                        </span>
+                        <span className="rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-300">
+                          Blood CBC · PNG
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-zinc-400 leading-relaxed group-hover:text-zinc-200">
                         {t.sampleLabReportDesc}
                       </p>
                     </div>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-zinc-500 transition-all duration-200 group-hover:bg-white/10 group-hover:text-sky-300 group-hover:translate-x-0.5">
+                      <ArrowRight size={14} weight="bold" />
+                    </div>
                   </button>
 
+                  {/* Discharge Summary */}
                   <button
                     type="button"
                     id="sample-discharge-btn"
                     onClick={() => handleLoadSample("discharge")}
-                    className="group flex w-full items-start gap-3 rounded-xl bg-[#1c1c20] p-2.5 text-left border border-transparent hover:border-amber-400/40 hover:bg-[#24242a] transition-all"
+                    className="group relative flex w-full items-center gap-3.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3 text-left transition-all duration-200 hover:border-amber-400/40 hover:bg-white/[0.08] hover:shadow-lg active:scale-[0.99]"
                   >
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-transform group-hover:scale-105">
-                      <FileText size={20} weight="duotone" />
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-inner transition-transform group-hover:scale-105">
+                      <FileText size={22} weight="duotone" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-semibold text-white group-hover:text-amber-300 transition-colors">
-                        {t.sampleDischarge}
-                      </p>
-                      <p className="text-[12px] font-normal leading-snug text-zinc-300">
-                        Hospital discharge summary (Stenting & care plan)
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[14px] font-semibold text-white group-hover:text-amber-300 transition-colors">
+                          {t.sampleDischarge}
+                        </span>
+                        <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-300">
+                          Cardiac Care · PDF
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-zinc-400 leading-relaxed group-hover:text-zinc-200">
+                        {t.sampleDischargeDesc || "Hospital discharge summary (Stenting & care plan)"}
                       </p>
                     </div>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-zinc-500 transition-all duration-200 group-hover:bg-white/10 group-hover:text-amber-300 group-hover:translate-x-0.5">
+                      <ArrowRight size={14} weight="bold" />
+                    </div>
                   </button>
+                </div>
+
+                {/* Footer status */}
+                <div className="mt-3.5 flex items-center justify-between border-t border-white/[0.08] pt-2.5 text-[11px] text-zinc-400">
+                  <span className="flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c4f542] opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#c4f542]"></span>
+                    </span>
+                    <span>Gemini 120B Multimodal Engine</span>
+                  </span>
+                  <span className="font-mono text-[10px] text-zinc-500">Instant test</span>
                 </div>
               </div>
             </>

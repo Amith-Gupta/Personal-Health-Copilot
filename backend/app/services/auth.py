@@ -1,10 +1,13 @@
 """Verifies Supabase access tokens (ES256 / RS256) against the project's public JWKS."""
 from functools import lru_cache
+import logging
 
 import jwt
 from fastapi import Header, HTTPException
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
@@ -15,6 +18,7 @@ def _jwks() -> jwt.PyJWKClient:
 
 def current_user_id(authorization: str | None = Header(default=None)) -> str:
     if not authorization or not authorization.lower().startswith("bearer "):
+        logger.info("Auth rejected: missing or malformed Authorization header")
         raise HTTPException(401, "Please sign in.")
     token = authorization.split(" ", 1)[1].strip()
     try:
@@ -22,7 +26,9 @@ def current_user_id(authorization: str | None = Header(default=None)) -> str:
         claims = jwt.decode(token, key, algorithms=["ES256", "RS256"], audience="authenticated",
                             issuer=f"{settings.SUPABASE_URL}/auth/v1")
     except jwt.ExpiredSignatureError:
+        logger.info("Auth rejected: JWT expired")
         raise HTTPException(401, "Your session expired. Please sign in again.")
-    except Exception:
+    except Exception as exc:
+        logger.warning("Auth rejected: %s: %s", type(exc).__name__, exc)
         raise HTTPException(401, "Please sign in.")
     return claims["sub"]

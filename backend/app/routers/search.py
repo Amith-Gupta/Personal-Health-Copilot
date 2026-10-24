@@ -1,11 +1,13 @@
 import asyncio
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.schemas.payloads import CopilotQueryRequest, CopilotQueryResponse
+from app.schemas.payloads import CopilotQueryRequest, CopilotQueryResponse, DoctorRecommendation, DoctorSearchRequest
 from app.services import store
 from app.services.auth import current_user_id
 from app.services.ai_router import CopilotUnavailable, answer_question
 from app.services.guardrails import DISCLAIMER, crisis_reply
+from app.services.hospital_finder import get_doctor_recommendations, is_doctor_query
 
 router = APIRouter(prefix="/copilot", tags=["Copilot"])
 
@@ -15,7 +17,20 @@ async def query(body: CopilotQueryRequest, owner: str = Depends(current_user_id)
     disclaimer = DISCLAIMER[body.language]
     crisis = crisis_reply(body.query, body.language)
     if crisis:
-        return CopilotQueryResponse(answer=crisis, language=body.language, disclaimer=disclaimer, safety="crisis", model="safety rules")
+        crisis_suggestions = {
+            "en": ["Call 112 Emergency", "Nearest Hospital Emergency"],
+            "hi": ["112 आपातकालीन कॉल", "नज़दीकी अस्पताल इमरजेंसी"],
+            "te": ["112 అత్యవసర కాల్", "దగ్గరలోని ఆసుపత్రి ఎమర్జెన్సీ"]
+        }.get(body.language, ["Call 112 Emergency", "Nearest Hospital Emergency"])
+        return CopilotQueryResponse(
+            answer=crisis,
+            language=body.language,
+            disclaimer=disclaimer,
+            safety="crisis",
+            model="safety rules",
+            suggested_questions=crisis_suggestions,
+            format_hint="crisis"
+        )
     profile, records = await asyncio.gather(
         asyncio.to_thread(store.get_profile, owner, body.profile_id),
         asyncio.to_thread(store.list_records, owner, body.profile_id),
@@ -23,7 +38,58 @@ async def query(body: CopilotQueryRequest, owner: str = Depends(current_user_id)
     if not profile:
         raise HTTPException(404, "Profile not found")
     try:
-        answer, citations, model = await asyncio.to_thread(answer_question, body.query, body.language, profile, records)
+        answer, citations, model, suggested_questions, format_hint = await asyncio.to_thread(
+            answer_question, body.query, body.language, profile, records, body.history
+        )
     except CopilotUnavailable:
         raise HTTPException(503, "The assistant is not reachable right now. Your records are safe; please try again.")
-    return CopilotQueryResponse(answer=answer, language=body.language, citations=citations, disclaimer=disclaimer, model=model)
+    
+    # Check if doctors should be recommended based on query or health context
+    doctors: List[DoctorRecommendation] = []
+    if is_doctor_query(body.query) or "consult" in body.query.lower() or "refer" in body.query.lower():
+        city = body.city or "Hyderabad"
+        doctors = await asyncio.to_thread(
+            get_doctor_recommendations,
+            query=body.query,
+            records=records,
+            profile=profile,
+            language=body.language,
+            city=city,
+            lat=body.lat,
+            lon=body.lon
+        )
+
+    return CopilotQueryResponse(
+        answer=answer,
+        language=body.language,
+        citations=citations,
+        disclaimer=disclaimer,
+        model=model,
+        doctors=doctors,
+        suggested_questions=suggested_questions,
+        format_hint=format_hint
+    )
+
+
+@router.post("/doctors", response_model=List[DoctorRecommendation])
+async def recommend_doctors(body: DoctorSearchRequest, owner: str = Depends(current_user_id)):
+    """Direct real-time endpoint for nearby doctor and hospital recommendations."""
+    profile, records = await asyncio.gather(
+        asyncio.to_thread(store.get_profile, owner, body.profile_id),
+        asyncio.to_thread(store.list_records, owner, body.profile_id),
+    )
+    if not profile:
+        raise HTTPException(404, "Profile not found")
+    
+    query_str = body.query or body.specialty or "best doctor and hospital"
+    return await asyncio.to_thread(
+        get_doctor_recommendations,
+        query=query_str,
+        records=records,
+        profile=profile,
+        language=body.language,
+        city=body.city or "Hyderabad",
+        lat=body.lat,
+        lon=body.lon
+    )
+

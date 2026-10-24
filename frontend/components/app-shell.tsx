@@ -14,9 +14,10 @@ import { MedicinesView } from "./medicines-view";
 import { AskView } from "./ask-view";
 import { RecordDetail } from "./record-detail";
 import { UploadPanel } from "./upload-panel";
-import { Button, ErrorNote, Skeleton, useToast } from "./ui";
+import { Button, ErrorNote, Skeleton, cx, useToast } from "./ui";
 import { MemberForm } from "./sidebar";
 import { VisitSummary } from "./visit-summary";
+import { EmergencyIdModal } from "./emergency-id-modal";
 
 export type Tab = "overview" | "records" | "medicines" | "ask";
 const byDate = (a: HealthRecord, b: HealthRecord) => (b.record_date || "").localeCompare(a.record_date || "") || b.created_at.localeCompare(a.created_at);
@@ -34,7 +35,11 @@ export function AppShell({ email }: { email: string }) {
   const [openRecord, setOpenRecord] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [visit, setVisit] = useState(false);
+  const [emergencyOpen, setEmergencyOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+  const [justUploadedRecord, setJustUploadedRecord] = useState<HealthRecord | null>(null);
+  const [askQuery, setAskQuery] = useState<string | null>(null);
 
   // Everything for the whole family in two parallel calls; switching people is then instant.
   const inflight = useRef(false);
@@ -69,22 +74,31 @@ export function AppShell({ email }: { email: string }) {
   const active = useMemo(() => profiles?.find((p) => p.id === activeId) || null, [profiles, activeId]);
   const selected = records?.find((r) => r.id === openRecord) || null;
 
-  function select(id: string) { setActiveId(id); setOpenRecord(null); setUploading(false); setVisit(false); setTab("overview"); }
-  function openRec(id: string) { setOpenRecord(id); setVisit(false); setTab("records"); window.scrollTo({ top: 0 }); }
-  function startUpload(f: File) { setUploadFile(f); setUploading(true); setOpenRecord(null); setVisit(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function select(id: string) { setActiveId(id); setOpenRecord(null); setUploading(false); setVisit(false); setEmergencyOpen(false); setJustUploadedRecord(null); setTab("overview"); }
+  function openRec(id: string) { setOpenRecord(id); setVisit(false); setEmergencyOpen(false); setTab("records"); window.scrollTo({ top: 0 }); }
+  function startUpload(f: File) { setUploadFile(f); setUploading(true); setOpenRecord(null); setVisit(false); setEmergencyOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function handleAsk(query: string) {
+    setAskQuery(query);
+    setTab("ask");
+    setOpenRecord(null);
+    setVisit(false);
+    setEmergencyOpen(false);
+    setUploading(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
   function upsert(rec: HealthRecord) {
     setAllRecords((rs) => [rec, ...(rs || []).filter((r) => r.id !== rec.id)].sort(byDate));
     refreshUrls();
   }
 
   return (
-    <div className="min-h-[100dvh]">
+    <div className="min-h-[100dvh] flex flex-col justify-between">
       <div>
         <TopBar email={email} />
         {profiles?.length !== 0 && <FamilyRow profiles={profiles} activeId={activeId} onSelect={select} onProfilesChanged={loadProfiles} />}
         {!profiles && !loadError && <HeaderSkeleton />}
       </div>
-      <main className="min-w-0">
+      <main className="min-w-0 flex-1 flex flex-col">
         {loadError && <div className="p-6"><ErrorNote message={loadError} onRetry={() => loadProfiles()} retryLabel={t.tryAgain} /></div>}
         {profiles && profiles.length === 0 && <FirstRun onDone={(id) => loadProfiles(id)} />}
         {active && (
@@ -94,16 +108,32 @@ export function AppShell({ email }: { email: string }) {
               recordCount={records?.length} onUpload={() => { setUploadFile(null); setUploading(true); setOpenRecord(null); setVisit(false); }}
               onProfile={(p) => setProfiles((ps) => (ps || []).map((x) => (x.id === p.id ? p : x)))}
               onVisit={() => { setVisit(true); setOpenRecord(null); setUploading(false); setTab("overview"); }}
+              onEmergency={() => setEmergencyOpen(true)}
               onRemove={async () => {
                 if (!window.confirm(t.confirmRemove(active.name))) return;
                 try { await api.deleteProfile(active.id); toast(t.removed(active.name)); await loadAll(); } catch (e) { toast((e as Error).message, "error"); }
               }}
-              findings={<Findings records={records} />} cta={<UploadCta name={active.name} onFile={startUpload} />} />
+              findings={tab === "ask" ? undefined : <Findings records={records} />}
+              cta={tab === "ask" ? undefined : <UploadCta name={active.name} onFile={startUpload} />} />
             </div>
-            <div className="mx-auto max-w-[1240px] px-4 pb-16 pt-8 sm:px-6">
+            <div className={cx(
+              "mx-auto w-full max-w-[1240px] px-3 sm:px-6",
+              tab === "ask" ? "pt-2 pb-2 flex-1 flex flex-col min-h-0" : "pb-12 pt-5 flex-1 flex flex-col justify-between"
+            )}>
               {uploading && (
                 <UploadPanel profile={active} file={uploadFile} onClose={() => { setUploading(false); setUploadFile(null); }}
-                  onFiled={(rec) => { upsert(rec); setUploading(false); setUploadFile(null); toast(t.filed(active.name)); openRec(rec.id); }} />
+                  onFiled={(rec) => {
+                    upsert(rec);
+                    setUploading(false);
+                    setUploadFile(null);
+                    setJustUploadedRecord(rec);
+                    setOpenRecord(null);
+                    setVisit(false);
+                    setTab("overview");
+                    loadProfiles(active.id);
+                    toast(t.rxAnalyzedBanner);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }} />
               )}
               {recordsError ? <ErrorNote message={recordsError} onRetry={() => loadAll(active.id)} retryLabel={t.tryAgain} />
                 : visit ? <VisitSummary profile={active} records={records || []} onBack={() => setVisit(false)} />
@@ -111,13 +141,41 @@ export function AppShell({ email }: { email: string }) {
                   <RecordDetail record={selected} urls={fileUrls[selected.id]} profiles={profiles || []} active={active} onBack={() => setOpenRecord(null)}
                     onMoved={(rec, to) => { upsert(rec); setOpenRecord(null); toast(t.filed(to.name)); }}
                     onDeleted={(id) => { setAllRecords((rs) => (rs || []).filter((r) => r.id !== id)); setOpenRecord(null); }}
-                    onProfileCreated={() => loadProfiles(active.id)} />
-                ) : tab === "overview" ? <Overview records={records} profile={active} onOpen={openRec} onTab={setTab} onFile={startUpload} />
-                : tab === "records" ? <RecordsView records={records} onOpen={openRec} />
-                : tab === "medicines" ? <MedicinesView records={records} onOpen={openRec} />
-                : <AskView profile={active} records={records || []} onOpen={openRec} />}
-              <p className="mt-16 flex flex-wrap justify-between gap-2 border-t border-line pt-5 text-xs text-fg-3"><span>{t.disclaimer}</span><span className="font-medium text-fg-2">{t.emergency}</span></p>
+                    onProfileCreated={() => loadProfiles(active.id)}
+                    onAsk={handleAsk} />
+                ) : tab === "overview" ? (
+                  <Overview
+                    records={records}
+                    profile={active}
+                    onOpen={openRec}
+                    onTab={setTab}
+                    onFile={startUpload}
+                    justUploaded={justUploadedRecord}
+                    onDismissJustUploaded={() => setJustUploadedRecord(null)}
+                    onAsk={handleAsk}
+                  />
+                ) : tab === "records" ? <RecordsView records={records} onOpen={openRec} />
+                : tab === "medicines" ? <MedicinesView records={records} onOpen={openRec} onAsk={handleAsk} />
+                : (
+                  <AskView
+                    profile={active}
+                    records={records || []}
+                    onOpen={openRec}
+                    initialQuery={askQuery}
+                    onClearInitialQuery={() => setAskQuery(null)}
+                  />
+                )}
+              {tab !== "ask" && (
+                <p className="mt-12 flex flex-wrap justify-between gap-2 border-t border-line pt-4 text-xs text-fg-3"><span>{t.disclaimer}</span><span className="font-medium text-fg-2">{t.emergency}</span></p>
+              )}
             </div>
+            {emergencyOpen && (
+              <EmergencyIdModal
+                profile={active}
+                records={records || []}
+                onClose={() => setEmergencyOpen(false)}
+              />
+            )}
           </>
         )}
       </main>

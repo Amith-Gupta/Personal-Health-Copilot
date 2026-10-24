@@ -16,9 +16,28 @@ export class ApiError extends Error {
   constructor(public status: number, message: string, public code?: string) { super(message); }
 }
 
-async function call<T>(path: string, init: RequestInit = {}, timeoutMs = 30000): Promise<T> {
-  const { data } = await supabase().auth.getSession();
-  const token = data.session?.access_token;
+async function getFreshToken(): Promise<string | undefined> {
+  const client = supabase();
+  const { data } = await client.auth.getSession();
+  let session = data.session;
+  if (!session) return undefined;
+
+  // If token is expired or expiring in the next 60 seconds, refresh proactively
+  if (session.expires_at && session.expires_at * 1000 - Date.now() < 60000) {
+    try {
+      const { data: refreshed, error } = await client.auth.refreshSession();
+      if (!error && refreshed.session) {
+        session = refreshed.session;
+      }
+    } catch {
+      // Proceed with current session if refresh network check fails
+    }
+  }
+  return session?.access_token;
+}
+
+async function call<T>(path: string, init: RequestInit = {}, timeoutMs = 30000, isRetry = false): Promise<T> {
+  const token = await getFreshToken();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;
@@ -36,6 +55,21 @@ async function call<T>(path: string, init: RequestInit = {}, timeoutMs = 30000):
   } finally {
     clearTimeout(timer);
   }
+
+  // If 401 Unauthorized, attempt to refresh session once and retry
+  if (res.status === 401 && !isRetry) {
+    try {
+      const { data: refreshed, error } = await supabase().auth.refreshSession();
+      if (!error && refreshed.session?.access_token) {
+        return call<T>(path, init, timeoutMs, true);
+      } else {
+        await supabase().auth.signOut().catch(() => {});
+      }
+    } catch {
+      await supabase().auth.signOut().catch(() => {});
+    }
+  }
+
   if (res.status === 204) return undefined as T;
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -65,8 +99,26 @@ export const api = {
   fileUrls: (profileId?: string) => call<{ urls: FileUrls }>(profileId ? `/health-records/files?profile_id=${profileId}` : "/health-records/files"),
   moveRecord: (id: string, profileId: string) => call<HealthRecord>(`/health-records/${id}/move`, json({ profile_id: profileId })),
   deleteRecord: (id: string) => call<void>(`/health-records/${id}`, { method: "DELETE" }),
-  ask: (query: string, language: Lang, profileId: string) =>
-    call<CopilotAnswer>("/copilot/query", json({ query, language, profile_id: profileId }), 90000),
+  ask: (
+    query: string,
+    language: Lang,
+    profileId: string,
+    location?: { lat?: number; lon?: number; city?: string },
+    history?: { role: "user" | "assistant"; content: string }[]
+  ) =>
+    call<CopilotAnswer>(
+      "/copilot/query",
+      json({
+        query,
+        language,
+        profile_id: profileId,
+        ...(location || {}),
+        ...(history && history.length > 0 ? { history } : {})
+      }),
+      90000
+    ),
+  findDoctors: (profileId: string, language: Lang, params?: { query?: string; city?: string; lat?: number; lon?: number }) =>
+    call<import("./types").DoctorRecommendation[]>("/copilot/doctors", json({ profile_id: profileId, language, ...(params || {}) }), 30000),
   transcribe: (audio: Blob, language: Lang) => {
     const ext = audio.type.includes("mp4") ? "mp4" : audio.type.includes("wav") ? "wav" : audio.type.includes("ogg") ? "ogg" : "webm";
     const fd = new FormData();

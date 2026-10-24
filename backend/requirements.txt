@@ -1,4 +1,4 @@
-fastapi==0.115.6
+fastapi>=0.115.6
 uvicorn[standard]==0.34.0
 pydantic>=2.11.7
 pydantic-settings==2.7.0
@@ -14,3 +14,4 @@ google-genai==2.8.0
 pypdf==6.20.1
 pyjwt[crypto]==2.15.1
 pillow==12.3.0
+mcp>=2.3.0

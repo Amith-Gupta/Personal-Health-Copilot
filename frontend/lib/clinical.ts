@@ -42,8 +42,11 @@ export function schedule(m: Medication): Schedule {
 export function currentMedicines(records: HealthRecord[]) {
   const seen = new Set<string>();
   const out: { m: Medication; r: HealthRecord }[] = [];
-  for (const r of records) {
-    if (!r.extracted.medications.length || r.name_check === "mismatch") continue;
+  const pool = records.some((r) => r.name_check !== "mismatch")
+    ? records.filter((r) => r.name_check !== "mismatch")
+    : records;
+  for (const r of pool) {
+    if (!r.extracted.medications.length) continue;
     const key = (r.extracted.doctor_name || r.extracted.facility_name || r.id).toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -55,7 +58,10 @@ export function currentMedicines(records: HealthRecord[]) {
 /** Latest observation per test (records arrive newest first). */
 export function latestTests(records: HealthRecord[]) {
   const map = new Map<string, { o: LabObservation; r: HealthRecord }>();
-  for (const r of records) if (r.name_check !== "mismatch") for (const o of r.extracted.lab_observations) {
+  const pool = records.some((r) => r.name_check !== "mismatch")
+    ? records.filter((r) => r.name_check !== "mismatch")
+    : records;
+  for (const r of pool) for (const o of r.extracted.lab_observations) {
     const k = o.test_name.toLowerCase().replace(/[^a-z0-9]/g, "");
     if (!map.has(k)) map.set(k, { o, r });
   }

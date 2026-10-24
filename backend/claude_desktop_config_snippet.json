@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "personal-health-copilot": {
+      "command": "C:\\Users\\kamil\\OneDrive\\Desktop\\health-care-bytexl\\backend\\venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\Users\\kamil\\OneDrive\\Desktop\\health-care-bytexl\\backend\\mcp_server.py"
+      ]
+    }
+  }
+}

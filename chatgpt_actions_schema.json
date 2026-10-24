@@ -1,0 +1,1568 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Personal Health Copilot API",
+    "description": "Real-time API allowing ChatGPT to query family clinical records, active prescriptions, lab reports, and drug safety.",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://witty-crabs-win.loca.lt"
+    }
+  ],
+  "paths": {
+    "/api/v1/chatgpt/patients": {
+      "get": {
+        "tags": [
+          "ChatGPT Connector"
+        ],
+        "summary": "List all family patients",
+        "description": "Retrieves all registered family patients with basic demographics and document counts.",
+        "operationId": "listPatients",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object",
+                    "properties": {
+                      "item": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "type": "array",
+                  "title": "Response Listpatients"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chatgpt/patients/{patient_name_or_id}/summary": {
+      "get": {
+        "tags": [
+          "ChatGPT Connector"
+        ],
+        "summary": "Get patient health summary",
+        "description": "Retrieves an executive medical summary for a patient including diagnosed conditions, medications preview, and doctor visits.",
+        "operationId": "getPatientSummary",
+        "parameters": [
+          {
+            "name": "patient_name_or_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Patient Name Or Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Getpatientsummary",
+                  "properties": {
+                    "result": {
+                      "type": "string",
+                      "description": "Clinical data payload"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chatgpt/patients/{patient_name_or_id}/medications": {
+      "get": {
+        "tags": [
+          "ChatGPT Connector"
+        ],
+        "summary": "Get prescribed medications",
+        "description": "Retrieves all active prescribed medications, dosages, frequencies, food timings, and prescribing doctors for a patient.",
+        "operationId": "getPrescribedMedications",
+        "parameters": [
+          {
+            "name": "patient_name_or_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Patient Name Or Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "properties": {
+                      "item": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "title": "Response Getprescribedmedications"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chatgpt/patients/{patient_name_or_id}/lab-reports": {
+      "get": {
+        "tags": [
+          "ChatGPT Connector"
+        ],
+        "summary": "Get laboratory test reports",
+        "description": "Retrieves laboratory test observations with observed values, reference bounds, and clinical abnormal flags (HIGH, LOW, NORMAL).",
+        "operationId": "getLabReports",
+        "parameters": [
+          {
+            "name": "patient_name_or_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Patient Name Or Id"
+            }
+          },
+          {
+            "name": "test_filter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter test name (e.g. 'glucose', 'tsh')",
+              "title": "Test Filter"
+            },
+            "description": "Filter test name (e.g. 'glucose', 'tsh')"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "properties": {
+                      "item": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "title": "Response Getlabreports"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chatgpt/drug-safety": {
+      "post": {
+        "tags": [
+          "ChatGPT Connector"
+        ],
+        "summary": "Check drug-drug interactions and safety",
+        "description": "Analyzes a list of medications for drug-drug interactions, duplicate therapeutic classes, and food/alcohol precautions.",
+        "operationId": "checkDrugSafety",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DrugSafetyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Checkdrugsafety",
+                  "properties": {
+                    "result": {
+                      "type": "string",
+                      "description": "Clinical data payload"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chatgpt/ask": {
+      "post": {
+        "tags": [
+          "ChatGPT Connector"
+        ],
+        "summary": "Ask medical question grounded in records",
+        "description": "Answers patient clinical questions grounded strictly in their health records with emergency crisis screening.",
+        "operationId": "askHealthCopilot",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopilotAskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Askhealthcopilot",
+                  "properties": {
+                    "result": {
+                      "type": "string",
+                      "description": "Clinical data payload"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chatgpt/doctors": {
+      "get": {
+        "tags": [
+          "ChatGPT Connector"
+        ],
+        "summary": "Find specialist doctors and hospitals",
+        "description": "Finds top verified medical specialists and hospitals based on clinical diagnosis and city location.",
+        "operationId": "findSpecialistDoctors",
+        "parameters": [
+          {
+            "name": "specialty_or_condition",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Condition or specialty (e.g. 'Diabetes', 'Cardiology')",
+              "title": "Specialty Or Condition"
+            },
+            "description": "Condition or specialty (e.g. 'Diabetes', 'Cardiology')"
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "City name (e.g. 'Hyderabad', 'Tirupati', 'Bengaluru')",
+              "default": "Hyderabad",
+              "title": "City"
+            },
+            "description": "City name (e.g. 'Hyderabad', 'Tirupati', 'Bengaluru')"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "properties": {
+                      "item": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "title": "Response Findspecialistdoctors"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ABHALinkRequest": {
+        "properties": {
+          "abha_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abha Number",
+            "examples": [
+              "91-1234-5678-9012"
+            ]
+          },
+          "abha_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abha Address",
+            "examples": [
+              "lakshmi.devi@abdm"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ABHALinkRequest"
+      },
+      "Body_transcribe_voice_api_v1_voice_transcribe_post": {
+        "properties": {
+          "audio": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Audio"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          }
+        },
+        "type": "object",
+        "required": [
+          "audio"
+        ],
+        "title": "Body_transcribe_voice_api_v1_voice_transcribe_post"
+      },
+      "Body_upload_api_v1_health_records_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "profile_id"
+        ],
+        "title": "Body_upload_api_v1_health_records_upload_post"
+      },
+      "Citation": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "title": "Record Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "record_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id",
+          "title"
+        ],
+        "title": "Citation"
+      },
+      "ConversationTurn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "ConversationTurn"
+      },
+      "CopilotAskRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query",
+            "description": "The clinical question (e.g. 'What medications is Surya taking?')"
+          },
+          "patient_name_or_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Name Or Id",
+            "description": "Patient name or ID (e.g. 'Surya', 'Lakshmi Devi')"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language",
+            "description": "Language code ('en', 'hi', or 'te')",
+            "default": "en"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "CopilotAskRequest"
+      },
+      "CopilotQueryRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Query"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "hi",
+              "te"
+            ],
+            "title": "Language",
+            "default": "en"
+          },
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lon"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "history": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ConversationTurn"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "profile_id"
+        ],
+        "title": "CopilotQueryRequest"
+      },
+      "CopilotQueryResponse": {
+        "properties": {
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "hi",
+              "te"
+            ],
+            "title": "Language"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer"
+          },
+          "safety": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "crisis"
+            ],
+            "title": "Safety",
+            "default": "ok"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "doctors": {
+            "items": {
+              "$ref": "#/components/schemas/DoctorRecommendation"
+            },
+            "type": "array",
+            "title": "Doctors"
+          },
+          "suggested_questions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Suggested Questions"
+          },
+          "format_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format Hint",
+            "default": "adaptive"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answer",
+          "language",
+          "disclaimer",
+          "model"
+        ],
+        "title": "CopilotQueryResponse"
+      },
+      "DoctorRecommendation": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "specialty": {
+            "type": "string",
+            "title": "Specialty"
+          },
+          "hospital_name": {
+            "type": "string",
+            "title": "Hospital Name"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "distance_km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance Km"
+          },
+          "rating": {
+            "type": "number",
+            "title": "Rating",
+            "default": 4.8
+          },
+          "maps_url": {
+            "type": "string",
+            "title": "Maps Url"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "timings": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timings",
+            "default": "Mon - Sat (10:00 AM - 5:00 PM)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "specialty",
+          "hospital_name",
+          "address",
+          "city",
+          "maps_url",
+          "reason"
+        ],
+        "title": "DoctorRecommendation"
+      },
+      "DoctorSearchRequest": {
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City",
+            "default": "Hyderabad"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lon"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "hi",
+              "te"
+            ],
+            "title": "Language",
+            "default": "en"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile_id"
+        ],
+        "title": "DoctorSearchRequest"
+      },
+      "DrugSafetyRequest": {
+        "properties": {
+          "medications": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Medications",
+            "description": "List of medication names to check (e.g. ['Telmisartan', 'Ibuprofen'])"
+          }
+        },
+        "type": "object",
+        "required": [
+          "medications"
+        ],
+        "title": "DrugSafetyRequest"
+      },
+      "ExtractedRecord": {
+        "properties": {
+          "record_type": {
+            "type": "string",
+            "enum": [
+              "Prescription",
+              "DiagnosticReport",
+              "DischargeSummary"
+            ],
+            "title": "Record Type"
+          },
+          "record_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Date"
+          },
+          "patient_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Name"
+          },
+          "patient_age": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Age"
+          },
+          "patient_sex": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Sex"
+          },
+          "doctor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doctor Name"
+          },
+          "facility_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facility Name"
+          },
+          "diagnoses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Diagnoses"
+          },
+          "medications": {
+            "items": {
+              "$ref": "#/components/schemas/MedicationItem"
+            },
+            "type": "array",
+            "title": "Medications"
+          },
+          "lab_observations": {
+            "items": {
+              "$ref": "#/components/schemas/LabObservationItem"
+            },
+            "type": "array",
+            "title": "Lab Observations"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/Localized"
+          },
+          "doctor_questions": {
+            "$ref": "#/components/schemas/LocalizedList"
+          },
+          "follow_up": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up"
+          },
+          "handwritten": {
+            "type": "boolean",
+            "title": "Handwritten",
+            "default": false
+          },
+          "languages_detected": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Languages Detected"
+          },
+          "unreadable_parts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unreadable Parts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_type",
+          "summary"
+        ],
+        "title": "ExtractedRecord"
+      },
+      "ExtractionMeta": {
+        "properties": {
+          "engine": {
+            "type": "string",
+            "title": "Engine"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "title": "Duration Ms"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "engine",
+          "model",
+          "duration_ms"
+        ],
+        "title": "ExtractionMeta"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthRecord": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          },
+          "document_type": {
+            "type": "string",
+            "enum": [
+              "Prescription",
+              "DiagnosticReport",
+              "DischargeSummary"
+            ],
+            "title": "Document Type"
+          },
+          "record_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Date"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "extracted": {
+            "$ref": "#/components/schemas/ExtractedRecord"
+          },
+          "source_filename": {
+            "type": "string",
+            "title": "Source Filename"
+          },
+          "source_mime": {
+            "type": "string",
+            "title": "Source Mime"
+          },
+          "has_source_file": {
+            "type": "boolean",
+            "title": "Has Source File",
+            "default": true
+          },
+          "has_preview": {
+            "type": "boolean",
+            "title": "Has Preview",
+            "default": false
+          },
+          "name_check": {
+            "type": "string",
+            "enum": [
+              "match",
+              "mismatch",
+              "missing"
+            ],
+            "title": "Name Check",
+            "default": "missing"
+          },
+          "extraction": {
+            "$ref": "#/components/schemas/ExtractionMeta"
+          },
+          "fhir_bundle": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Fhir Bundle"
+          },
+          "is_sample": {
+            "type": "boolean",
+            "title": "Is Sample",
+            "default": false
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "profile_id",
+          "document_type",
+          "title",
+          "extracted",
+          "source_filename",
+          "source_mime",
+          "extraction",
+          "fhir_bundle",
+          "created_at"
+        ],
+        "title": "HealthRecord"
+      },
+      "LabObservationItem": {
+        "properties": {
+          "test_name": {
+            "type": "string",
+            "title": "Test Name"
+          },
+          "observed_value": {
+            "type": "string",
+            "title": "Observed Value"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit",
+            "default": ""
+          },
+          "reference_range": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Range"
+          },
+          "flag": {
+            "type": "string",
+            "enum": [
+              "NORMAL",
+              "HIGH",
+              "LOW",
+              "ABNORMAL",
+              "UNKNOWN"
+            ],
+            "title": "Flag",
+            "default": "UNKNOWN"
+          },
+          "flag_source": {
+            "type": "string",
+            "enum": [
+              "computed",
+              "document",
+              "ai"
+            ],
+            "title": "Flag Source",
+            "default": "ai"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Localized"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "uncertain": {
+            "type": "boolean",
+            "title": "Uncertain",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "test_name",
+          "observed_value"
+        ],
+        "title": "LabObservationItem"
+      },
+      "Localized": {
+        "properties": {
+          "english": {
+            "type": "string",
+            "title": "English"
+          },
+          "hindi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hindi"
+          },
+          "telugu": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telugu"
+          }
+        },
+        "type": "object",
+        "required": [
+          "english"
+        ],
+        "title": "Localized",
+        "description": "The same text in the three supported languages. Hindi/Telugu may be missing."
+      },
+      "LocalizedList": {
+        "properties": {
+          "english": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "English"
+          },
+          "hindi": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Hindi"
+          },
+          "telugu": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Telugu"
+          }
+        },
+        "type": "object",
+        "title": "LocalizedList"
+      },
+      "MedicationItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "form": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Form"
+          },
+          "dosage": {
+            "type": "string",
+            "title": "Dosage",
+            "default": ""
+          },
+          "frequency": {
+            "type": "string",
+            "title": "Frequency",
+            "default": ""
+          },
+          "timing": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timing"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Localized"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "uncertain": {
+            "type": "boolean",
+            "title": "Uncertain",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "MedicationItem"
+      },
+      "Profile": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "relation": {
+            "type": "string",
+            "title": "Relation",
+            "default": "Self"
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sex"
+          },
+          "abha_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abha Number"
+          },
+          "abha_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abha Address"
+          },
+          "abha_linked": {
+            "type": "boolean",
+            "title": "Abha Linked",
+            "default": false
+          },
+          "abha_linked_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abha Linked At"
+          },
+          "is_sample": {
+            "type": "boolean",
+            "title": "Is Sample",
+            "default": false
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "created_at"
+        ],
+        "title": "Profile"
+      },
+      "ProfileCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "relation": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Relation",
+            "default": "Family member"
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sex"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ProfileCreate"
+      },
+      "RecordMove": {
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile_id"
+        ],
+        "title": "RecordMove"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

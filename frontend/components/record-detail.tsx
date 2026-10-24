@@ -14,9 +14,9 @@ import { useSpeech } from "./use-speech";
 import { highlight, termVariants } from "@/lib/highlight";
 import { Badge, Button, Card, CardHeader, Skeleton, cx, useToast } from "./ui";
 
-export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, onDeleted, onProfileCreated }: {
+export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, onDeleted, onProfileCreated, onAsk }: {
   record: HealthRecord; urls?: { original: string | null; preview: string | null }; profiles: Profile[]; active: Profile; onBack: () => void;
-  onMoved: (r: HealthRecord, to: Profile) => void; onDeleted: (id: string) => void; onProfileCreated: () => void;
+  onMoved: (r: HealthRecord, to: Profile) => void; onDeleted: (id: string) => void; onProfileCreated: () => void; onAsk?: (query: string) => void;
 }) {
   const { t, lang } = useI18n();
   const toast = useToast();
@@ -187,9 +187,28 @@ export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, 
           {questions.length > 0 && (
             <Card>
               <CardHeader title={t.questions} />
-              <ol className="space-y-2 px-5 py-3.5 text-[14px]">
+              <ol className="space-y-2.5 px-5 py-3.5 text-[14px]">
                 {questions.map((q, i) => (
-                  <li key={i} className="flex gap-3"><span className="num flex h-5 w-5 shrink-0 items-center justify-center rounded bg-subtle text-2xs text-fg-3">{i + 1}</span><span>{q}</span></li>
+                  <li key={i} className="group flex items-start justify-between gap-3 rounded-lg border border-line bg-surface/50 p-2.5 text-xs sm:text-sm transition-colors hover:border-accent/40">
+                    <div className="flex gap-2.5">
+                      <span className="num flex h-5 w-5 shrink-0 items-center justify-center rounded bg-subtle text-2xs font-semibold text-fg-3">{i + 1}</span>
+                      <span
+                        className="cursor-pointer text-fg-2 leading-relaxed transition-colors group-hover:text-fg"
+                        onClick={() => onAsk?.(q)}
+                      >
+                        {q}
+                      </span>
+                    </div>
+                    {onAsk && (
+                      <button
+                        onClick={() => onAsk(q)}
+                        className="shrink-0 rounded-md bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-white transition-colors shadow-xs"
+                        title={t.askThisQuestion}
+                      >
+                        {t.askThisQuestion}
+                      </button>
+                    )}
+                  </li>
                 ))}
               </ol>
             </Card>

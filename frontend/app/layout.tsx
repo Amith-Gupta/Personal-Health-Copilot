@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-IN" suppressHydrationWarning className={`${display.variable} ${geist.variable} ${geistMono.variable} ${deva.variable} ${telu.variable}`}>
       <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
-      <body className="min-h-[100dvh] font-sans text-base antialiased">
+      <body suppressHydrationWarning className="min-h-[100dvh] font-sans text-base antialiased">
         <I18nProvider>{children}</I18nProvider>
       </body>
     </html>

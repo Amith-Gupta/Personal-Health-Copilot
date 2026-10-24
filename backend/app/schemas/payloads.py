@@ -115,10 +115,43 @@ class ABHALinkRequest(BaseModel):
     abha_address: Optional[str] = Field(None, examples=["lakshmi.devi@abdm"])
 
 
+class DoctorRecommendation(BaseModel):
+    name: str
+    specialty: str
+    hospital_name: str
+    address: str
+    city: str
+    distance_km: Optional[float] = None
+    rating: float = 4.8
+    maps_url: str
+    phone: Optional[str] = None
+    reason: str
+    timings: Optional[str] = "Mon - Sat (10:00 AM - 5:00 PM)"
+
+
+class DoctorSearchRequest(BaseModel):
+    profile_id: str
+    query: Optional[str] = None
+    specialty: Optional[str] = None
+    city: Optional[str] = "Hyderabad"
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    language: Lang = "en"
+
+
+class ConversationTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
 class CopilotQueryRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=1000)
     language: Lang = "en"
     profile_id: str
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    city: Optional[str] = None
+    history: Optional[List[ConversationTurn]] = None
 
 
 class Citation(BaseModel):
@@ -134,3 +167,7 @@ class CopilotQueryResponse(BaseModel):
     disclaimer: str
     safety: Literal["ok", "crisis"] = "ok"
     model: str
+    doctors: List[DoctorRecommendation] = Field(default_factory=list)
+    suggested_questions: List[str] = Field(default_factory=list)
+    format_hint: Optional[str] = "adaptive"
+

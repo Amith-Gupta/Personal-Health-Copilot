@@ -8,6 +8,7 @@ import type { Profile } from "@/lib/types";
 import { LangSwitch } from "./lang-switch";
 import { Logo } from "./logo";
 import { Avatar, Button, Skeleton, cx } from "./ui";
+import { CustomSelect } from "./custom-select";
 
 export function Sidebar({ email, profiles, activeId, onSelect, onProfilesChanged }: {
   email: string; profiles: Profile[] | null; activeId: string | null;
@@ -81,9 +82,17 @@ export function MemberForm({ initialName = "", initialAge = "", initialSex = "",
       <input placeholder={t.relation} value={relation} onChange={(e) => setRelation(e.target.value)} className={f} />
       <div className="grid grid-cols-2 gap-2">
         <input placeholder={t.age} inputMode="numeric" value={age} onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 3))} className={f} />
-        <select value={sex} onChange={(e) => setSex(e.target.value)} className={f} aria-label={t.sex}>
-          <option value="">{t.sex}</option><option value="F">F</option><option value="M">M</option><option value="O">O</option>
-        </select>
+        <CustomSelect
+          value={sex}
+          onChange={setSex}
+          placeholder={t.sex}
+          ariaLabel={t.sex}
+          options={[
+            { value: "F", label: "Female (F)" },
+            { value: "M", label: "Male (M)" },
+            { value: "O", label: "Other (O)" },
+          ]}
+        />
       </div>
       {err && <p className="text-xs text-high">{err}</p>}
       <div className="flex justify-end gap-1.5">

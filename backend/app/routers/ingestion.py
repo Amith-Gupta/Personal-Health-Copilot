@@ -69,6 +69,19 @@ async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owne
         name_check=name_check(extracted.patient_name, profile.name), extraction=meta,
         fhir_bundle=to_fhir_bundle(extracted, profile, record_id), created_at=store.now_iso(),
     )
+    # Auto-enrich profile demographics if not previously populated
+    profile_updates = {}
+    if not profile.age and extracted.patient_age:
+        profile_updates["age"] = str(extracted.patient_age)
+    if not profile.sex and extracted.patient_sex:
+        profile_updates["sex"] = str(extracted.patient_sex)
+    if profile_updates:
+        try:
+            enriched = profile.model_copy(update=profile_updates)
+            store.save_profile(owner, enriched)
+        except Exception:
+            pass
+
     path, preview = await asyncio.gather(
         asyncio.to_thread(store.save_upload, owner, record_id, content, mime),
         asyncio.to_thread(store.save_preview, owner, record_id, content, mime),

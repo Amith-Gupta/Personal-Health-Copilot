@@ -33,8 +33,29 @@ export interface Profile {
   abha_linked_at?: string | null; is_sample: boolean; created_at: string;
 }
 export interface Citation { record_id: string; title: string; record_date?: string | null }
+export interface DoctorRecommendation {
+  name: string;
+  specialty: string;
+  hospital_name: string;
+  address: string;
+  city: string;
+  distance_km?: number | null;
+  rating?: number;
+  maps_url: string;
+  phone?: string | null;
+  reason: string;
+  timings?: string | null;
+}
 export interface CopilotAnswer {
-  answer: string; language: Lang; citations: Citation[]; disclaimer: string; safety: "ok" | "crisis"; model: string;
+  answer: string;
+  language: Lang;
+  citations: Citation[];
+  disclaimer: string;
+  safety: "ok" | "crisis";
+  model: string;
+  doctors?: DoctorRecommendation[];
+  suggested_questions?: string[];
+  format_hint?: string;
 }
 
 export function pick(l: Localized | null | undefined, lang: Lang): string {

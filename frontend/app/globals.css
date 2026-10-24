@@ -29,6 +29,27 @@ html { -webkit-text-size-adjust: 100%; }
 body { background: rgb(var(--canvas)); color: rgb(var(--fg)); font-feature-settings: "cv11", "ss01"; transition: background-color .25s ease, color .25s ease; }
 ::selection { background: rgb(var(--signal) / .7); color: rgb(var(--fg)); }
 input, textarea { caret-color: rgb(var(--fg)); }
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23807c75' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 13px;
+  padding-right: 28px;
+  color: rgb(var(--fg));
+  background-color: rgb(var(--canvas));
+  border-radius: 10px;
+  cursor: pointer;
+}
+:root[data-theme="dark"] select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b6b8c0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+select option {
+  background-color: rgb(var(--surface));
+  color: rgb(var(--fg));
+  padding: 8px 12px;
+}
 :focus-visible { outline: none; box-shadow: 0 0 0 2px rgb(var(--canvas)), 0 0 0 4px rgb(var(--fg) / .7); border-radius: 8px; }
 * { scrollbar-width: thin; scrollbar-color: rgb(var(--line-strong)) transparent; }
 .num { font-family: var(--font-geist-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
