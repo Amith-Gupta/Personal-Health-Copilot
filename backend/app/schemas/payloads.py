@@ -141,7 +141,7 @@ class DoctorSearchRequest(BaseModel):
 
 class ConversationTurn(BaseModel):
     role: Literal["user", "assistant"]
-    content: str
+    content: str = Field(..., max_length=4000)
 
 
 class CopilotQueryRequest(BaseModel):
@@ -150,8 +150,8 @@ class CopilotQueryRequest(BaseModel):
     profile_id: str
     lat: Optional[float] = None
     lon: Optional[float] = None
-    city: Optional[str] = None
-    history: Optional[List[ConversationTurn]] = None
+    city: Optional[str] = Field(None, max_length=60)
+    history: Optional[List[ConversationTurn]] = Field(None, max_length=12)
 
 
 class Citation(BaseModel):

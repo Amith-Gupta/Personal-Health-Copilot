@@ -115,7 +115,7 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
     deadline = time.monotonic() + VISION_BUDGET_S
 
     for key_idx, key in enumerate(keys):
-        masked_key = f"{key[:8]}...{key[-4:]}" if len(key) >= 12 else "***"
+        masked_key = f"...{key[-4:]}" if len(key) >= 12 else "***"
         if _KEY_COOLDOWN_UNTIL.get(key, 0) > time.time():
             remaining = int(_KEY_COOLDOWN_UNTIL[key] - time.time())
             errors.append(f"key[{key_idx}]({masked_key}): cooling down ({remaining}s remaining)")

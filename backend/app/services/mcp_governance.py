@@ -13,15 +13,22 @@ import logging
 import os
 from pathlib import Path
 import secrets
+import tempfile
+import threading
+from contextlib import contextmanager
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.services import store
 
 logger = logging.getLogger("mcp_governance")
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+# Where tokens, policies and the MCP audit trail live. Configurable so a container can point it
+# at a writable volume; one instance only (see README) until this moves to the database.
+DATA_DIR = Path(os.getenv("MCP_DATA_DIR") or Path(__file__).resolve().parents[2] / "data")
 GOVERNANCE_FILE = DATA_DIR / "mcp_governance_store.json"
+_LOCK = threading.RLock()
+AUDIT_PER_OWNER = 200
+REDACT_KEYS = {"query", "question", "text", "message"}
 
 ALL_MCP_TOOLS = [
     "list_patient_profiles",
@@ -51,20 +58,39 @@ class MCPCallerContext:
     allowed_patient_ids: List[str] = field(default_factory=list)
 
 
+class GovernanceStoreError(RuntimeError):
+    """The token/policy store could not be read or written. Never treated as 'empty'."""
+
+
 def _load_store() -> Dict[str, Any]:
-    if GOVERNANCE_FILE.exists():
-        try:
-            return json.loads(GOVERNANCE_FILE.read_text(encoding="utf-8"))
-        except Exception as e:
-            logger.warning(f"Failed to load MCP governance file: {e}")
-    return {"policies": {}, "keys": {}, "audit_logs": []}
+    if not GOVERNANCE_FILE.exists():
+        return {"policies": {}, "keys": {}, "audit_logs": []}
+    try:
+        return json.loads(GOVERNANCE_FILE.read_text(encoding="utf-8"))
+    except Exception as e:  # a corrupt file must not be silently replaced, or every key is lost
+        raise GovernanceStoreError(f"MCP governance store is unreadable: {e}") from e
 
 
 def _save_store(data: Dict[str, Any]) -> None:
+    """Atomic write, readable by the owner only. Raises so a key is never reported as saved when it was not."""
     try:
-        GOVERNANCE_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=DATA_DIR, prefix=".governance-", suffix=".json")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, GOVERNANCE_FILE)
     except Exception as e:
-        logger.error(f"Failed to save MCP governance store: {e}")
+        raise GovernanceStoreError(f"MCP governance store could not be saved: {e}") from e
+
+
+@contextmanager
+def _mutate():
+    """Read-modify-write under one lock, so concurrent requests cannot drop each other's changes."""
+    with _LOCK:
+        data = _load_store()
+        yield data
+        _save_store(data)
 
 
 def hash_token(raw_token: str) -> str:
@@ -77,9 +103,11 @@ def hash_token(raw_token: str) -> str:
 
 def get_or_create_policy(owner_id: str) -> Dict[str, Any]:
     """Retrieves the MCP governance policy for a specific user."""
-    data = _load_store()
-    policies = data.get("policies", {})
-    if owner_id not in policies:
+    with _LOCK:
+        data = _load_store()
+        policies = data.get("policies", {})
+        if owner_id in policies:
+            return policies[owner_id]
         policies[owner_id] = {
             "owner_id": owner_id,
             "is_active": True,
@@ -92,7 +120,7 @@ def get_or_create_policy(owner_id: str) -> Dict[str, Any]:
         }
         data["policies"] = policies
         _save_store(data)
-    return policies[owner_id]
+        return policies[owner_id]
 
 
 def generate_mcp_key(owner_id: str, label: str = "Claude Desktop / Cursor") -> Dict[str, Any]:
@@ -102,35 +130,27 @@ def generate_mcp_key(owner_id: str, label: str = "Claude Desktop / Cursor") -> D
     masked = f"{raw_key[:12]}...{raw_key[-4:]}"
     now = store.now_iso()
 
-    data = _load_store()
-    keys = data.get("keys", {})
-
-    # Deactivate existing keys for this owner
-    for k_h, k_info in keys.items():
-        if k_info.get("owner_id") == owner_id:
-            k_info["is_active"] = False
-            k_info["revoked_at"] = now
-
-    keys[key_h] = {
-        "owner_id": owner_id,
-        "label": label,
-        "masked_key": masked,
-        "is_active": True,
-        "created_at": now,
-    }
-
-    policies = data.get("policies", {})
-    policy = policies.get(owner_id) or get_or_create_policy(owner_id)
-    policy["is_active"] = True
-    policy["has_generated_key"] = True
-    policy["masked_key"] = masked
-    policy["key_label"] = label
-    policy["key_created_at"] = now
-    policies[owner_id] = policy
-
-    data["keys"] = keys
-    data["policies"] = policies
-    _save_store(data)
+    get_or_create_policy(owner_id)
+    with _mutate() as data:
+        keys = data.setdefault("keys", {})
+        # Deactivate existing keys for this owner
+        for k_h, k_info in keys.items():
+            if k_info.get("owner_id") == owner_id:
+                k_info["is_active"] = False
+                k_info["revoked_at"] = now
+        keys[key_h] = {
+            "owner_id": owner_id,
+            "label": label[:60],
+            "masked_key": masked,
+            "is_active": True,
+            "created_at": now,
+        }
+        policy = data.setdefault("policies", {})[owner_id]
+        policy["is_active"] = True
+        policy["has_generated_key"] = True
+        policy["masked_key"] = masked
+        policy["key_label"] = label[:60]
+        policy["key_created_at"] = now
 
     # Log in system audit trail
     log_mcp_activity(
@@ -153,26 +173,19 @@ def generate_mcp_key(owner_id: str, label: str = "Claude Desktop / Cursor") -> D
 def revoke_mcp_key(owner_id: str) -> Dict[str, Any]:
     """Instantly revokes all active MCP keys and disables MCP access for this owner."""
     now = store.now_iso()
-    data = _load_store()
-    keys = data.get("keys", {})
-
     revoked_count = 0
-    for k_h, k_info in keys.items():
-        if k_info.get("owner_id") == owner_id and k_info.get("is_active"):
-            k_info["is_active"] = False
-            k_info["revoked_at"] = now
-            revoked_count += 1
-
-    policies = data.get("policies", {})
-    if owner_id in policies:
-        policies[owner_id]["is_active"] = False
-        policies[owner_id]["has_generated_key"] = False
-        policies[owner_id]["masked_key"] = None
-        policies[owner_id]["updated_at"] = now
-
-    data["keys"] = keys
-    data["policies"] = policies
-    _save_store(data)
+    with _mutate() as data:
+        for k_h, k_info in data.setdefault("keys", {}).items():
+            if k_info.get("owner_id") == owner_id and k_info.get("is_active"):
+                k_info["is_active"] = False
+                k_info["revoked_at"] = now
+                revoked_count += 1
+        policies = data.setdefault("policies", {})
+        if owner_id in policies:
+            policies[owner_id]["is_active"] = False
+            policies[owner_id]["has_generated_key"] = False
+            policies[owner_id]["masked_key"] = None
+            policies[owner_id]["updated_at"] = now
 
     log_mcp_activity(
         owner_id=owner_id,
@@ -192,21 +205,18 @@ def update_governance_policy(
     allowed_patient_ids: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Updates fine-grained tool controls and patient exposure limits."""
-    data = _load_store()
-    policies = data.get("policies", {})
-    policy = policies.get(owner_id) or get_or_create_policy(owner_id)
-
-    if is_active is not None:
-        policy["is_active"] = is_active
-    if enabled_tools is not None:
-        policy["enabled_tools"] = [t for t in enabled_tools if t in ALL_MCP_TOOLS]
-    if allowed_patient_ids is not None:
-        policy["allowed_patient_ids"] = allowed_patient_ids
-
-    policy["updated_at"] = store.now_iso()
-    policies[owner_id] = policy
-    data["policies"] = policies
-    _save_store(data)
+    get_or_create_policy(owner_id)
+    with _mutate() as data:
+        policy = data.setdefault("policies", {})[owner_id]
+        if is_active is not None:
+            policy["is_active"] = is_active
+        if enabled_tools is not None:
+            policy["enabled_tools"] = [t for t in enabled_tools if t in ALL_MCP_TOOLS]
+        if allowed_patient_ids is not None:
+            # Only this owner's own profiles can be listed.
+            own = {p.id for p in store.list_profiles(owner_id)}
+            policy["allowed_patient_ids"] = [p for p in allowed_patient_ids if p in own]
+        policy["updated_at"] = store.now_iso()
 
     log_mcp_activity(
         owner_id=owner_id,
@@ -303,36 +313,29 @@ def log_mcp_activity(
     patient_name: Optional[str] = None,
 ) -> None:
     """Logs every MCP tool invocation into persistent audit logs."""
+    safe_args = {k: (f"<{len(str(v))} characters>" if k in REDACT_KEYS else v) for k, v in (arguments or {}).items()}
     entry = {
         "id": store.new_id(),
         "owner_id": owner_id,
         "tool_name": tool_name,
-        "arguments": arguments or {},
+        "arguments": safe_args,
         "patient_name": patient_name or "N/A",
         "status": status,
         "client_info": client_info,
         "timestamp": store.now_iso(),
     }
-
     try:
-        # 1. Save in local store
-        data = _load_store()
-        logs = data.get("audit_logs", [])
-        logs.insert(0, entry)
-        data["audit_logs"] = logs[:200]  # Keep last 200 entries
-        _save_store(data)
-
-        # 2. Also log in Postgres audit_log table if available
-        try:
-            store.audit(
-                owner=owner_id,
-                action=f"mcp:{tool_name}",
-                detail={"status": status, "client": client_info, "args": arguments},
-            )
-        except Exception:
-            pass
-    except Exception as e:
+        with _mutate() as data:
+            logs = [entry] + data.get("audit_logs", [])
+            mine = [x for x in logs if x.get("owner_id") == owner_id][:AUDIT_PER_OWNER]
+            others = [x for x in logs if x.get("owner_id") != owner_id]
+            data["audit_logs"] = mine + others  # each owner keeps their own last 200 entries
+    except Exception as e:  # auditing must never break the tool call itself
         logger.warning(f"Failed to record MCP audit log: {e}")
+    try:
+        store.audit(owner=owner_id, action=f"mcp:{tool_name}", detail={"status": status, "client": client_info, "args": safe_args})
+    except Exception:
+        pass
 
 
 def get_audit_trail(owner_id: str, limit: int = 40) -> List[Dict[str, Any]]:
