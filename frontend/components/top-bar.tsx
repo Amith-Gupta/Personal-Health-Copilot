@@ -29,7 +29,7 @@ export function TopBar({
 
   return (
     <header className="sticky top-3 z-40 px-3 sm:px-6">
-      <div className="on-dark mx-auto flex h-14 max-w-[920px] items-center gap-1.5 rounded-full bg-[#141414]/95 pl-5 pr-2 text-white sm:gap-3 shadow-[0_16px_40px_-16px_rgba(0,0,0,.55)] ring-1 ring-white/10 backdrop-blur-xl">
+      <div className="on-dark mx-auto flex h-14 max-w-[1240px] items-center gap-1.5 rounded-full bg-[#141414]/95 pl-5 pr-2 text-white sm:gap-3 shadow-[0_16px_40px_-16px_rgba(0,0,0,.55)] ring-1 ring-white/10 backdrop-blur-xl">
         <span className="display text-[20px] font-bold">copilot<span className="text-high">.</span></span>
         <div className="flex-1" />
 

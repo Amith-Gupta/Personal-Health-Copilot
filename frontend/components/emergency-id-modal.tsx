@@ -34,15 +34,44 @@ interface EmergencyIdModalProps {
 
 const BLOOD_GROUPS = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-", "Unknown"];
 
+function detectBloodGroup(records: HealthRecord[]): string {
+  for (const r of records) {
+    for (const obs of r.extracted?.lab_observations || []) {
+      const name = (obs.test_name || "").toLowerCase();
+      if (name.includes("blood group") || name.includes("rh type") || name.includes("abo") || name === "blood type") {
+        const val = (obs.observed_value || "").trim().toUpperCase();
+        for (const bg of BLOOD_GROUPS) {
+          if (bg !== "Unknown" && (val === bg || val.startsWith(bg))) return bg;
+        }
+      }
+    }
+  }
+  return "Unknown";
+}
+
+function detectAllergies(records: HealthRecord[]): string[] {
+  const found: string[] = [];
+  records.forEach((r) => {
+    (r.extracted?.diagnoses || []).forEach((d) => {
+      if (/allerg|reaction|sensitivity|hypersensitiv/i.test(d)) {
+        found.push(d);
+      }
+    });
+  });
+  return Array.from(new Set(found));
+}
+
 export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModalProps) {
   const { lang, t } = useI18n();
   const toast = useToast();
 
   const storageKey = `emergency_id_${profile.id}`;
 
-  // Nothing here is invented: blood group, allergies and the ICE contact start empty until the family enters them.
-  const [bloodGroup, setBloodGroup] = useState<string>("Unknown");
-  const [allergies, setAllergies] = useState<string[]>([]);
+  // Blood group and allergies come from this person's own records when they are printed there;
+  // nothing is invented. Contact and organ-donor status start empty until the family fills them in.
+  const ownRecords = records.filter((r) => r.name_check !== "mismatch");
+  const [bloodGroup, setBloodGroup] = useState<string>(() => detectBloodGroup(ownRecords));
+  const [allergies, setAllergies] = useState<string[]>(() => detectAllergies(ownRecords));
   const [newAllergy, setNewAllergy] = useState("");
   const [iceName, setIceName] = useState("");
   const [icePhone, setIcePhone] = useState("");
@@ -76,9 +105,14 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
         if (parsed.iceName) setIceName(parsed.iceName);
         if (parsed.icePhone) setIcePhone(parsed.icePhone);
         if (parsed.organDonor !== undefined) setOrganDonor(parsed.organDonor);
+      } else {
+        const detectedBg = detectBloodGroup(ownRecords);
+        if (detectedBg !== "Unknown") setBloodGroup(detectedBg);
+        const detectedAllergiesList = detectAllergies(ownRecords);
+        if (detectedAllergiesList.length > 0) setAllergies(detectedAllergiesList);
       }
     } catch {}
-  }, [storageKey, profile.relation]);
+  }, [storageKey, records]);
 
   function persist(updates: Partial<{ bloodGroup: string; allergies: string[]; iceName: string; icePhone: string; organDonor: boolean }>) {
     try {
@@ -551,6 +585,7 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
                         <input
                           type="text"
                           value={iceName}
+                          placeholder="Contact Name"
                           onChange={(e) => {
                             setIceName(e.target.value);
                             persist({ iceName: e.target.value });
@@ -562,6 +597,7 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
                         <input
                           type="tel"
                           value={icePhone}
+                          placeholder="+91 Emergency Phone"
                           onChange={(e) => {
                             setIcePhone(e.target.value);
                             persist({ icePhone: e.target.value });
