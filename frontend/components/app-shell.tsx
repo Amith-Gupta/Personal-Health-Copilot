@@ -17,10 +17,12 @@ import { UploadPanel } from "./upload-panel";
 import { Button, ErrorNote, Skeleton, cx, useToast } from "./ui";
 import { MemberForm } from "./sidebar";
 import { VisitSummary } from "./visit-summary";
+import { CarePlanView } from "./care-plan";
+import { useDoseReminders } from "./use-dose-reminders";
 import { EmergencyIdModal } from "./emergency-id-modal";
 import { McpGovernanceModal } from "./mcp-governance-modal";
 
-export type Tab = "overview" | "records" | "medicines" | "ask";
+export type Tab = "overview" | "records" | "medicines" | "care" | "ask";
 const byDate = (a: HealthRecord, b: HealthRecord) => (b.record_date || "").localeCompare(a.record_date || "") || b.created_at.localeCompare(a.created_at);
 
 export function AppShell({ email }: { email: string }) {
@@ -63,6 +65,7 @@ export function AppShell({ email }: { email: string }) {
   useEffect(() => { loadAll(); }, [loadAll]);
 
   const records = useMemo(() => (allRecords ? allRecords.filter((r) => r.profile_id === activeId) : null), [allRecords, activeId]);
+  useDoseReminders(profiles);
   const refreshUrls = useCallback(() => { api.fileUrls().then(({ urls }) => setFileUrls(urls)).catch(() => {}); }, []);
 
   // Warm the browser cache with this person's document previews so a record opens with its page already there.
@@ -169,6 +172,7 @@ export function AppShell({ email }: { email: string }) {
                   />
                 ) : tab === "records" ? <RecordsView records={records} onOpen={openRec} />
                 : tab === "medicines" ? <MedicinesView records={records} onOpen={openRec} onAsk={handleAsk} />
+                : tab === "care" ? <CarePlanView profile={active} onOpen={openRec} />
                 : (
                   <AskView
                     profile={active}

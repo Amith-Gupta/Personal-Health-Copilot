@@ -1,4 +1,7 @@
 import asyncio
+import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -9,6 +12,22 @@ from app.services.limits import budget
 from app.services.ai_router import CopilotUnavailable, answer_question
 from app.services.guardrails import DISCLAIMER, crisis_reply
 from app.services.hospital_finder import get_doctor_recommendations, is_doctor_query
+
+def _is_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(str(value))
+        return True
+    except ValueError:
+        return False
+
+
+def _care_items(owner: str, profile_id: str) -> list:
+    try:
+        from app.services import care_store
+        return care_store.list_items(owner, profile_id)
+    except Exception:  # the copilot still answers from records if the plan is unavailable
+        return []
+
 
 router = APIRouter(prefix="/copilot", tags=["Copilot"])
 
@@ -32,22 +51,26 @@ async def query(body: CopilotQueryRequest, owner: str = Depends(budget("ask"))):
             suggested_questions=crisis_suggestions,
             format_hint="crisis"
         )
-    profile, records = await asyncio.gather(
+    if not _is_uuid(body.profile_id):
+        raise HTTPException(404, "Profile not found")
+    profile, records, care = await asyncio.gather(
         asyncio.to_thread(store.get_profile, owner, body.profile_id),
         asyncio.to_thread(store.list_records, owner, body.profile_id),
+        asyncio.to_thread(_care_items, owner, body.profile_id),
     )
     if not profile:
         raise HTTPException(404, "Profile not found")
     try:
         answer, citations, model, suggested_questions, format_hint = await asyncio.to_thread(
-            answer_question, body.query, body.language, profile, records, body.history
+            answer_question, body.query, body.language, profile, records, body.history,
+            care, datetime.now(ZoneInfo("Asia/Kolkata")).date().isoformat(),
         )
     except CopilotUnavailable:
         raise HTTPException(503, "The assistant is not reachable right now. Your records are safe; please try again.")
     
     # Check if doctors should be recommended based on query or health context
     doctors: List[DoctorRecommendation] = []
-    if is_doctor_query(body.query) or "consult" in body.query.lower() or "refer" in body.query.lower():
+    if is_doctor_query(body.query):
         city = body.city or "Hyderabad"
         doctors = await asyncio.to_thread(
             get_doctor_recommendations,
@@ -73,8 +96,10 @@ async def query(body: CopilotQueryRequest, owner: str = Depends(budget("ask"))):
 
 
 @router.post("/doctors", response_model=List[DoctorRecommendation])
-async def recommend_doctors(body: DoctorSearchRequest, owner: str = Depends(current_user_id)):
-    """Direct real-time endpoint for nearby doctor and hospital recommendations."""
+async def recommend_doctors(body: DoctorSearchRequest, owner: str = Depends(budget("ask"))):
+    """Specialist department to see, at real nearby hospitals (OpenStreetMap)."""
+    if not _is_uuid(body.profile_id):
+        raise HTTPException(404, "Profile not found")
     profile, records = await asyncio.gather(
         asyncio.to_thread(store.get_profile, owner, body.profile_id),
         asyncio.to_thread(store.list_records, owner, body.profile_id),

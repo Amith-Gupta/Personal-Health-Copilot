@@ -14,7 +14,7 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
   const toast = useToast();
   const [abhaOpen, setAbhaOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const tabs: Tab[] = ["overview", "records", "medicines", "ask"];
+  const tabs: Tab[] = ["overview", "care", "records", "medicines", "ask"];
   return (
     <section className="mx-auto max-w-[1240px] px-4 pt-4 sm:pt-5 sm:px-6">
       <div className={cx(

@@ -80,3 +80,26 @@ export interface Trend {
 }
 
 export type FileUrls = Record<string, { original: string | null; preview: string | null }>;
+
+export type CareKind = "medicine" | "appointment" | "repeat_test";
+export interface CareItem {
+  id: string; patient_id: string; record_id?: string | null; kind: CareKind; title: string; detail?: string | null;
+  meta: Record<string, any>; schedule?: "daily" | "weekly" | "as_needed" | "once" | null; times: string[];
+  weekday?: number | null; start_date?: string | null; end_date?: string | null; due_date?: string | null;
+  status: "active" | "paused" | "done" | "dismissed"; source: "agent" | "user"; reviewed: boolean; created_at?: string;
+}
+export interface Dose {
+  item_id: string; patient_id?: string; time: string; name: string; dose?: string | null; timing?: string | null;
+  state: "pending" | "taken" | "skipped" | "snoozed"; snooze_until?: string | null;
+}
+export interface CareInsight {
+  kind: "persistent" | "worsening"; test: string; first?: number; latest: number; unit: string; count?: number;
+  reports: number; range?: string | null; improving?: boolean; record_id: string;
+}
+export interface VisitQuestion { key: "overdue" | "persistent" | "worsening" | "course_ended"; subject: string; due_date?: string; end_date?: string; latest?: number; unit?: string; item_id?: string; record_id?: string }
+export interface CarePlan {
+  date: string; persisted: boolean; items: CareItem[]; doses: Dose[]; insights: CareInsight[];
+  visit_questions: VisitQuestion[]; adherence: { due: number; taken: number; days: number };
+  agent: { created: string[]; closed: string[] };
+}
+export interface FamilyToday { date: string; doses: Dose[]; overdue: { id: string; patient_id: string; title: string; kind: CareKind; due_date: string }[]; persisted?: boolean }

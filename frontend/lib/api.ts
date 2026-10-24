@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { CopilotAnswer, FileUrls, HealthRecord, Lang, Profile, Trend } from "./types";
+import type { CareItem, CarePlan, CopilotAnswer, FamilyToday, FileUrls, HealthRecord, Lang, Profile, Trend } from "./types";
 
 export function getBaseUrl(): string {
   if (typeof window !== "undefined") {
@@ -10,6 +10,11 @@ export function getBaseUrl(): string {
     }
   }
   return (process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.mycopilot.qd.je/api/v1").replace(/\/+$/, "");
+}
+
+/** The user's own calendar day (YYYY-MM-DD), so "today" matches their clock, not the server's. */
+export function localDay(d = new Date()): string {
+  return d.toLocaleDateString("en-CA");
 }
 
 export class ApiError extends Error {
@@ -137,6 +142,26 @@ export const api = {
     return res.blob();
   },
   trends: (profileId: string) => call<Trend[]>(`/profiles/${profileId}/trends`),
+  carePlan: (profileId: string, date = localDay()) => call<CarePlan>(`/profiles/${profileId}/care-plan?date=${date}`),
+  familyToday: (date = localDay()) => call<FamilyToday>(`/care-plan/today?date=${date}`),
+  addCareItem: (profileId: string, body: Partial<CareItem>) => call<CareItem>(`/profiles/${profileId}/care-items`, json(body)),
+  editCareItem: (id: string, patch: Partial<CareItem>) =>
+    call<CareItem>(`/care-items/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) }),
+  logCare: (id: string, body: { action: "taken" | "skipped" | "snoozed" | "done" | "reopened"; dose_date?: string; dose_time?: string; snooze_minutes?: number }) =>
+    call<unknown>(`/care-items/${id}/log`, json(body)),
+  /** Downloads the reminders as an .ics file; the phone's calendar then rings at each dose. */
+  downloadCalendar: async (profileId: string, name: string, language: Lang) => {
+    const token = await getFreshToken();
+    const res = await fetch(`${getBaseUrl()}/profiles/${profileId}/care-plan.ics?lang=${language}&date=${localDay()}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(res.status, "Could not create the calendar file. Please try again.");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(await res.blob());
+    a.download = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-reminders.ics`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  },
   loadSample: () => call<{ records: number }>("/sample-family", { method: "POST" }, 120000),
   exportFhir: async (profileId: string, name: string) => {
     const bundle = await call<unknown>(`/profiles/${profileId}/fhir`);

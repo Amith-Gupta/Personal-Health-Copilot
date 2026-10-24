@@ -81,3 +81,11 @@ def test_cors_only_allows_known_frontends(origin, allowed):
     r = client.options("/api/v1/profiles", headers={"Origin": origin, "Access-Control-Request-Method": "GET",
                                                      "Access-Control-Request-Headers": "authorization"})
     assert (r.headers.get("access-control-allow-origin") == origin) is allowed
+
+
+def test_malformed_record_ids_are_404_not_500(signed_in, monkeypatch):
+    from postgrest.exceptions import APIError
+    def bad_uuid(*a, **k):
+        raise APIError({"message": 'invalid input syntax for type uuid: "nope"', "code": "22P02", "hint": None, "details": None})
+    monkeypatch.setattr(store, "get_record", bad_uuid)
+    assert client.get("/api/v1/health-records/nope").status_code == 404

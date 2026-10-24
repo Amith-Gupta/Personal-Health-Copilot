@@ -1,9 +1,11 @@
 import logging
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.responses import JSONResponse
+from postgrest.exceptions import APIError as PostgrestAPIError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import ingestion, profiles, search, voice, chatgpt_router, mcp_governance_router
+from app.routers import care_plan, ingestion, profiles, search, voice, chatgpt_router, mcp_governance_router
 from app.services import store
 from app.services.auth import current_user_id
 
@@ -24,7 +26,16 @@ app.add_middleware(
     max_age=600,
 )
 
-for r in (profiles, ingestion, search, voice, chatgpt_router, mcp_governance_router):
+@app.exception_handler(PostgrestAPIError)
+async def _postgrest_error(request: Request, exc: PostgrestAPIError):
+    # A malformed id in a URL reaches Postgres as an invalid uuid: that is "not found", not a crash.
+    if getattr(exc, "code", None) == "22P02":
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
+    logging.getLogger("app").error(f"database error: {exc}")
+    return JSONResponse(status_code=500, content={"detail": "Something went wrong on our side. Please try again."})
+
+
+for r in (profiles, ingestion, search, voice, care_plan, chatgpt_router, mcp_governance_router):
     app.include_router(r.router, prefix=settings.API_V1_PREFIX)
 
 

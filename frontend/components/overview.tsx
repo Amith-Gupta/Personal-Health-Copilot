@@ -1,5 +1,5 @@
 "use client";
-import {
+import { BellRinging,
   ArrowRight,
   ArrowUpRight,
   CalendarCheck,
@@ -157,10 +157,15 @@ export function Overview({
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
+            <div className="flex shrink-0 flex-wrap items-center gap-2 self-end sm:self-auto">
+              {(justUploaded.extracted.medications.length > 0 || !!justUploaded.extracted.follow_up) && (
+                <Button size="sm" variant="primary" icon={<BellRinging size={14} />} onClick={() => onTab("care")}>
+                  {t.care.reviewReminders}
+                </Button>
+              )}
               <Button
                 size="sm"
-                variant="primary"
+                variant="secondary"
                 icon={<ArrowUpRight size={14} />}
                 onClick={() => onOpen(justUploaded.id)}
               >
