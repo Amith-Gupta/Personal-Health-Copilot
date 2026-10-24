@@ -132,7 +132,7 @@ export function AppShell({ email }: { email: string }) {
               cta={tab === "ask" ? undefined : <UploadCta name={active.name} onFile={startUpload} />} />
             </div>
             <div className={cx(
-              "mx-auto w-full max-w-[1240px] px-3 sm:px-6",
+              "mx-auto w-full max-w-[1240px] px-4 sm:px-6",
               tab === "ask" ? "pt-2 pb-2 flex-1 flex flex-col min-h-0" : "pb-12 pt-5 flex-1 flex flex-col justify-between"
             )}>
               {uploading && (
@@ -210,13 +210,13 @@ export function AppShell({ email }: { email: string }) {
 function HeaderSkeleton() {
   // Mirrors the overview layout so the page takes shape while the family loads.
   return (
-    <div className="mx-auto max-w-[1240px] px-4 pt-6 sm:px-6" aria-busy="true" aria-label="Loading">
+    <div className="mx-auto max-w-[1240px] overflow-hidden px-4 pt-6 sm:px-6" aria-busy="true" aria-label="Loading">
       <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <div className="flex flex-col justify-between gap-6">
+        <div className="flex min-w-0 flex-col justify-between gap-6">
           <div>
             <Skeleton className="h-4 w-28" />
             <Skeleton className="mt-3 h-12 w-72 max-w-full" />
-            <div className="mt-4 flex gap-2"><Skeleton className="h-9 w-28 rounded-full" /><Skeleton className="h-9 w-40 rounded-full" /><Skeleton className="h-9 w-32 rounded-full" /></div>
+            <div className="mt-4 flex flex-wrap gap-2"><Skeleton className="h-9 w-28 rounded-full" /><Skeleton className="h-9 w-40 rounded-full" /><Skeleton className="h-9 w-32 rounded-full" /></div>
           </div>
           <div><Skeleton className="h-9 w-[28rem] max-w-full" /><Skeleton className="mt-3 h-4 w-44" /></div>
         </div>

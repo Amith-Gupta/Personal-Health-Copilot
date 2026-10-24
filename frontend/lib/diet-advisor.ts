@@ -155,18 +155,18 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "మెంతులలోని ఫైబర్ కార్బోహైడ్రేట్ జీర్ణక్రియను నెమ్మదింపజేసి షుగర్ పెరగకుండా నియంత్రిస్తుంది.",
       },
       howToTake: {
-        en: "Soak 1 tsp in warm water overnight; drink the water and chew seeds first thing in the morning.",
-        hi: "रात को 1 चम्मच मेथी दाना गुनगुने पानी में भिगोएं, सुबह खाली पेट पानी पिएं और दाने चबाएं।",
-        te: "రాత్రి 1 స్పూన్ మెంతులను నీటిలో నానబెట్టి, ఉదయం ఖాళీ కడుపుతో ఆ నీటిని తాగి గింజలను నమలండి.",
+        en: "Soak 1 tsp in warm water overnight; drink the water and chew seeds first thing in the morning. Can add to sugar-lowering medicines; watch for low sugar.",
+        hi: "रात को 1 चम्मच मेथी दाना गुनगुने पानी में भिगोएं, सुबह खाली पेट पानी पिएं और दाने चबाएं। शुगर की दवाओं का असर बढ़ा सकता है; शुगर ज़्यादा कम होने पर ध्यान दें।",
+        te: "రాత్రి 1 స్పూన్ మెంతులను నీటిలో నానబెట్టి, ఉదయం ఖాళీ కడుపుతో ఆ నీటిని తాగి గింజలను నమలండి. షుగర్ మందుల ప్రభావాన్ని పెంచవచ్చు; షుగర్ మరీ తగ్గకుండా జాగ్రత్త.",
       },
       category: "superfood",
-      badge: { en: "Sugar Stabilizer", hi: "शुगर नियंत्रक", te: "షుగర్ నివారిణి" },
+      badge: { en: "Fibre for sugar", hi: "शुगर के लिए फाइबर", te: "షుగర్‌కు ఫైబర్" },
       mealTime: "morning",
       portion: { en: "1 tsp soaked", hi: "1 चम्मच भिगोया हुआ", te: "1 చెంచా నానబెట్టినవి" },
       biomarker: { en: "HbA1c & Fasting Sugar", hi: "HbA1c व खाली पेट शुगर", te: "HbA1c & ఫాస్టింగ్ షుగర్" },
       tags: [
         { en: "Soluble Fiber", hi: "घुलनशील फाइबर", te: "సాల్యుబుల్ ఫైబర్" },
-        { en: "Low GI (<15)", hi: "कम जीआई (<15)", te: "తక్కువ GI (<15)" },
+        { en: "Low GI", hi: "कम जीआई", te: "తక్కువ GI" },
         { en: "Insulin Sensitizer", hi: "इंसुलिन सक्रियक", te: "ఇన్సులిన్ సెన్సిటైజర్" },
       ],
       glycemicImpact: "very-low",
@@ -214,17 +214,17 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "కాకరకాయ & నేరేడు పండ్లు",
       },
       reason: {
-        en: "Contains polypeptide-p and charantin which have active insulin-like blood glucose lowering actions.",
-        hi: "इसमें पॉलीपेप्टाइड-पी और चैरेंटिन होते हैं जो प्राकृतिक इंसुलिन की तरह शुगर कम करते हैं।",
-        te: "ఇందులో పాలీపెప్టైడ్-పి ఉంటుంది, ఇది ఇన్సులిన్ మాదిరిగా పనిచేసి గ్లూకోజ్‌ను నియంత్రిస్తుంది.",
+        en: "Contains polypeptide-p and charantin, which may help lower blood sugar.",
+        hi: "इसमें पॉलीपेप्टाइड-पी और चैरेंटिन होते हैं जो शुगर कम करने में मदद कर सकते हैं।",
+        te: "ఇందులో పాలీపెప్టైడ్-పి ఉంటుంది, ఇది గ్లూకోజ్ తగ్గడానికి సహాయపడవచ్చు.",
       },
       howToTake: {
-        en: "Include steamed karela sabzi twice weekly, or have 25ml unsweetened jamun juice before breakfast.",
-        hi: "हफ्ते में दो बार कम तेल में पकी करेले की सब्जी खाएं या नाश्ते से पहले 25ml जामुन का रस लें।",
-        te: "వారానికి రెండుసార్లు కాకరకాయ కూర తినండి లేదా అల్పాహారానికి ముందు 25ml నేరేడు రసం తీసుకోండి.",
+        en: "Include steamed karela sabzi twice weekly, or have 25ml unsweetened jamun juice before breakfast. Can add to sugar-lowering medicines; watch for low sugar.",
+        hi: "हफ्ते में दो बार कम तेल में पकी करेले की सब्जी खाएं या नाश्ते से पहले 25ml जामुन का रस लें। शुगर की दवाओं का असर बढ़ा सकता है; शुगर ज़्यादा कम होने पर ध्यान दें।",
+        te: "వారానికి రెండుసార్లు కాకరకాయ కూర తినండి లేదా అల్పాహారానికి ముందు 25ml నేరేడు రసం తీసుకోండి. షుగర్ మందుల ప్రభావాన్ని పెంచవచ్చు; షుగర్ మరీ తగ్గకుండా జాగ్రత్త.",
       },
       category: "vegetable",
-      badge: { en: "Natural Insulin-Mimetic", hi: "इंसुलिन जैसा असर", te: "సహజ ఇన్సులిన్" },
+      badge: { en: "May lower sugar", hi: "शुगर घटा सकता है", te: "షుగర్ తగ్గించవచ్చు" },
       mealTime: "breakfast",
       portion: { en: "1 small cup / 25ml", hi: "1 छोटी कटोरी / 25ml", te: "1 చిన్న కప్పు / 25ml" },
       biomarker: { en: "Insulin Resistance", hi: "इंसुलिन प्रतिरोध", te: "ఇన్సులిన్ రెసిస్టెన్స్" },
@@ -246,7 +246,7 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "తెల్ల పాలిష్ బియ్యం & మైదా",
       },
       risk: {
-        en: "High GI (>75) triggers rapid blood glucose surges, spike insulin, and elevates visceral fat storage.",
+        en: "High GI triggers rapid blood glucose surges, spike insulin, and elevates visceral fat storage.",
         hi: "उच्च जीआई खून में तेजी से शुगर बढ़ाता है और शरीर में चर्बी जमा करता है।",
         te: "అధిక గ్లైసెమిక్ ఇండెక్స్ వల్ల తిన్న వెంటనే రక్తంలో చక్కెర తీవ్రంగా పెరుగుతుంది.",
       },
@@ -256,12 +256,12 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "కొర్రలు లేదా దంపుడు బ్రౌన్ రైస్",
       },
       swapReason: {
-        en: "Contains 3x more dietary fiber that slows digestion and blunts postprandial glycemic response.",
-        hi: "इसमें 3 गुना अधिक फाइबर होता है जो शुगर स्पाइक को पूरी तरह रोकता है।",
-        te: "3 రెట్లు అధిక ఫైబర్ ఉండటం వల్ల భోజనం తర్వాత షుగర్ పెరగకుండా నియంత్రిస్తుంది.",
+        en: "More fibre, which slows digestion and softens the rise in sugar after meals.",
+        hi: "इसमें ज़्यादा फाइबर होता है जो खाने के बाद शुगर का बढ़ना धीमा करता है।",
+        te: "ఎక్కువ ఫైబర్ ఉండటం వల్ల భోజనం తర్వాత షుగర్ నెమ్మదిగా పెరుగుతుంది.",
       },
       avoidReasonBadge: { en: "High Glycemic Load", hi: "उच्च ग्लाइसेमिक लोड", te: "అధిక గ్లైసెమిక్ లోడ్" },
-      swapAdvantageBadge: { en: "-40% Glucose Surge", hi: "-40% शुगर स्पाइक", te: "-40% గ్లూకోజ్ పెరుగుదల" },
+      swapAdvantageBadge: { en: "Slower sugar rise", hi: "शुगर धीरे बढ़ती है", te: "షుగర్ నెమ్మదిగా పెరుగుతుంది" },
       biomarker: { en: "Blood Glucose Spikes", hi: "ब्लड शुगर स्पाइक्स", te: "బ్లడ్ షుగర్ స్పైక్స్" },
     });
 
@@ -378,9 +378,9 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "భోజనం చేసిన వెంటనే టీ లేదా కాఫీ",
       },
       risk: {
-        en: "Tannins and polyphenols chelate with dietary iron, blocking up to 60% of iron absorption from food.",
-        hi: "चाय में मौजूद टैनिन भोजन के 60% आयरन को शरीर में सोखने से रोक देता है।",
-        te: "టీలోని టానిన్లు ఆహారంలోని 60% ఐరన్ ఒంటికి పట్టకుండా అడ్డుకుంటాయి.",
+        en: "Tannins in tea and coffee bind iron from food and reduce how much the body absorbs.",
+        hi: "चाय-कॉफी के टैनिन भोजन के आयरन को शरीर में सोखने से रोकते हैं।",
+        te: "టీ, కాఫీలోని టానిన్లు ఆహారంలోని ఐరన్ ఒంటికి పట్టకుండా అడ్డుకుంటాయి.",
       },
       swapFor: {
         en: "Warm Lemon Water or Spiced Fennel (Saunf) Infusion",
@@ -393,7 +393,7 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "విటమిన్ సి ఆహారంలోని ఐరన్‌ను శరీరం గ్రహించేలా తోడ్పడుతుంది.",
       },
       avoidReasonBadge: { en: "Iron Tannin Blockade", hi: "आयरन अवशोषण में बाधा", te: "ఐరన్ శోషణకు అడ్డంకి" },
-      swapAdvantageBadge: { en: "+60% Iron Uptake", hi: "+60% आयरन अवशोषण", te: "+60% ఐరన్ గ్రహింపు" },
+      swapAdvantageBadge: { en: "Better iron uptake", hi: "बेहतर आयरन अवशोषण", te: "మెరుగైన ఐరన్ గ్రహింపు" },
       biomarker: { en: "Serum Ferritin Stores", hi: "सीरम फेरिटिन स्तर", te: "సీరం ఫెర్రిటిన్ నిల్వలు" },
     });
   }
@@ -416,17 +416,17 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "పచ్చి వెల్లుల్లి (Garlic)",
       },
       reason: {
-        en: "Allicin promotes nitric oxide synthesis, gently dilating arterial walls and lowering systolic blood pressure.",
+        en: "Allicin may help relax blood vessels and modestly support blood pressure control.",
         hi: "एलिसिन धमनियों को शिथिल करता है जिससे रक्तचाप नियंत्रित होता है और नसों में रुकावट कम होती है।",
         te: "వెల్లుల్లిలోని అల్లిసిన్ రక్తనాళాలను రిలాక్స్ చేసి బీపీని మరియు కొలెస్ట్రాల్‌ను తగ్గిస్తుంది.",
       },
       howToTake: {
-        en: "Crush 1 small garlic clove, wait 5 minutes to activate allicin, swallow with warm water in the morning.",
-        hi: "1 छोटी कली लहसुन कुचलकर 5 मिनट रखें, फिर सुबह गुनगुने पानी के साथ निगल लें।",
-        te: "ఒక వెల్లుల్లి రెబ్బను నలిపి 5 నిమిషాల తర్వాత ఉదయం గోరువెచ్చని నీటితో తీసుకోండి.",
+        en: "Crush 1 small garlic clove, wait 5 minutes to activate allicin, swallow with warm water in the morning. Check with your doctor if you take blood thinners.",
+        hi: "1 छोटी कली लहसुन कुचलकर 5 मिनट रखें, फिर सुबह गुनगुने पानी के साथ निगल लें। खून पतला करने की दवा लेते हों तो डॉक्टर से पूछें।",
+        te: "ఒక వెల్లుల్లి రెబ్బను నలిపి 5 నిమిషాల తర్వాత ఉదయం గోరువెచ్చని నీటితో తీసుకోండి. రక్తం పలుచబరిచే మందులు వాడుతుంటే డాక్టర్‌ను అడగండి.",
       },
       category: "superfood",
-      badge: { en: "Vascular Dilator", hi: "रक्तचाप रक्षक", te: "బీపీ నియంత్రకం" },
+      badge: { en: "BP support", hi: "बीपी में सहायक", te: "బీపీకి సహాయం" },
       mealTime: "morning",
       portion: { en: "1 crushed clove", hi: "1 कुचली हुई कली", te: "1 నలిపిన రెబ్బ" },
       biomarker: { en: "Systolic BP & Arterial Tone", hi: "सिस्टोलिक बीपी व धमनियां", te: "సిస్టోలిక్ బీపీ & రక్తనాళాలు" },
@@ -489,9 +489,9 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "నిమ్మరసం, వేయించిన జీలకర్ర పొడి మరియు కొద్దిగా సైంధవ లవణం",
       },
       swapReason: {
-        en: "Adds mouth-watering zest while cutting daily sodium intake by over 1,200mg.",
-        hi: "स्वाद बनाए रखते हुए रोजाना 1200mg सोडियम कम करता है।",
-        te: "రుచిని ఇస్తూనే రోజువారీ సోడియంను 1200mg తగ్గిస్తుంది.",
+        en: "Keeps the taste while cutting down on daily salt.",
+        hi: "स्वाद बनाए रखते हुए रोज़ का नमक कम करता है।",
+        te: "రుచిని ఇస్తూనే రోజువారీ ఉప్పును తగ్గిస్తుంది.",
       },
       avoidReasonBadge: { en: "High Sodium Load", hi: "अत्यधिक सोडियम", te: "అధిక సోడియం" },
       swapAdvantageBadge: { en: "DASH Compliant", hi: "DASH डाइट आधारित", te: "DASH ఆహార నియమం" },
@@ -499,13 +499,13 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
     });
   }
 
-  // 4. LIVER / INFLAMMATION / GENERAL HEALTH (Ensures at least 3-4 rich items)
-  if (isLiverOrInfection || eat.length < 3) {
+  // 4. LIVER / INFLAMMATION. No generic filler: with nothing on file the guide asks for a record instead.
+  if (isLiverOrInfection) {
     if (triggeredBy.length === 0) {
       triggeredBy.push({
-        en: "Metabolic Wellness & Vitality",
-        hi: "मेटाबॉलिक स्वास्थ्य और पोषण संतुलन",
-        te: "జీవక్రియ సమతుల్యత & సంపూర్ణ ఆరోగ్యం",
+        en: "Inflammation or liver markers",
+        hi: "सूजन या लिवर के संकेत",
+        te: "వాపు లేదా లివర్ సూచికలు",
       });
     }
 
@@ -519,7 +519,7 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "తాజా ఉసిరికాయ (Amla) & పసుపు",
       },
       reason: {
-        en: "Rich in heat-stable Vitamin C and curcumin to fight cellular oxidative stress and support hepatic detox.",
+        en: "A source of vitamin C and curcumin, part of a balanced diet during recovery.",
         hi: "विटामिन सी और करक्यूमिन से भरपूर जो सूजन घटाते हैं और लिवर को विषाक्त पदार्थों से बचाते हैं।",
         te: "విటమిన్ సి మరియు కర్కుమిన్ ఇన్ఫెక్షన్లను తగ్గించి లివర్ పనితీరును మెరుగుపరుస్తాయి.",
       },
@@ -534,7 +534,7 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
       portion: { en: "1 fresh amla / 1 pinch haldi", hi: "1 आंवला / चुटकी हल्दी", te: "1 ఉసిరికాయ / చిటికెడు పసుపు" },
       biomarker: { en: "Cellular Immunity & Liver Enzymes", hi: "इम्यूनिटी व लिवर एंजाइम", te: "రోగనిరోధక శక్తి & లివర్ ఎంజైమ్‌లు" },
       tags: [
-        { en: "Vitamin C: 600mg", hi: "विटामिन सी: 600mg", te: "విటమిన్ సి: 600mg" },
+        { en: "Vitamin C", hi: "विटामिन सी", te: "విటమిన్ సి" },
         { en: "Curcumin", hi: "करक्यूमिन", te: "కర్కుమిన్" },
         { en: "Hepatoprotective", hi: "लिवर रक्षक", te: "లివర్ రక్షణ" },
       ],
@@ -587,9 +587,9 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "సులువుగా జీర్ణమయ్యే ప్రొటీన్ మరియు పీచు పదార్థం శరీరానికి తక్షణ శక్తినిస్తాయి.",
       },
       howToTake: {
-        en: "Enjoy for light dinners with 1 tsp A2 cow ghee and homemade mint-coriander chutney.",
-        hi: "रात के भोजन में 1 चम्मच गाय के घी और पुदीने की चटनी के साथ हल्का सेवन करें।",
-        te: "రాత్రి భోజనంలో 1 చెంచా ఆవు నెయ్యి మరియు పుదీనా పచ్చడితో తేలికగా తినండి.",
+        en: "Have as a light dinner with homemade mint-coriander chutney.",
+        hi: "रात के भोजन में पुदीने की चटनी के साथ हल्का सेवन करें।",
+        te: "రాత్రి భోజనంలో పుదీనా పచ్చడితో తేలికగా తినండి.",
       },
       category: "grain",
       badge: { en: "Digestive Harmony", hi: "सुपाच्य आहार", te: "సులభ జీర్ణక్రియ" },
@@ -598,7 +598,6 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
       biomarker: { en: "Metabolic Rest & Sleep Prep", hi: "पाचन विश्राम", te: "జీర్ణ విశ్రాంతి" },
       tags: [
         { en: "Easily Digestible", hi: "सुपाच्य प्रोटीन", te: "సులువుగా జీర్ణమవుతుంది" },
-        { en: "A2 Ghee Lipids", hi: "गाय का शुद्ध घी", te: "ఆవు నెయ్యి లిపిడ్స్" },
       ],
       glycemicImpact: "low",
     });
@@ -675,14 +674,14 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
       te: "భోజనం తర్వాత 100 అడుగులు (శతపది)",
     },
     desc: {
-      en: "A gentle 10 to 15-minute relaxed stroll after lunch and dinner helps clear 20–30% of postprandial glucose without putting strain on the heart.",
+      en: "A gentle 10 to 15-minute relaxed stroll after lunch and dinner can help keep sugar steadier after meals without straining the heart.",
       hi: "खाने के तुरंत बाद बैठने के बजाय 10-15 मिनट धीरे-धीरे टहलने से शुगर स्पाइक नहीं होता और पाचन तेज होता है।",
       te: "భోజనం తర్వాత 10-15 నిమిషాలు నెమ్మదిగా నడవడం వల్ల రక్తంలో షుగర్ స్థిరంగా ఉంటుంది మరియు ఆహారం చక్కగా జీర్ణమవుతుంది.",
     },
     iconName: "walk",
     badge: { en: "15 mins daily", hi: "15 मिनट रोज", te: "రోజూ 15 నిమిషాలు" },
     timing: { en: "Post-Meals (Lunch & Dinner)", hi: "भोजन के बाद", te: "భోజనం తర్వాత" },
-    evidence: { en: "Reduces postprandial glycemic surge by up to 22%", hi: "शुगर स्पाइक 22% तक कम करता है", te: "పోస్ట్‌ప్రాండియల్ షుగర్‌ను 22% తగ్గిస్తుంది" },
+    evidence: { en: "Can soften the rise in sugar after meals", hi: "खाने के बाद शुगर का बढ़ना कम कर सकता है", te: "భోజనం తర్వాత షుగర్ పెరుగుదలను తగ్గించవచ్చు" },
   });
 
   habits.push({
@@ -728,9 +727,9 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
     te: "వ్యక్తిగతీకరించిన భారతీయ ఆహార & జీవనశైలి ప్రణాళిక",
   };
   let focusSubtitle = {
-    en: "Clinically customized based on active diagnoses and out-of-range lab reports.",
-    hi: "सक्रिय स्वास्थ्य रिपोर्ट और जांच परिणामों के आधार पर तैयार किया गया।",
-    te: "తాజా ల్యాబ్ రిపోర్టులు మరియు వ్యాధి నిర్ధారణల ఆధారంగా రూపొందించబడింది.",
+    en: "General suggestions based on the conditions and results in these records. Check with the doctor before changing diet.",
+    hi: "इन रिकॉर्ड की बीमारियों और नतीजों पर आधारित सामान्य सुझाव। खान-पान बदलने से पहले डॉक्टर से पूछें।",
+    te: "ఈ రికార్డుల్లోని వ్యాధులు, ఫలితాల ఆధారంగా సాధారణ సూచనలు. ఆహారం మార్చే ముందు డాక్టర్‌ను అడగండి.",
   };
 
   if (isDiabetic && isCardiacOrHypertensive) {

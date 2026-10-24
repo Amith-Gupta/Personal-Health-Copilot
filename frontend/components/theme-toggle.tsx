@@ -16,7 +16,7 @@ export function ThemeToggle() {
   }
   return (
     <button onClick={flip} aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
-      className="grid h-9 w-9 place-items-center rounded-full border border-line text-fg-2 transition-colors hover:bg-hover hover:text-fg">
+      className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line text-fg-2 transition-colors hover:bg-hover hover:text-fg">
       {dark ? <Sun size={16} weight="bold" /> : <Moon size={16} weight="bold" />}
     </button>
   );
