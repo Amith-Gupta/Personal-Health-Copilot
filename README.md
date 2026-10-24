@@ -468,12 +468,32 @@ flowchart TD
 
 ---
 
-## 📊 Round 2 Evaluation Map
+## 📊 Round 2: From Understanding Records to Guiding the Person
 
-Each HacXLerate Round 2 criterion, and where a judge can see the evidence.
+How each part of the Altrix Labs Round 2 brief is met, and where a judge can see it working on the sample family (sign in with the demo account, press **Load sample**).
 
-| Criterion | What to look at |
-|---|---|
+| Brief | What the product does | Where to see it |
+|---|---|---|
+| **3.1 Conversational assistant** | Answers from the person's own records and care plan, cites the record behind each fact, says "not in the records" instead of guessing, never changes doses, sends emergencies to 112 / 108 / Tele-MANAS. English, Hindi, Telugu, by text or voice. | **Ask** tab. Try "Is any test overdue for him?" on Venkata Rao. |
+| **3.2 Medication & appointment reminders** | Reminders built from each prescription: name, dose, times from 1-0-1 notation and timing notes, end date from the duration, so they stop when the course ends. Follow-up visits from the doctor's own words. Taken / snooze / skip, edit, remove, add your own visit or test. Phone-calendar export (real alarms with the app closed) and in-app reminders. | **Care plan** tab |
+| **3.3 Wellness guidance** | Diet and lifestyle guidance from the person's conditions and values, with the reason for each suggestion and clear limits (not a diet prescription; cautions for diabetes medicines and blood thinners). | **Overview → diet guide** |
+| **3.4 Risk insights & preventive steps** | Lab trends across reports judged against the printed range; values that stay out of range; repeat tests the doctor asked for, closed automatically when a later report has them; condition-based checks (HbA1c with diabetes medicines, yearly kidney test, lipid profile on a statin). Worded as things to discuss with the doctor. | **Overview → How results are changing**, **Care plan → Visits and tests** |
+| **Bonus: agentic AI** | After every upload the agent schedules reminders, flags overdue follow-ups, proposes repeat tests and drafts questions for the next visit. Everything it did is listed for the family to keep, edit or remove; removed items never come back. | Upload a prescription → **Review reminders** |
+| **Bonus: voice** | Speak a question in English, Hindi or Telugu; hear the answer read back. | **Ask → mic** |
+| **Bonus: family management** | One account, many people, each with records, reminders, trends and an emergency card. Reminders for the whole family arrive in one place. | Family row at the top |
+| **Bonus: languages, extended** | The chosen language carries through chat, voice, reminders and the calendar export. | Language switch, top bar |
+
+**Trust features.** Every value on a record can be highlighted on the original page (hover or "Show on the page"). Flags are computed from the printed range, not taken from the model. The care plan, trends and FHIR export are deterministic code, so every reminder traces back to a line on a document.
+
+**Evidence** (regenerate with the commands shown):
+
+| Check | Result | Command |
+|---|---|---|
+| Extraction accuracy, 10 sample documents incl. blurred phone photos and a refused grocery list | 107 / 107 facts | `cd backend && python -m eval.run_eval` → [results](backend/eval/results.md) |
+| Copilot: grounding, honesty about gaps, safety, Hindi / Telugu, care-plan awareness | 20 / 20 checks | `cd backend && python -m eval.copilot_eval` → [results](backend/eval/copilot_results.md) |
+| Backend tests (care plan, trends, flags, FHIR, guardrails, auth on every route, rate limits, MCP access) | 153 passing | `cd backend && python -m pytest -q tests` |
+
+---|---|
 | **Problem understanding** | One passbook per family member; the name on every document is checked against the person it is filed under; explanations in English, Hindi and Telugu. |
 | **Solution quality** | Upload → plain-language summary → abnormal values → medicine schedule → timeline → lab trends across reports → grounded Q&A with citations → visit summary → FHIR export |
 | **Technical execution** | Deterministic flags, trends and FHIR around the models; 79 backend tests in CI (`backend/tests`, `.github/workflows/ci.yml`) |
