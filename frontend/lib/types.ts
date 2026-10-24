@@ -40,7 +40,7 @@ export interface DoctorRecommendation {
   address: string;
   city: string;
   distance_km?: number | null;
-  rating?: number;
+  rating?: number | null;
   maps_url: string;
   phone?: string | null;
   reason: string;

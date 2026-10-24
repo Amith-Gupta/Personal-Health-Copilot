@@ -22,10 +22,12 @@ export function DoctorCard({
             <FirstAid size={11} weight="bold" />
             <span className="truncate max-w-[150px]">{doc.specialty}</span>
           </span>
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-amber-600 dark:text-amber-400">
-            <Star size={10} weight="fill" />
-            {doc.rating?.toFixed(1) || "4.8"}
-          </span>
+          {doc.rating != null && (
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-amber-600 dark:text-amber-400">
+              <Star size={10} weight="fill" />
+              {doc.rating.toFixed(1)}
+            </span>
+          )}
         </div>
 
         {/* Doctor Name */}

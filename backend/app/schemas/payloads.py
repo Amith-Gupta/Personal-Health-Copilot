@@ -122,11 +122,11 @@ class DoctorRecommendation(BaseModel):
     address: str
     city: str
     distance_km: Optional[float] = None
-    rating: float = 4.8
+    rating: Optional[float] = None
     maps_url: str
     phone: Optional[str] = None
     reason: str
-    timings: Optional[str] = "Mon - Sat (10:00 AM - 5:00 PM)"
+    timings: Optional[str] = None
 
 
 class DoctorSearchRequest(BaseModel):

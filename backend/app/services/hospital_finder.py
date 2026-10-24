@@ -1,6 +1,7 @@
-"""Real-time Doctor and Hospital Recommendation Engine for Indian Healthcare.
-Fetches real hospital locations via OpenStreetMap Nominatim and grounds specialists
-to patient clinical records and geographical proximity.
+"""Which specialist department to see, at real nearby hospitals.
+
+Hospitals come from OpenStreetMap Nominatim; the specialty is chosen from the patient's own
+records and question. No doctor names, ratings or phone numbers are invented.
 """
 import logging
 import math
@@ -66,33 +67,9 @@ SPECIALTY_RULES = [
     }
 ]
 
-# Well-known doctor templates associated with major Indian tertiary hospitals
-DOCTOR_REGISTRY = {
-    "Endocrinology & Diabetology": [
-        ("Dr. Rajesh Varma", "MD, DM (Endocrinology) · AIIMS", 4.9, "+91 40 2360 7777"),
-        ("Dr. S. K. Nandini", "MD, DNB (Endocrinology) · 18+ yrs exp", 4.8, "+91 40 4455 0000"),
-        ("Dr. P. Murali Krishna", "MBBS, MD, Fellowship in Diabetes (UK)", 4.7, "+91 87 7228 7777"),
-    ],
-    "Cardiology": [
-        ("Dr. Anand Kumar Reddy", "MD, DM (Cardiology), FACC", 4.9, "+91 40 2360 7777"),
-        ("Dr. K. Sunitha Rao", "MD, DNB (Cardiology) · Care Hospitals", 4.8, "+91 40 6165 6565"),
-        ("Dr. B. Venkatachalam", "MD, DM (Cardiology) · SVIMS", 4.8, "+91 87 7228 7777"),
-    ],
-    "Gastroenterology & General Surgery": [
-        ("Dr. M. Prasad", "MS, MCh (Surgical Gastro) · SVIMS", 4.9, "+91 87 7228 7777"),
-        ("Dr. Vikram Sharma", "MS, DNB (General & Laparoscopic Surgery)", 4.8, "+91 40 2360 7777"),
-        ("Dr. N. Sudhakar", "MD, DM (Gastroenterology)", 4.7, "+91 40 4455 0000"),
-    ],
-    "Nephrology": [
-        ("Dr. G. Sivakumar", "MD, DM (Nephrology) · Senior Consultant", 4.8, "+91 40 2360 7777"),
-        ("Dr. R. Anuradha", "DNB (Nephrology) · Care Hospital", 4.9, "+91 40 6165 6565"),
-    ],
-    "Internal Medicine / General Physician": [
-        ("Dr. K. Srinivas", "MD (Internal Medicine) · Senior Physician", 4.8, "+91 40 2360 7777"),
-        ("Dr. Meera Nambiar", "MBBS, MD (General Medicine) · 15+ yrs exp", 4.9, "+91 40 4455 0000"),
-        ("Dr. T. Radhakrishnan", "MD (General Medicine) · SVIMS OPD", 4.7, "+91 87 7228 7777"),
-    ]
-}
+# No named doctors are suggested: we have no verified roster, so inventing names, ratings or phone
+# numbers would mislead a patient. We recommend the right department at a real (OpenStreetMap) hospital,
+# and name a doctor only when the family's own records show one at that hospital.
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -251,34 +228,26 @@ def get_doctor_recommendations(
         reason_text = prefix + reason_text
 
     hospitals = fetch_real_hospitals(city=city, lat=lat, lon=lon, limit=3)
-    registry = DOCTOR_REGISTRY.get(specialty, DOCTOR_REGISTRY["Internal Medicine / General Physician"])
-    
     recommendations: List[DoctorRecommendation] = []
-    for i, h in enumerate(hospitals):
-        doc_info = registry[i % len(registry)]
-        doc_name = doc_info[0]
-        qualification = doc_info[1]
-        rating = doc_info[2]
-        phone = doc_info[3]
-        
-        # If user has an existing doctor mentioned in their records from that facility, respect it!
+    for h in hospitals:
+        name = f"{specialty} department"
         for r in records:
-            if r.extracted.doctor_name and (r.extracted.facility_name and h["hospital_name"].lower() in r.extracted.facility_name.lower()):
-                doc_name = r.extracted.doctor_name
+            if r.extracted.doctor_name and r.extracted.facility_name and h["hospital_name"].lower() in r.extracted.facility_name.lower():
+                name = f"{r.extracted.doctor_name} (your doctor here)"
                 break
 
         rec = DoctorRecommendation(
-            name=f"{doc_name}, {qualification}",
+            name=name,
             specialty=specialty,
             hospital_name=h["hospital_name"],
             address=h["address"],
             city=h["city"],
             distance_km=h["distance_km"],
-            rating=rating,
+            rating=None,
             maps_url=h["maps_url"],
-            phone=phone,
+            phone=h.get("phone"),
             reason=reason_text,
-            timings="Mon - Sat (10:00 AM - 5:00 PM)"
+            timings=None,
         )
         recommendations.append(rec)
         
