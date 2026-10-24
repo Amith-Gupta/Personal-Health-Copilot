@@ -5,6 +5,7 @@ import { currentMedicines, isOut, latestTests, tidyName } from "@/lib/clinical";
 import { formatDate, relationLabel, ageLabel, useI18n } from "@/lib/i18n";
 import { pickList, type HealthRecord, type Lang, type Profile } from "@/lib/types";
 import { Button, useToast } from "./ui";
+import { QrCode as QrCodeImage } from "./qr-code";
 import { useSpeech } from "./use-speech";
 
 /** Build plain-language speech narration in Telugu, Hindi or English for elderly caregivers */
@@ -147,11 +148,10 @@ export function VisitSummary({ profile, records, onBack }: { profile: Profile; r
   const formattedToday = formatDate(today, lang);
 
   // Stop audio on unmount
-  useEffect(() => {
-    return () => {
-      speech.stop();
-    };
-  }, [speech]);
+  // useSpeech returns a new object every render; depend on the stable stop() so narration
+  // is only cut on unmount, not on every re-render.
+  const stopSpeech = speech.stop;
+  useEffect(() => () => stopSpeech(), [stopSpeech]);
 
   const handleBack = () => {
     speech.stop();
@@ -245,16 +245,7 @@ export function VisitSummary({ profile, records, onBack }: { profile: Profile; r
           <div className="flex items-center gap-4">
             {/* Emergency Clinical QR Code */}
             <div className="flex items-center gap-2.5 rounded-lg border border-line bg-subtle/40 p-2 text-left">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&margin=2&data=${encodeURIComponent(
-                  `ABHA:${profile.abha_number || "N/A"};NAME:${profile.name};CONDITIONS:${conditions.join(",")};EMERGENCY:112`
-                )}`}
-                alt="Emergency QR Code"
-                width={64}
-                height={64}
-                className="h-16 w-16 rounded border border-line bg-white p-0.5"
-                loading="lazy"
-              />
+              <QrCodeImage value={[`NAME:${profile.name}`, profile.abha_number ? `ABHA:${profile.abha_number}` : "", conditions.length ? `CONDITIONS:${conditions.join(",")}` : "", "EMERGENCY:112"].filter(Boolean).join(";")} size={64} label={t.emergencyQr} className="h-16 w-16 rounded border border-line" />
               <div className="text-xs">
                 <div className="flex items-center gap-1 font-semibold text-fg">
                   <QrCode size={13} className="text-accent" /> {t.emergencyQr}

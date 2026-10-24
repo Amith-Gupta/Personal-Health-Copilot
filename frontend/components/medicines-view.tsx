@@ -78,21 +78,9 @@ export function MedicinesView({
   const [formFilter, setFormFilter] = useState<FormFilter>("all");
   const [search, setSearch] = useState("");
 
-  if (!records) {
-    return (
-      <Card>
-        <div className="space-y-4 p-6" aria-busy="true">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-20 rounded-xl" />
-          ))}
-        </div>
-      </Card>
-    );
-  }
-
   // Get active medications from latest prescriptions
   const allRows = useMemo(() => {
-    return currentMedicines(records);
+    return records ? currentMedicines(records) : [];
   }, [records]);
 
   // Counts by form
@@ -136,6 +124,19 @@ export function MedicinesView({
     });
   }, [allRows, formFilter, search, lang]);
 
+  // Hooks above always run; only now is it safe to bail out while records load.
+  if (!records) {
+    return (
+      <Card>
+        <div className="space-y-4 p-6" aria-busy="true">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+      </Card>
+    );
+  }
+
   // Slot calculations
   const morningCount = allRows.filter(({ m }) => {
     const s = schedule(m);
@@ -165,14 +166,14 @@ export function MedicinesView({
                 <Pill size={16} weight="duotone" />
               </span>
               <h2 className="text-base sm:text-lg font-bold tracking-tight text-fg">
-                {t.tabs.medicines} &amp; Daily Routine
+                {t.medsTitle}
               </h2>
               <Badge tone="accent" className="font-semibold text-[11px] py-0">
-                {allRows.length} Active {allRows.length === 1 ? "Medicine" : "Medicines"}
+                {t.medsActive(allRows.length)}
               </Badge>
             </div>
             <p className="text-xs text-fg-3 leading-relaxed max-w-2xl">
-              From {latestRx ? `${latestRx.extracted.doctor_name || tidyName(latestRx.extracted.facility_name) || "your doctor"} (${formatDate(latestRx.record_date, lang)})` : "your verified clinical prescriptions"}. Complete dosages, routine timings, and AI guidance.
+              {latestRx ? t.medsFrom(`${latestRx.extracted.doctor_name || tidyName(latestRx.extracted.facility_name) || t.types["Prescription"]} (${formatDate(latestRx.record_date, lang)})`) : null}
             </p>
           </div>
 
@@ -190,7 +191,7 @@ export function MedicinesView({
                 className="inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent transition-all hover:bg-accent hover:text-accent-fg shadow-xs"
               >
                 <Sparkle size={13} weight="fill" />
-                <span>Check Interactions</span>
+                <span>{t.checkInteractions}</span>
               </button>
             )}
             <button
@@ -199,7 +200,7 @@ export function MedicinesView({
               title="Print medication schedule chart"
             >
               <Printer size={13} />
-              <span>Print Schedule</span>
+              <span>{t.printSchedule}</span>
             </button>
           </div>
         </div>
@@ -211,8 +212,8 @@ export function MedicinesView({
               <SunHorizon size={16} weight="duotone" />
             </span>
             <div>
-              <p className="text-[10px] font-medium text-fg-3 uppercase tracking-wider">Morning</p>
-              <p className="text-xs font-bold text-fg">{morningCount} {morningCount === 1 ? "dose" : "doses"}</p>
+              <p className="text-[11px] font-medium text-fg-3">{t.morning}</p>
+              <p className="text-xs font-bold text-fg">{t.doses(morningCount)}</p>
             </div>
           </div>
 
@@ -221,8 +222,8 @@ export function MedicinesView({
               <Sun size={16} weight="duotone" />
             </span>
             <div>
-              <p className="text-[10px] font-medium text-fg-3 uppercase tracking-wider">Afternoon</p>
-              <p className="text-xs font-bold text-fg">{afternoonCount} {afternoonCount === 1 ? "dose" : "doses"}</p>
+              <p className="text-[11px] font-medium text-fg-3">{t.afternoon}</p>
+              <p className="text-xs font-bold text-fg">{t.doses(afternoonCount)}</p>
             </div>
           </div>
 
@@ -231,8 +232,8 @@ export function MedicinesView({
               <Moon size={16} weight="duotone" />
             </span>
             <div>
-              <p className="text-[10px] font-medium text-fg-3 uppercase tracking-wider">Night</p>
-              <p className="text-xs font-bold text-fg">{nightCount} {nightCount === 1 ? "dose" : "doses"}</p>
+              <p className="text-[11px] font-medium text-fg-3">{t.night}</p>
+              <p className="text-xs font-bold text-fg">{t.doses(nightCount)}</p>
             </div>
           </div>
 
@@ -241,8 +242,8 @@ export function MedicinesView({
               <Clock size={16} weight="duotone" />
             </span>
             <div>
-              <p className="text-[10px] font-medium text-fg-3 uppercase tracking-wider">As Needed</p>
-              <p className="text-xs font-bold text-fg">{asNeededCount > 0 ? `${asNeededCount} PRN` : "Routine"}</p>
+              <p className="text-[11px] font-medium text-fg-3">{t.asNeeded}</p>
+              <p className="text-xs font-bold text-fg">{t.doses(asNeededCount)}</p>
             </div>
           </div>
         </div>
@@ -257,8 +258,9 @@ export function MedicinesView({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by medicine, dose, or instructions..."
-            className="w-full rounded-xl border border-line bg-surface py-2 pl-10 pr-9 text-xs sm:text-sm text-fg placeholder:text-fg-3/60 focus:border-accent focus:ring-1 focus:ring-accent transition-colors shadow-xs"
+            placeholder={t.medsSearch}
+            aria-label={t.medsSearch}
+            className="h-11 w-full rounded-xl border border-line bg-surface pl-10 pr-9 text-[16px] text-fg placeholder:text-fg-3 sm:h-10 sm:text-sm focus:border-accent focus:ring-1 focus:ring-accent transition-colors shadow-xs"
           />
           {search && (
             <button
@@ -384,7 +386,7 @@ export function MedicinesView({
                           <Icon size={18} weight="duotone" />
                         </span>
                         <div>
-                          <h3 className="text-sm font-bold text-fg">{label}</h3>
+                          <h3 className="text-sm font-bold text-fg">{t[slot]}</h3>
                           <p className="text-[11px] text-fg-3">{time}</p>
                         </div>
                       </div>
@@ -397,7 +399,7 @@ export function MedicinesView({
                     <ul className="mt-4 space-y-3">
                       {medsInSlot.length === 0 ? (
                         <li className="py-6 text-center text-xs text-fg-3 italic">
-                          No medications scheduled for {label.toLowerCase()}.
+                          —
                         </li>
                       ) : (
                         medsInSlot.map(({ m, r }, i) => {
@@ -460,7 +462,7 @@ export function MedicinesView({
                                     }
                                     className="font-semibold text-accent hover:underline flex items-center gap-0.5"
                                   >
-                                    <span>Ask Copilot</span>
+                                    <span>{t.askThisQuestion}</span>
                                     <ArrowRight size={11} />
                                   </button>
                                 )}
@@ -592,7 +594,7 @@ export function MedicinesView({
                       title="Ask Copilot about this medicine"
                     >
                       <Sparkle size={12} weight="fill" />
-                      <span>Ask Copilot</span>
+                      <span>{t.askThisQuestion}</span>
                     </button>
                   )}
                 </div>

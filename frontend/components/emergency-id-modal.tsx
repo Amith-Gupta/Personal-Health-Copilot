@@ -14,7 +14,7 @@ import {
   IdentificationCard,
   PhoneCall,
   Printer,
-  QrCode,
+  QrCode as QrIcon,
   ShieldCheck,
   ShieldWarning,
   WarningOctagon,
@@ -24,6 +24,7 @@ import { currentMedicines, tidyName } from "@/lib/clinical";
 import { ageLabel, relationLabel, useI18n } from "@/lib/i18n";
 import type { HealthRecord, Profile } from "@/lib/types";
 import { Badge, Button, cx, useToast } from "./ui";
+import { QrCode } from "./qr-code";
 
 interface EmergencyIdModalProps {
   profile: Profile;
@@ -115,33 +116,28 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  // Only facts that are on file or entered by the family; unset fields are left out, never guessed.
   const emergencySummaryText = useMemo(() => {
-    const medList = activeMeds.length
-      ? activeMeds.slice(0, 4).map(({ m }) => `${m.name} ${m.dosage || ""}`).join(", ")
-      : "None recorded";
-    const condList = conditions.length ? conditions.slice(0, 3).join(", ") : "None recorded";
-    const allergyList = allergies.length ? allergies.join(", ") : "Not recorded";
-
-    return `EMERGENCY MEDICAL ID
-Patient: ${profile.name} (${ageLabel(profile.age, lang)}, ${profile.sex || "N/A"})
-Blood Group: ${bloodGroup === "Unknown" ? "Not recorded" : bloodGroup}${organDonor ? " | Organ Donor: YES" : ""}
-ABHA ID: ${profile.abha_number || "N/A"}
-ALLERGIES: ${allergyList}
-CONDITIONS: ${condList}
-ACTIVE MEDS: ${medList}
-ICE CONTACT: ${icePhone ? `${iceName || "Family"} (${icePhone})` : "Not added"}
-HOSPITAL: ${primaryDoctor.facility || "Not recorded"}
-NATIONAL EMERGENCY: 112 / 108`;
+    const lines = [
+      "EMERGENCY MEDICAL ID",
+      `Patient: ${[profile.name, profile.age ? ageLabel(profile.age, lang) : "", profile.sex || ""].filter(Boolean).join(", ")}`,
+      bloodGroup !== "Unknown" ? `Blood group: ${bloodGroup}` : "",
+      organDonor ? "Organ donor: YES" : "",
+      profile.abha_number ? `ABHA: ${profile.abha_number}` : "",
+      allergies.length ? `Allergies: ${allergies.join(", ")}` : "",
+      conditions.length ? `Conditions: ${conditions.slice(0, 3).join(", ")}` : "",
+      activeMeds.length ? `Medicines: ${activeMeds.slice(0, 4).map(({ m }) => `${m.name} ${m.dosage || ""}`.trim()).join(", ")}` : "",
+      icePhone ? `Emergency contact: ${iceName ? `${iceName} ` : ""}${icePhone}` : "",
+      primaryDoctor.facility ? `Hospital: ${primaryDoctor.facility}` : "",
+      "National emergency: 112 / 108",
+    ];
+    return lines.filter(Boolean).join("\n");
   }, [profile, bloodGroup, organDonor, allergies, conditions, activeMeds, iceName, icePhone, primaryDoctor, lang]);
-
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=2&data=${encodeURIComponent(
-    emergencySummaryText
-  )}`;
 
   function handleCopy() {
     navigator.clipboard.writeText(emergencySummaryText);
     setCopied(true);
-    toast("Emergency SOS Pass copied to clipboard!");
+    toast(t.emCopied);
     setTimeout(() => setCopied(false), 2500);
   }
 
@@ -197,7 +193,7 @@ NATIONAL EMERGENCY: 112 / 108`;
                   viewMode === "card" ? "bg-accent text-accent-fg" : "text-fg-3 hover:text-fg"
                 )}
               >
-                <IdentificationCard size={14} aria-hidden /> Pass card
+                <IdentificationCard size={14} aria-hidden /> {t.emPassCard}
               </button>
               <button
                 type="button"
@@ -209,7 +205,7 @@ NATIONAL EMERGENCY: 112 / 108`;
                   viewMode === "lockscreen" ? "bg-accent text-accent-fg" : "text-fg-3 hover:text-fg"
                 )}
               >
-                <DeviceMobile size={14} aria-hidden /> Lock screen
+                <DeviceMobile size={14} aria-hidden /> {t.emLockScreen}
               </button>
             </div>
           </div>
@@ -233,7 +229,7 @@ NATIONAL EMERGENCY: 112 / 108`;
 
               {/* Lockscreen Time */}
               <div className="text-center my-3">
-                <p className="text-[11px] font-semibold text-high">Emergency pass</p>
+                <p className="text-[11px] font-semibold text-high">{t.emPass}</p>
                 <p className="display mt-1 text-5xl font-bold tracking-tight text-fg num">{now.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}</p>
                 <p className="mt-0.5 text-xs font-medium text-fg-3">{now.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}</p>
               </div>
@@ -260,19 +256,19 @@ NATIONAL EMERGENCY: 112 / 108`;
 
                 {/* Allergies on Lockscreen */}
                 <div className="mt-3 pt-2.5 border-t border-line/60">
-                  <p className="text-[11px] font-semibold text-high">Allergies</p>
+                  <p className="text-[11px] font-semibold text-high">{t.emAllergies}</p>
                   <p className="text-xs font-semibold text-fg mt-0.5 leading-snug">
-                    {allergies.length ? allergies.join(", ") : "Not recorded"}
+                    {allergies.length ? allergies.join(", ") : t.emNone}
                   </p>
                 </div>
 
                 {/* Current Meds */}
                 <div className="mt-2.5 pt-2 border-t border-line/60">
-                  <p className="text-[11px] font-semibold text-fg-3">Current medicines</p>
+                  <p className="text-[11px] font-semibold text-fg-3">{t.emMeds}</p>
                   <p className="text-[11px] text-fg-2 mt-0.5 line-clamp-2">
                     {activeMeds.length
                       ? activeMeds.slice(0, 3).map(({ m }) => `${m.name} (${m.dosage || ""})`).join(", ")
-                      : "None recorded"}
+                      : t.emNone}
                   </p>
                 </div>
 
@@ -281,13 +277,9 @@ NATIONAL EMERGENCY: 112 / 108`;
                   href={`tel:${icePhone}`}
                   className="mt-3.5 flex items-center justify-center gap-2 rounded-xl bg-high py-2.5 text-xs font-extrabold text-white shadow hover:opacity-90 transition-all active:scale-[0.98]"
                 >
-                  <PhoneCall size={14} weight="bold" /> Call {iceName || "emergency contact"} ({icePhone})
+                  <PhoneCall size={14} weight="bold" /> {t.emCall} {iceName} ({icePhone})
                 </a>}
               </div>
-
-              <p className="mt-3 text-center text-[10px] text-fg-3 font-medium">
-                Paramedics can view this without phone passcode
-              </p>
             </div>
           ) : (
             /* ================= THEME-ADAPTIVE EXECUTIVE PASS CARD ================= */
@@ -360,10 +352,10 @@ NATIONAL EMERGENCY: 112 / 108`;
                     >
                       <div className="text-right">
                         <p className="flex items-center justify-end gap-1 text-[11px] font-semibold text-high">
-                          <Drop size={11} weight="fill" className="text-high" /> Blood group
+                          <Drop size={11} weight="fill" className="text-high" /> {t.emBloodGroup}
                         </p>
                         <p className="num text-2xl sm:text-3xl font-black text-high leading-none mt-0.5 tracking-tight">
-                          {bloodGroup === "Unknown" ? <span className="text-base font-semibold">Add</span> : bloodGroup}
+                          {bloodGroup === "Unknown" ? <span className="text-base font-semibold">{t.emAdd}</span> : bloodGroup}
                         </p>
                       </div>
                       <CaretDown
@@ -384,7 +376,7 @@ NATIONAL EMERGENCY: 112 / 108`;
                       >
                         <div className="px-1 py-1 mb-2.5 border-b border-line flex items-center justify-between">
                           <span className="text-[13px] font-semibold text-fg-2">
-                            Blood group
+                            {t.emBloodGroup}
                           </span>
                           <span className="rounded bg-high px-2 py-0.5 text-[10px] font-mono text-white font-extrabold">
                             {bloodGroup}
@@ -427,7 +419,7 @@ NATIONAL EMERGENCY: 112 / 108`;
                   <div className="rounded-2xl border border-high/35 bg-high-soft/60 p-4 shadow-xs">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-[13px] font-semibold text-high">
-                        <ShieldWarning size={16} weight="fill" className="text-high" /> Drug allergies
+                        <ShieldWarning size={16} weight="fill" className="text-high" /> {t.emAllergies}
                       </div>
                     </div>
 
@@ -451,7 +443,7 @@ NATIONAL EMERGENCY: 112 / 108`;
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-fg-3">None recorded yet. Add any the doctor has noted.</span>
+                        <span className="text-xs text-fg-3">{t.emNoAllergies}</span>
                       )}
                     </div>
 
@@ -461,17 +453,17 @@ NATIONAL EMERGENCY: 112 / 108`;
                         type="text"
                         value={newAllergy}
                         onChange={(e) => setNewAllergy(e.target.value)}
-                        placeholder="Add an allergy, e.g. Sulfa"
-                        aria-label="Add a drug allergy"
+                        placeholder={t.emAddAllergy}
+                        aria-label={t.emAddAllergy}
                         onKeyDown={(e) => e.key === "Enter" && handleAddAllergy()}
                         className="h-10 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-3 focus:outline-none focus:border-high focus:ring-1 focus:ring-high transition-all"
                       />
                       <button
                         type="button"
                         onClick={handleAddAllergy}
-                        className="h-10 rounded-xl bg-high px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                        className="h-10 rounded-xl bg-high px-4 text-sm font-semibold text-surface transition-opacity hover:opacity-90"
                       >
-                        Add
+                        {t.emAdd}
                       </button>
                     </div>
                   </div>
@@ -480,7 +472,7 @@ NATIONAL EMERGENCY: 112 / 108`;
                   <div className="flex flex-col justify-between rounded-2xl border border-line bg-canvas/70 p-4">
                     <div>
                       <div className="flex items-center gap-1.5 text-[13px] font-semibold text-fg-2">
-                        <Heartbeat size={16} weight="fill" className="text-high" /> Conditions
+                        <Heartbeat size={16} weight="fill" className="text-high" /> {t.emConditions}
                       </div>
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
                         {conditions.length ? (
@@ -493,14 +485,14 @@ NATIONAL EMERGENCY: 112 / 108`;
                             </span>
                           ))
                         ) : (
-                          <span className="text-xs text-fg-3 italic">No chronic conditions recorded</span>
+                          <span className="text-xs text-fg-3">{t.emNone}</span>
                         )}
                       </div>
                     </div>
 
                     {/* Organ Donor Toggle */}
                     <div className="mt-4 flex items-center justify-between pt-3 border-t border-line text-xs">
-                      <span className="font-medium text-fg-3">Organ donor</span>
+                      <span className="font-medium text-fg-3">{t.emOrganDonor}</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -515,7 +507,7 @@ NATIONAL EMERGENCY: 112 / 108`;
                             : "bg-subtle text-fg-3"
                         )}
                       >
-                        {organDonor ? "Registered organ donor" : "Not stated"}
+                        {organDonor ? t.emDonorYes : t.emNotStated}
                       </button>
                     </div>
                   </div>
@@ -527,9 +519,9 @@ NATIONAL EMERGENCY: 112 / 108`;
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
                       <p className="text-[13px] font-semibold text-fg-2">
-                        Current medicines ({activeMeds.length})
+                        {t.emMeds} ({activeMeds.length})
                       </p>
-                      <span className="text-[11px] text-fg-3">From the latest prescriptions</span>
+                      <span className="text-[11px] text-fg-3">{t.emFromLatest}</span>
                     </div>
 
                     {activeMeds.length ? (
@@ -541,14 +533,14 @@ NATIONAL EMERGENCY: 112 / 108`;
                           >
                             <p className="font-extrabold text-fg truncate">{m.name}</p>
                             <p className="text-[11px] text-fg-3 mt-0.5 font-medium">
-                              {m.dosage || "As prescribed"} · {m.frequency || "Daily"}
+                              {[m.dosage, m.frequency].filter(Boolean).join(" · ")}
                             </p>
                           </div>
                         ))}
                       </div>
                     ) : (
                       <p className="text-xs text-fg-3 italic">
-                        No active prescriptions found. Upload documents to auto-populate.
+                        {t.emNone}
                       </p>
                     )}
 
@@ -563,8 +555,8 @@ NATIONAL EMERGENCY: 112 / 108`;
                             setIceName(e.target.value);
                             persist({ iceName: e.target.value });
                           }}
-                          placeholder="Contact name"
-                          aria-label="Emergency contact name"
+                          placeholder={t.emContactName}
+                          aria-label={t.emContactName}
                           className="h-9 w-28 rounded-lg border border-line bg-surface px-2 text-xs font-semibold text-fg placeholder:font-normal placeholder:text-fg-3 focus:border-high focus:outline-none"
                         />
                         <input
@@ -574,8 +566,8 @@ NATIONAL EMERGENCY: 112 / 108`;
                             setIcePhone(e.target.value);
                             persist({ icePhone: e.target.value });
                           }}
-                          placeholder="Phone number"
-                          aria-label="Emergency contact phone"
+                          placeholder={t.emContactPhone}
+                          aria-label={t.emContactPhone}
                           className="num h-9 w-36 rounded-lg border border-line bg-surface px-2 text-xs font-semibold text-high placeholder:font-normal placeholder:text-fg-3 focus:border-high focus:outline-none"
                         />
                       </div>
@@ -584,7 +576,7 @@ NATIONAL EMERGENCY: 112 / 108`;
                           href={`tel:${icePhone}`}
                           className="ml-auto inline-flex h-9 items-center gap-1 rounded-lg bg-high px-3 text-xs font-semibold text-white transition-opacity hover:opacity-90"
                         >
-                          <PhoneCall size={13} weight="bold" /> Call
+                          <PhoneCall size={13} weight="bold" /> {t.emCall}
                         </a>
                       )}
                     </div>
@@ -592,15 +584,9 @@ NATIONAL EMERGENCY: 112 / 108`;
 
                   {/* Scannable Dynamic QR Pass */}
                   <div className="relative flex flex-col items-center justify-center rounded-2xl border border-line bg-white p-3 text-center shadow-sm">
-                    <img
-                      src={qrImageUrl}
-                      alt="Emergency QR Code"
-                      width={112}
-                      height={112}
-                      className="h-28 w-28 rounded-lg"
-                    />
+                    <QrCode value={emergencySummaryText} size={112} label={t.emScan} className="h-28 w-28 rounded-lg" />
                     <div className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-black">
-                      <QrCode size={12} /> Scan for details
+                      <QrIcon size={12} aria-hidden /> {t.emScan}
                     </div>
                   </div>
                 </div>
@@ -618,7 +604,7 @@ NATIONAL EMERGENCY: 112 / 108`;
               icon={<Printer size={14} />}
               onClick={() => window.print()}
             >
-              Print wallet card
+              {t.emPrint}
             </Button>
             <Button
               variant="secondary"
@@ -626,7 +612,7 @@ NATIONAL EMERGENCY: 112 / 108`;
               icon={copied ? <Check size={14} className="text-ok" /> : <Copy size={14} />}
               onClick={handleCopy}
             >
-              {copied ? "Copied" : "Copy as text"}
+              {copied ? t.emCopied : t.emCopy}
             </Button>
           </div>
 
@@ -636,14 +622,14 @@ NATIONAL EMERGENCY: 112 / 108`;
               size="sm"
               icon={<DownloadSimple size={14} />}
               onClick={() => {
-                toast("Pass copied. Paste it into your phone's notes to keep it offline.");
+                toast(t.emOfflineToast);
                 handleCopy();
               }}
             >
-              Keep offline
+              {t.emKeepOffline}
             </Button>
             <Button variant="ghost" size="sm" onClick={onClose}>
-              Done
+              {t.emDone}
             </Button>
           </div>
         </div>

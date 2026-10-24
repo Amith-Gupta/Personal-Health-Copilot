@@ -13,6 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import type { Profile } from "@/lib/types";
+import { useI18n } from "@/lib/i18n";
 import { cx, useToast } from "./ui";
 
 interface McpGovernanceModalProps {
@@ -61,6 +62,7 @@ const TOOL_DESCRIPTIONS: Record<string, { label: string; desc: string; category:
 
 export function McpGovernanceModal({ email, profiles, onClose }: McpGovernanceModalProps) {
   const toast = useToast();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [policyData, setPolicyData] = useState<any>(null);
@@ -136,6 +138,7 @@ export function McpGovernanceModal({ email, profiles, onClose }: McpGovernanceMo
     const currentAllowed: string[] = policyData.policy.allowed_patient_ids || [];
     let newAllowed: string[];
 
+    const unticking = currentAllowed.length === 0 || currentAllowed.includes(patientId);
     // If currently empty, user was allowing all. Explicitly exclude this one.
     if (currentAllowed.length === 0) {
       newAllowed = profiles.filter((p) => p.id !== patientId).map((p) => p.id);
@@ -147,6 +150,13 @@ export function McpGovernanceModal({ email, profiles, onClose }: McpGovernanceMo
       if (newAllowed.length >= profiles.length) {
         newAllowed = [];
       }
+    }
+
+    // An empty list means "everyone" to the server, so unticking the last person would expose
+    // the whole family. Keep at least one; the master switch is the way to block everyone.
+    if (unticking && newAllowed.length === 0) {
+      toast(t.keepOnePatient, "error");
+      return;
     }
 
     try {
@@ -518,18 +528,22 @@ export function McpGovernanceModal({ email, profiles, onClose }: McpGovernanceMo
 
                   <div className="rounded-2xl border border-line bg-canvas/50 p-4 space-y-3">
                     <div className="text-xs font-medium text-fg-2">
-                      {isAllPatientsAllowed ? "🟢 All family members currently accessible via MCP" : "🟡 Selective family exposure active"}
+                      {isAllPatientsAllowed ? "Every family member can be read by connected apps." : "Only the ticked family members can be read."}
                     </div>
 
                     <div className="space-y-2">
                       {profiles.map((p) => {
                         const isAllowed = isAllPatientsAllowed || policy?.allowed_patient_ids?.includes(p.id);
                         return (
-                          <div
+                          <button
+                            type="button"
                             key={p.id}
+                            role="checkbox"
+                            aria-checked={!!isAllowed}
+                            disabled={saving}
                             onClick={() => handleTogglePatientPrivacy(p.id)}
                             className={cx(
-                              "flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all",
+                              "flex min-h-11 w-full items-center justify-between rounded-xl border p-3 text-left transition-colors",
                               isAllowed
                                 ? "border-ok/30 bg-ok/[0.05]"
                                 : "border-line bg-subtle opacity-60"
@@ -551,13 +565,14 @@ export function McpGovernanceModal({ email, profiles, onClose }: McpGovernanceMo
                                 </div>
                               </div>
                             </div>
-                            <span className="text-[10px] font-medium font-mono text-fg-3">
-                              {isAllowed ? "Permitted" : "Locked / Private"}
+                            <span className="text-[11px] font-medium text-fg-3">
+                              {isAllowed ? "Allowed" : "Hidden"}
                             </span>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
+                    <p className="text-[11px] text-fg-3">{t.keepOnePatient}</p>
                   </div>
                 </div>
               )}

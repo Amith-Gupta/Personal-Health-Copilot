@@ -98,6 +98,10 @@ export function AskView({
     return records.find((r) => r.extracted.doctor_name)?.extracted.doctor_name || null;
   }, [records]);
 
+  // The person whose chat is on screen right now; replies for anyone else are dropped.
+  const activeProfileRef = useRef<string>(profile.id);
+  activeProfileRef.current = profile.id;
+
   // Reset turns if profile switches
   const prevProfileIdRef = useRef<string>(profile.id);
   useEffect(() => {
@@ -161,7 +165,13 @@ export function AskView({
           { role: "user" as const, content: t.q },
           { role: "assistant" as const, content: t.a!.answer },
         ]);
-      const a = await api.ask(query, lang, profile.id, userLoc, history);
+      const askedFor = profile.id;
+      const a = await api.ask(query, lang, askedFor, userLoc, history);
+      // The family member was switched while this was in flight: do not show or speak it in the new chat.
+      if (activeProfileRef.current !== askedFor) {
+        setBusy(false);
+        return;
+      }
       setTurns((ts) => {
         if (ts.length === 0) return [{ id: turnId, q: query, a, fromVoice, time: nowTime }];
         return ts.map((x) => (x.id === turnId ? { ...x, a } : x));
@@ -173,6 +183,10 @@ export function AskView({
         }, 150);
       }
     } catch (e) {
+      if (activeProfileRef.current !== profile.id) {
+        setBusy(false);
+        return;
+      }
       setTurns((ts) => {
         if (ts.length === 0) return [{ id: turnId, q: query, error: (e as Error).message, fromVoice, time: nowTime }];
         return ts.map((x) => (x.id === turnId ? { ...x, error: (e as Error).message } : x));
@@ -489,8 +503,8 @@ export function AskView({
                   {!turn.a && !turn.error && (
                     <div className="rounded-2xl border border-accent/25 bg-surface p-3.5 shadow-xs space-y-2">
                       <div className="flex items-center gap-2 text-xs font-medium text-accent">
-                        <Brain size={15} className="animate-spin text-accent" />
-                        <span className="font-semibold text-xs">{THINKING_STEPS[thinkingStep]}</span>
+                        <Spinner className="h-3.5 w-3.5" />
+                        <span className="text-xs font-semibold">{t.thinkingSteps[thinkingStep % t.thinkingSteps.length]}</span>
                       </div>
                       <div className="h-0.5 w-full bg-accent-soft rounded-full overflow-hidden">
                         <div className="h-full bg-accent rounded-full animate-pulse w-2/3" />
