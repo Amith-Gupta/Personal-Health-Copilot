@@ -585,7 +585,6 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
                         <input
                           type="text"
                           value={iceName}
-                          placeholder="Contact Name"
                           onChange={(e) => {
                             setIceName(e.target.value);
                             persist({ iceName: e.target.value });
@@ -597,7 +596,6 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
                         <input
                           type="tel"
                           value={icePhone}
-                          placeholder="+91 Emergency Phone"
                           onChange={(e) => {
                             setIcePhone(e.target.value);
                             persist({ icePhone: e.target.value });
