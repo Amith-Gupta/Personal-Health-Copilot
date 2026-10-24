@@ -11,7 +11,7 @@ from app.services.auth import current_user_id
 from app.services.limits import budget
 from app.services.ai_router import CopilotUnavailable, answer_question
 from app.services.guardrails import DISCLAIMER, crisis_reply
-from app.services.hospital_finder import get_doctor_recommendations, is_doctor_query
+from app.services.hospital_finder import city_from_records, get_doctor_recommendations, is_doctor_query
 
 def _is_uuid(value: str) -> bool:
     try:
@@ -71,7 +71,7 @@ async def query(body: CopilotQueryRequest, owner: str = Depends(budget("ask"))):
     # Check if doctors should be recommended based on query or health context
     doctors: List[DoctorRecommendation] = []
     if is_doctor_query(body.query):
-        city = body.city or "Hyderabad"
+        city = body.city or city_from_records(records) or "Hyderabad"
         doctors = await asyncio.to_thread(
             get_doctor_recommendations,
             query=body.query,
@@ -114,7 +114,7 @@ async def recommend_doctors(body: DoctorSearchRequest, owner: str = Depends(budg
         records=records,
         profile=profile,
         language=body.language,
-        city=body.city or "Hyderabad",
+        city=body.city or city_from_records(records) or "Hyderabad",
         lat=body.lat,
         lon=body.lon
     )

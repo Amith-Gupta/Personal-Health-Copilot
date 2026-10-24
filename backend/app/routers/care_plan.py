@@ -230,15 +230,39 @@ def build_ics(items: List[dict], name: str, lang: str, today: date) -> str:
             summary = tx[key].format(name=it["title"]) + (f" - {tx['overdue']}" if overdue else "")
             event(f"{it['id']}-due", f"{when.strftime('%Y%m%d')}T090000", summary, alarm_min=24 * 60)
     out.append("END:VCALENDAR")
-    return "\r\n".join(out) + "\r\n"
+    return "\r\n".join(_fold(line) for line in out) + "\r\n"
+
+
+def _fold(line: str) -> str:
+    """RFC 5545: lines longer than 75 octets continue on the next line after CRLF + space.
+    Splits on character boundaries so Hindi and Telugu text is never cut mid-character."""
+    if len(line.encode("utf-8")) <= 75:
+        return line
+    parts, cur, size = [], "", 0
+    for ch in line:
+        n = len(ch.encode("utf-8"))
+        if size + n > (75 if not parts else 74):
+            parts.append(cur)
+            cur, size = "", 0
+        cur += ch
+        size += n
+    parts.append(cur)
+    return "\r\n ".join(parts)
 
 
 @router.get("/profiles/{profile_id}/care-plan.ics")
 async def care_plan_ics(profile_id: UUID, lang: Literal["en", "hi", "te"] = "en",
                         day: Optional[str] = Query(None, alias="date"), owner: str = Depends(current_user_id)):
     profile = await asyncio.to_thread(_profile_or_404, owner, profile_id)
-    items = await asyncio.to_thread(care_store.list_items, owner, str(profile_id))
-    body = build_ics(items, profile.name, lang, _today(day))
+    today = _today(day)
+    try:
+        items = await asyncio.to_thread(care_store.list_items, owner, str(profile_id))
+    except Exception as e:  # noqa: BLE001 - care tables not migrated yet: export the live plan
+        if not care_store.is_missing_table(e):
+            raise
+        records = await asyncio.to_thread(store.list_records, owner, str(profile_id))
+        items = care_store.ephemeral_items(str(profile_id), records, today)
+    body = build_ics(items, profile.name, lang, today)
     fname = "".join(c if c.isalnum() else "-" for c in profile.name.lower()).strip("-") or "care-plan"
     return Response(body, media_type="text/calendar; charset=utf-8",
                     headers={"Content-Disposition": f'attachment; filename="{fname}-reminders.ics"'})

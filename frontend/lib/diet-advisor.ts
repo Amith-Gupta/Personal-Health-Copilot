@@ -351,8 +351,8 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         te: "రక్త ప్రసరణను మెరుగుపరిచే నైట్రేట్స్ మరియు ఐరన్‌తో రక్తంలో ఆక్సిజన్ మోసే సామర్థ్యాన్ని పెంచుతుంది.",
       },
       howToTake: {
-        en: "Eat 1 small bowl of grated beetroot salad or 1 fresh bowl of pomegranate arils mid-morning.",
-        hi: "दोपहर से पहले 1 कटोरी कद्दूकस चुकंदर का सलाद या ताजा अनार के दाने खाएं।",
+        en: "Eat 1 small bowl of grated beetroot salad or 1 fresh bowl of pomegranate arils as a snack, mid-morning or evening.",
+        hi: "नाश्ते के रूप में, दोपहर से पहले या शाम को, 1 कटोरी कद्दूकस चुकंदर का सलाद या ताजा अनार के दाने खाएं।",
         te: "ఉదయం 11 గంటలకు లేదా సాయంత్రం తాజా దానిమ్మ గింజలు లేదా బీట్‌రూట్ సలాడ్ తీసుకోండి.",
       },
       category: "superfood",

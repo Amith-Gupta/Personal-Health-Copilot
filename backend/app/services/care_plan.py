@@ -324,7 +324,8 @@ def propose(records: List[HealthRecord], today: date) -> List[CarePlanItem]:
     if diabetes_at or bp_at:
         since = min(d for d in (diabetes_at, bp_at) if d)
         periodic("creatinine", "Kidney function (creatinine)", 365, "kidney_yearly", since + timedelta(days=30))
-    if statin_at:
+    statin_current = any(i.kind == "medicine" and i.status == "active" and re.search(STATINS, i.title.lower()) for i in items)
+    if statin_at and statin_current:
         periodic("cholesterol_total", "Lipid profile", 180, "on_statin", statin_at + timedelta(days=90))
     return items
 

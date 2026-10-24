@@ -69,7 +69,7 @@ export function CarePlanView({ profile, onOpen, onPlanChanged }: {
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow">{formatDate(today, lang)}</p>
-          {plan.adherence.due > 0 && <p className="mt-1 text-sm text-fg-2">{c.adherence(plan.adherence.taken, plan.adherence.due)}</p>}
+          {plan.persisted && plan.adherence.due > 0 && <p className="mt-1 text-sm text-fg-2">{c.adherence(plan.adherence.taken, plan.adherence.due)}</p>}
         </div>
         {meds.length + due.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -244,7 +244,10 @@ function DoseRow({ dose, lang, clock, busy, readOnly, onLog }: {
   const snoozedTill = dose.state === "snoozed" && dose.snooze_until ? new Date(dose.snooze_until) : null;
   const stillSnoozed = !!snoozedTill && snoozedTill > new Date();
   const pending = dose.state === "pending" || (dose.state === "snoozed" && !stillSnoozed);
-  const dueNow = pending && dose.time <= clock;
+  const mins = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
+  const late = mins(clock) - mins(dose.time);
+  const dueNow = pending && late >= 0 && late <= 90;   // the 90 minutes after the dose time
+  const notMarked = pending && late > 90;             // later in the day: still markable, not "due now"
   return (
     <li className={cx("flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5", dueNow && "bg-accent-soft/40")}>
       <span className={cx("num w-20 shrink-0 text-[15px] font-semibold", dueNow ? "text-fg" : "text-fg-2")}>{hm(dose.time, lang)}</span>
@@ -255,9 +258,10 @@ function DoseRow({ dose, lang, clock, busy, readOnly, onLog }: {
       {dose.state === "taken" ? <Badge tone="ok"><CheckCircle size={13} weight="fill" className="mr-1 inline" />{c.taken}</Badge>
         : dose.state === "skipped" ? <Badge>{c.skipped}</Badge>
           : stillSnoozed ? <Badge tone="warn"><ClockCountdown size={13} className="mr-1 inline" />{c.snoozedUntil(snoozedTill!.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}</Badge>
-            : readOnly ? (dueNow ? <Badge tone="accent">{c.dueNow}</Badge> : null) : (
+            : readOnly ? (dueNow ? <Badge tone="accent">{c.dueNow}</Badge> : notMarked ? <Badge>{c.missed}</Badge> : null) : (
               <span className="flex flex-wrap items-center gap-1.5">
                 {dueNow && <Badge tone="accent">{c.dueNow}</Badge>}
+                {notMarked && <Badge>{c.missed}</Badge>}
                 <Button size="sm" variant="ghost" onClick={() => onLog("skipped")} disabled={busy === key}>{c.skip}</Button>
                 <Button size="sm" variant="ghost" onClick={() => onLog("snoozed")} disabled={busy === key}>{c.snooze}</Button>
                 <Button size="sm" variant={dueNow ? "primary" : "secondary"} icon={<Check size={15} />} loading={busy === key} onClick={() => onLog("taken")}>{c.taken}</Button>

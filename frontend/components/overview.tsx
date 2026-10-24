@@ -111,7 +111,11 @@ export function Overview({
   // Clinical Summary record to showcase: prefer the just-uploaded record, or the latest prescription/record
   const clinicalRecord = justUploaded || latestPrescription || latest;
   const clinicalSummaryText = clinicalRecord ? pick(clinicalRecord.extracted.summary, lang) : "";
-  const followUpText = clinicalRecord?.extracted.follow_up;
+  // A later document (e.g. the re-check report) means this follow-up has probably happened;
+  // the Care plan tab tracks it precisely, so don't show it here as the "next" step.
+  const overtaken = !!clinicalRecord && clinicalRecord !== justUploaded &&
+    records.some((r) => r.id !== clinicalRecord.id && r.name_check !== "mismatch" && (r.record_date || "") > (clinicalRecord.record_date || ""));
+  const followUpText = overtaken ? null : clinicalRecord?.extracted.follow_up;
   const questionsList = clinicalRecord ? pickList(clinicalRecord.extracted.doctor_questions, lang) : [];
 
   return (

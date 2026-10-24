@@ -87,16 +87,20 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
     } catch {}
   }
 
-  const activeMeds = useMemo(() => currentMedicines(records), [records]);
+  const activeMeds = useMemo(() => currentMedicines(records.filter((r) => r.name_check !== "mismatch")), [records]);
+
+  // Only documents with this person's own name: a misfiled report must not put someone
+  // else's condition on an emergency card.
+  const own = useMemo(() => records.filter((r) => r.name_check !== "mismatch"), [records]);
 
   const conditions = useMemo(() => {
     const set = new Set<string>();
-    records.forEach((r) => r.extracted.diagnoses.forEach((d) => set.add(d)));
+    own.forEach((r) => r.extracted.diagnoses.forEach((d) => set.add(d)));
     return Array.from(set);
-  }, [records]);
+  }, [own]);
 
   const primaryDoctor = useMemo(() => {
-    for (const r of records) {
+    for (const r of own) {
       if (r.extracted.doctor_name || r.extracted.facility_name) {
         return {
           doctor: r.extracted.doctor_name || "",
@@ -105,7 +109,7 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
       }
     }
     return { doctor: "", facility: "" };
-  }, [records]);
+  }, [own]);
 
   // Close on ESC
   useEffect(() => {
@@ -286,10 +290,6 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
             <div className="space-y-4" id="printable-emergency-card">
               {/* The Master Pass Container */}
               <div className="relative overflow-hidden rounded-3xl border-2 border-high/30 bg-surface p-5 shadow-pop sm:p-7">
-                {/* Watermark */}
-                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.03] text-fg">
-                  <FirstAid size={340} weight="fill" />
-                </div>
 
                 {/* Top Security Banner & ECG Pulse Line */}
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">

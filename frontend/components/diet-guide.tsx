@@ -94,6 +94,12 @@ function SlotIcon({ slot }: { slot: MealTimeSlot }) {
   }
 }
 
+const GI_LABEL: Record<"en" | "hi" | "te", Record<"very-low" | "low" | "medium", string>> = {
+  en: { "very-low": "Very low sugar impact", low: "Low sugar impact", medium: "Medium sugar impact" },
+  hi: { "very-low": "शुगर पर बहुत कम असर", low: "शुगर पर कम असर", medium: "शुगर पर मध्यम असर" },
+  te: { "very-low": "చక్కెరపై చాలా తక్కువ ప్రభావం", low: "చక్కెరపై తక్కువ ప్రభావం", medium: "చక్కెరపై మధ్యస్థ ప్రభావం" },
+};
+
 export function DietGuide({
   records,
   profile,
@@ -415,7 +421,7 @@ export function DietGuide({
                         {item.glycemicImpact && (
                           <>
                             <span>·</span>
-                            <span className="text-ok font-medium">{item.glycemicImpact} GI</span>
+                            <span className="text-ok font-medium">{GI_LABEL[lang][item.glycemicImpact]}</span>
                           </>
                         )}
                       </div>

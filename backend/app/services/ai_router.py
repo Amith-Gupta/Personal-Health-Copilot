@@ -238,6 +238,8 @@ def answer_question(
         plan = care_context(care or [], today or "")
         if plan:
             context += "\n\n" + plan
+        # Record text cannot close the data block early.
+        context = re.sub(r"</?\s*records\s*>", "[records]", context, flags=re.I)
     
     target_lang = LANG_NAME.get(language, 'English')
     system = f"""You are Health Copilot, an empathetic, highly knowledgeable medical AI assistant helping an Indian family understand {profile.name}'s medical records.

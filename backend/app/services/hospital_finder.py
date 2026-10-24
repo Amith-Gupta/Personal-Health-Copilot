@@ -14,6 +14,17 @@ from app.schemas.payloads import DoctorRecommendation, HealthRecord, Profile
 logger = logging.getLogger(__name__)
 
 # Specialty mapping based on clinical keywords
+THYROID_RULE = {
+    "keywords": ["thyroid", "tsh", "hypothyroid", "hyperthyroid", "levothyroxine", "thyroxine", "thyronorm", "eltroxin", "t3", "t4"],
+    "specialty": "Endocrinology & Diabetology",
+    "doctor_title": "Endocrinologist",
+    "reasons": {
+        "en": "Endocrinologists treat thyroid and other hormone conditions, and review thyroid test results and tablet doses.",
+        "hi": "एंडोक्रिनोलॉजिस्ट थायरॉइड और अन्य हार्मोन संबंधी समस्याओं का इलाज करते हैं और थायरॉइड रिपोर्ट व दवा की खुराक देखते हैं।",
+        "te": "ఎండోక్రినాలజిస్టులు థైరాయిడ్ మరియు ఇతర హార్మోన్ సమస్యలకు చికిత్స చేస్తారు, థైరాయిడ్ రిపోర్టులు, మాత్రల మోతాదు చూస్తారు."
+    }
+}
+
 SPECIALTY_RULES = [
     {
         "keywords": ["diabetes", "sugar", "hba1c", "glucose", "fbs", "ppbs", "insulin", "glycomet", "metformin", "endocrine"],
@@ -105,7 +116,7 @@ SPECIALTY_NAMES = {
 
 def _match_rule(text: str) -> Optional[dict]:
     t = (text or "").lower()
-    for rule in SPECIALTY_RULES:
+    for rule in [THYROID_RULE] + SPECIALTY_RULES:
         names = SPECIALTY_NAMES.get(rule["specialty"], [])
         if any(re.search(rf"\b{re.escape(w)}\b", t) for w in names + rule["keywords"]):
             return rule
@@ -232,6 +243,19 @@ def fetch_real_hospitals(city: str, lat: Optional[float] = None, lon: Optional[f
     result = _fetch_real_hospitals_uncached(city=city, lat=lat, lon=lon, limit=limit + 3)
     _HOSPITAL_CACHE[key] = (time.time(), result)
     return result
+
+
+KNOWN_CITIES = ["Hyderabad", "Secunderabad", "Tirupati", "Bengaluru", "Bangalore", "Vijayawada", "Visakhapatnam", "Chennai", "Mumbai", "Delhi", "Pune", "Warangal", "Guntur", "Nellore"]
+
+
+def city_from_records(records: List[HealthRecord]) -> Optional[str]:
+    """The city printed on the person's most recent clinic or lab document, if any."""
+    for r in sorted(records, key=lambda r: r.record_date or "", reverse=True):
+        place = f"{r.extracted.facility_name or ''} {r.title or ''}"
+        for c in KNOWN_CITIES:
+            if c.lower() in place.lower():
+                return "Bengaluru" if c == "Bangalore" else c
+    return None
 
 
 def get_doctor_recommendations(
