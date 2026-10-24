@@ -543,7 +543,13 @@
        "hindi": "सुबह नाश्ते के बाद 1 गोली लें।",
        "telugu": "ఉదయం టిఫెన్ తర్వాత ఒక మాತ್ರೆ తీసుకోండి."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       215,
+       65,
+       261,
+       604
+      ]
      },
      {
       "name": "Metformin SR",
@@ -557,7 +563,13 @@
        "hindi": "भोजन के बाद सुबह और रात को 1-1 गोली लें।",
        "telugu": "భోజనం తర్వాత, ఉదయం మరియు రాత్రికి ఒక మాತ್ರೆ చొప్పున తీసుకోండి."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       294,
+       67,
+       364,
+       652
+      ]
      },
      {
       "name": "Atorvastatin",
@@ -571,7 +583,13 @@
        "hindi": "रात को सोने से पहले 1 गोली लें।",
        "telugu": "రాత్రి పడుకునే ముందు ఒక మాತ್ರೆ తీసుకోండి."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       368,
+       68,
+       444,
+       609
+      ]
      }
     ],
     "lab_observations": [],
@@ -944,7 +962,13 @@
        "hindi": "हीमोग्लोबिन लाल रक्त कोशिकाओं में मौजूद प्रोटीन है जो पूरे शरीर में ऑक्सीजन ले जाता है। इसका स्तर कम होना खून की कमी (एनीमिया) का संकेत हो सकता है।",
        "telugu": "హీమోగ్లోబిన్ అనేది ఎర్ర రక్త కణాలలో ఉండే ఒక ప్రోటీన్, ఇది శరీరమంతటా ఆక్సిజన్‌ను మోసుకెళుతుంది. ఇది తక్కువగా ఉండటం రక్తహీనతను సూచించవచ్చు."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       192,
+       73,
+       215,
+       589
+      ]
      },
      {
       "test_name": "Total WBC Count",
@@ -954,7 +978,13 @@
       "flag": "NORMAL",
       "flag_source": "computed",
       "explanation": null,
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       224,
+       73,
+       245,
+       621
+      ]
      },
      {
       "test_name": "TSH (Ultrasensitive)",
@@ -968,7 +998,13 @@
        "hindi": "थायरॉइड स्टिमुलेटिंग हार्मोन (TSH) थायरॉइड ग्रंथि के कार्य को नियंत्रित करता है। इसका उच्च स्तर थायरॉइड के कम सक्रिय होने का संकेत दे सकता है।",
        "telugu": "థైరాయిడ్ స్టిమ్యులేటింగ్ హార్మోన్ (TSH) థైరాయిడ్ పనితీరును నియంత్రిస్తుంది. దీని స్థాయి ఎక్కువగా ఉండటం థైరాయిడ్ గ్రంథి తక్కువగా పనిచేస్తుండటాన్ని సూచించవచ్చు."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       254,
+       73,
+       275,
+       548
+      ]
      },
      {
       "test_name": "25-OH Vitamin D",
@@ -982,7 +1018,13 @@
        "hindi": "विटामिन डी शरीर में कैल्शियम सोखने और हड्डियों को मजबूत रखने में मदद करता है। इसका कम स्तर शरीर में विटामिन डी की कमी को दर्शाता है।",
        "telugu": "విటమిన్ డి కాల్షియంను గ్రహించడంలో మరియు ఎముకలను బలంగా ఉంచడంలో సహాయపడుతుంది. ఇది తక్కువగా ఉండటం శరీరంలో విటమిన్ డి లోపాన్ని సూచిస్తుంది."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       284,
+       73,
+       305,
+       542
+      ]
      },
      {
       "test_name": "Fasting Blood Sugar",
@@ -992,7 +1034,13 @@
       "flag": "NORMAL",
       "flag_source": "computed",
       "explanation": null,
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       313,
+       73,
+       334,
+       538
+      ]
      },
      {
       "test_name": "Serum Creatinine",
@@ -1002,7 +1050,13 @@
       "flag": "NORMAL",
       "flag_source": "computed",
       "explanation": null,
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       342,
+       73,
+       363,
+       538
+      ]
      }
     ],
     "summary": {
@@ -1536,7 +1590,13 @@
        "hindi": "3 महीने तक खाली पेट दिन में एक बार एक गोली लें।",
        "telugu": "3 నెలల పాటు రోజుకు ఒకసారి ఖాళీ కడుపుతో ఒక టాబ్లెట్ తీసుకోండి."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       238,
+       67,
+       278,
+       842
+      ]
      },
      {
       "name": "Ferrous Ascorbate",
@@ -1550,7 +1610,13 @@
        "hindi": "2 महीने तक दोपहर के भोजन के बाद दिन में एक बार एक गोली लें।",
        "telugu": "2 నెలల పాటు మధ్యాహ్న భోజనం తర్వాత రోజుకు ఒకసారి ఒక టాబ్లెట్ తీసుకోండి."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       286,
+       67,
+       326,
+       839
+      ]
      },
      {
       "name": "Cholecalciferol",
@@ -1564,7 +1630,13 @@
        "hindi": "8 सप्ताह तक सप्ताह में एक बार एक कैप्सूल लें।",
        "telugu": "8 వారాల పాటు వారానికి ఒకసారి ఒక క్యాప్సూల్ తీసుకోండి."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       334,
+       67,
+       369,
+       725
+      ]
      }
     ],
     "lab_observations": [],
@@ -1967,7 +2039,13 @@
        "hindi": "हीमोग्लोबिन शरीर में ऑक्सीजन पहुंचाने का काम करता है। इसका स्तर थोड़ा कम होना हल्के एनीमिया (खून की कमी) का संकेत हो सकता है, जो आमतौर पर आयरन की कमी से जुड़ा होता है।",
        "telugu": "హిమోగ్లోబిన్ శరీరమంతటా ఆక్సిజన్‌ను మోసుకెళుతుంది. ఇది కొద్దిగా తక్కువగా ఉండటం తేలికపాటి రక్తహీనతను సూచిస్తుంది, ఇది సాధారణంగా ఐరన్ లోపం వల్ల వస్తుంది."
       },
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       188,
+       78,
+       210,
+       583
+      ]
      },
      {
       "test_name": "Total WBC Count",
@@ -1977,7 +2055,13 @@
       "flag": "NORMAL",
       "flag_source": "computed",
       "explanation": null,
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       220,
+       78,
+       240,
+       614
+      ]
      },
      {
       "test_name": "TSH (Ultrasensitive)",
@@ -1987,7 +2071,13 @@
       "flag": "NORMAL",
       "flag_source": "computed",
       "explanation": null,
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       251,
+       78,
+       271,
+       562
+      ]
      },
      {
       "test_name": "25-OH Vitamin D",
@@ -1997,7 +2087,13 @@
       "flag": "NORMAL",
       "flag_source": "computed",
       "explanation": null,
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       281,
+       78,
+       301,
+       564
+      ]
      },
      {
       "test_name": "Fasting Blood Sugar",
@@ -2007,7 +2103,13 @@
       "flag": "NORMAL",
       "flag_source": "computed",
       "explanation": null,
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       311,
+       78,
+       332,
+       548
+      ]
      },
      {
       "test_name": "Serum Creatinine",
@@ -2017,7 +2119,13 @@
       "flag": "NORMAL",
       "flag_source": "computed",
       "explanation": null,
-      "uncertain": false
+      "uncertain": false,
+      "source_box": [
+       342,
+       78,
+       362,
+       560
+      ]
      }
     ],
     "summary": {
