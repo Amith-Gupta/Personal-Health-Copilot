@@ -110,7 +110,11 @@ export function AskView({
 
   // Smooth scroll within chat container
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    // Scroll only the conversation pane, and only once there is a conversation: scrolling on
+    // the empty state pulled the whole page down and hid the welcome heading under the tabs.
+    const el = scrollContainerRef.current;
+    if (!el || turns.length === 0) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [turns, liveTranscript, busy]);
 
   // Cycle thinking step animation when busy
@@ -336,21 +340,20 @@ export function AskView({
       {/* Top Professional Header Bar */}
       <div className="flex h-11 sm:h-12 shrink-0 items-center justify-between border-b border-line bg-surface/90 px-3.5 backdrop-blur-md sm:px-5">
         <div className="flex items-center gap-2.5">
-          <span className="relative grid h-7 w-7 place-items-center rounded-lg bg-accent-soft text-accent shadow-xs">
-            <Sparkle size={15} weight="fill" />
-            <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-emerald-500 ring-1 ring-surface" />
+          <span className="grid h-7 w-7 place-items-center rounded-lg bg-subtle text-fg-2">
+            <Sparkle size={15} weight="fill" aria-hidden />
           </span>
           <div className="flex items-center gap-2">
             <span className="text-xs sm:text-sm font-bold text-fg">Health Copilot</span>
-            <Badge tone="accent" className="text-[10px] font-semibold py-0 px-1.5">
-              Cites records
+            <Badge className="hidden py-0 text-[11px] sm:inline-flex">
+              {t.askCites}
             </Badge>
           </div>
         </div>
 
         {/* Center Grounded Pill (Responsive) */}
         <div className="hidden md:flex items-center gap-1.5 rounded-full border border-line/80 bg-canvas/60 px-3 py-1 text-[11px] text-fg-3">
-          <ShieldCheck size={13} className="text-emerald-500" weight="fill" />
+          <ShieldCheck size={13} className="text-ok" weight="fill" />
           <span>Grounded in {records.length} records for <strong className="text-fg font-semibold">{profile.name}</strong></span>
           {activeMeds.length > 0 && <span className="text-fg-3">· {activeMeds.length} active meds</span>}
         </div>
@@ -372,26 +375,29 @@ export function AskView({
               if (speech.speaking) speech.stop();
               setAutoSpeak(!autoSpeak);
             }}
-            title={autoSpeak ? "Voice answers active. Click to mute." : "Voice answers muted. Click to enable."}
+            title={autoSpeak ? "Voice answers on. Click to mute." : "Voice answers muted. Click to turn on."}
+            aria-label={autoSpeak ? t.voiceOn : t.voiceOff}
+            aria-pressed={autoSpeak}
             className={cx(
-              "flex h-7 items-center gap-1 rounded-lg border px-2 text-xs font-medium transition-all shadow-xs",
+              "flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors",
               autoSpeak
                 ? "border-accent/40 bg-accent-soft text-accent font-semibold"
                 : "border-line bg-surface text-fg-3 hover:text-fg"
             )}
           >
             {autoSpeak ? <SpeakerHigh size={13} weight="bold" /> : <SpeakerSlash size={13} />}
-            <span className="hidden sm:inline">{autoSpeak ? "Voice On" : "Muted"}</span>
+            <span className="hidden sm:inline">{autoSpeak ? t.voiceOn : t.voiceOff}</span>
           </button>
 
           {turns.length > 0 && (
             <button
               onClick={clearChat}
               title="Clear conversation"
-              className="flex h-7 items-center gap-1 rounded-lg border border-line bg-surface px-2 text-xs font-medium text-fg-3 hover:border-warn hover:text-warn transition-colors shadow-xs"
+              aria-label={t.clearChat}
+              className="flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-xs font-medium text-fg-3 transition-colors hover:border-warn hover:text-warn"
             >
               <Trash size={13} />
-              <span className="hidden sm:inline">Clear</span>
+              <span className="hidden sm:inline">{t.clearChat}</span>
             </button>
           )}
         </div>
@@ -404,89 +410,37 @@ export function AskView({
       >
         <div className="mx-auto w-full max-w-3xl space-y-4">
           {turns.length === 0 && (
-            <div className="py-4 sm:py-6 space-y-5 text-center">
+            <div className="space-y-5 py-2 text-center sm:py-6">
               {/* Welcoming Header */}
               <div className="space-y-1.5">
-                <span className="inline-grid h-10 w-10 place-items-center rounded-2xl bg-accent-soft text-accent shadow-xs ring-4 ring-accent/10 mb-1">
-                  <Sparkle size={20} weight="fill" />
-                </span>
-                <h3 className="text-base sm:text-lg font-bold tracking-tight text-fg">
-                  How can I help with {profile.name}&apos;s health today?
+                <h3 className="display text-[20px] font-semibold leading-tight text-fg sm:text-[24px]">
+                  {t.askWelcome(profile.name)}
                 </h3>
-                <p className="text-xs text-fg-3 max-w-md mx-auto leading-relaxed">
-                  Direct answers based strictly on {profile.name}&apos;s verified prescriptions, lab reports, and clinical notes.
+                <p className="mx-auto max-w-md text-sm leading-relaxed text-fg-3">
+                  {t.askWelcomeBody(profile.name)}
                 </p>
               </div>
 
-              {/* 4 Professional Capability Starter Cards */}
-              <div className="grid gap-2.5 sm:grid-cols-2 text-left">
-                <button
-                  onClick={() => ask("When should each prescribed medicine be taken and what are the specific food directions?")}
-                  className="group flex items-start gap-3 rounded-xl border border-line bg-surface p-3 shadow-xs transition-all hover:border-accent/50 hover:bg-canvas hover:shadow-card"
-                >
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-amber-500/10 text-amber-500 group-hover:scale-105 transition-transform">
-                    <Pill size={18} weight="duotone" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-bold text-fg group-hover:text-accent transition-colors">
-                      Prescription Schedule
-                    </h4>
-                    <p className="mt-0.5 text-[11px] text-fg-3 leading-snug">
-                      Daily morning, afternoon &amp; night routine breakdown.
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => ask("What foods, drinks, or other medicines should be avoided with these prescribed medications?")}
-                  className="group flex items-start gap-3 rounded-xl border border-line bg-surface p-3 shadow-xs transition-all hover:border-accent/50 hover:bg-canvas hover:shadow-card"
-                >
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-500/10 text-rose-500 group-hover:scale-105 transition-transform">
-                    <WarningCircle size={18} weight="duotone" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-bold text-fg group-hover:text-accent transition-colors">
-                      Precautions &amp; Safety
-                    </h4>
-                    <p className="mt-0.5 text-[11px] text-fg-3 leading-snug">
-                      Diet limits, drug interactions &amp; precautions.
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => ask("Are there any abnormal, high, or low lab test values in these records?")}
-                  className="group flex items-start gap-3 rounded-xl border border-line bg-surface p-3 shadow-xs transition-all hover:border-accent/50 hover:bg-canvas hover:shadow-card"
-                >
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-sky-500/10 text-sky-500 group-hover:scale-105 transition-transform">
-                    <Flask size={18} weight="duotone" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-bold text-fg group-hover:text-accent transition-colors">
-                      Lab Test Results
-                    </h4>
-                    <p className="mt-0.5 text-[11px] text-fg-3 leading-snug">
-                      Clear explanation of test flags &amp; reference ranges.
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => ask("What important follow-up questions should we ask the doctor at the next visit?")}
-                  className="group flex items-start gap-3 rounded-xl border border-line bg-surface p-3 shadow-xs transition-all hover:border-accent/50 hover:bg-canvas hover:shadow-card"
-                >
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-500/10 text-emerald-500 group-hover:scale-105 transition-transform">
-                    <ListBullets size={18} weight="duotone" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-bold text-fg group-hover:text-accent transition-colors">
-                      Doctor Visit Checklist
-                    </h4>
-                    <p className="mt-0.5 text-[11px] text-fg-3 leading-snug">
-                      Targeted question list for your next consultation.
-                    </p>
-                  </div>
-                </button>
+              {/* Starter questions: one neutral style, the icon tells them apart */}
+              <div className="grid gap-2.5 text-left sm:grid-cols-2">
+                {t.askStarters.map(([title, body, query], i) => {
+                  const Icon = [Pill, WarningCircle, Flask, ListBullets][i] || Sparkle;
+                  return (
+                    <button
+                      key={title}
+                      onClick={() => ask(query)}
+                      className="group flex min-h-[64px] items-start gap-3 rounded-xl border border-line bg-surface p-3.5 text-left transition-colors hover:border-fg/30 hover:bg-hover/50"
+                    >
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-subtle text-fg-2">
+                        <Icon size={18} aria-hidden />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-semibold text-fg">{title}</span>
+                        <span className="mt-0.5 block text-[13px] leading-snug text-fg-3">{body}</span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Quick Prompt Pills */}
@@ -495,7 +449,7 @@ export function AskView({
                   <button
                     key={s}
                     onClick={() => ask(s)}
-                    className="rounded-full border border-line bg-surface px-3 py-1 text-xs text-fg-2 hover:border-accent/40 hover:text-accent hover:bg-accent-soft transition-all shadow-xs"
+                    className="min-h-10 rounded-full border border-line bg-surface px-3.5 py-1.5 text-[13px] text-fg-2 transition-colors hover:border-fg/30 hover:text-fg"
                   >
                     {s}
                   </button>
@@ -516,7 +470,7 @@ export function AskView({
                         <Microphone size={11} /> Voice
                       </span>
                     )}
-                    <p className="rounded-2xl rounded-tr-xs bg-accent px-4 py-2.5 text-xs sm:text-[14px] text-accent-fg leading-relaxed shadow-xs font-normal">
+                    <p className="rounded-2xl rounded-tr-md bg-accent px-4 py-2.5 text-[15px] leading-relaxed text-accent-fg">
                       {turn.q}
                     </p>
                   </div>
@@ -526,7 +480,7 @@ export function AskView({
 
               {/* Assistant Message */}
               <div className="flex gap-3 items-start">
-                <span className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent shadow-xs">
+                <span className="mt-1 hidden h-7 w-7 shrink-0 place-items-center rounded-full bg-subtle text-fg-2 sm:grid">
                   <Sparkle size={14} weight="fill" />
                 </span>
 
@@ -575,7 +529,7 @@ export function AskView({
                       )}
 
                       {/* Rendered Markdown */}
-                      <div className="max-w-[72ch] space-y-2.5 text-xs sm:text-[14px] leading-relaxed text-fg">
+                      <div className="max-w-[72ch] space-y-2.5 text-[15px] leading-relaxed text-fg">
                         {renderAnswer(turn.a.answer, byShort, onOpen)}
                       </div>
 
@@ -583,7 +537,7 @@ export function AskView({
                       {turn.a.suggested_questions && turn.a.suggested_questions.length > 0 && (
                         <div className="mt-3.5 pt-3 border-t border-line/70">
                           <p className="mb-1.5 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-fg-3">
-                            <Lightbulb size={12} weight="fill" className="text-amber-500" />
+                            <Lightbulb size={12} weight="fill" className="text-warn" />
                             <span>Suggested Next</span>
                           </p>
                           <div className="flex flex-wrap gap-1.5">
@@ -631,8 +585,8 @@ export function AskView({
                           >
                             {copiedId === turn.id ? (
                               <>
-                                <Check size={12} className="text-emerald-500" />
-                                <span className="text-emerald-500 font-semibold">Copied</span>
+                                <Check size={12} className="text-ok" />
+                                <span className="font-semibold text-ok">Copied</span>
                               </>
                             ) : (
                               <span>Copy</span>
@@ -737,9 +691,9 @@ export function AskView({
               e.preventDefault();
               ask(q);
             }}
-            className="flex items-end gap-2 rounded-2xl border border-line bg-canvas/80 p-2 shadow-xs transition-all focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/15 focus-within:shadow-md"
+            className="flex items-end gap-1.5 rounded-[26px] border border-line bg-canvas/80 p-1.5 pl-3 transition-colors focus-within:border-fg/40 sm:gap-2"
           >
-            <Avatar name={profile.name} size={30} />
+            <span className="hidden self-center sm:inline-flex"><Avatar name={profile.name} size={30} /></span>
             <textarea
               ref={textareaRef}
               value={q}
@@ -758,15 +712,17 @@ export function AskView({
                   ? "Transcribing with Whisper..."
                   : `Ask about ${profile.name}'s records (EN, HI, TE)...`
               }
-              className="max-h-36 min-h-[32px] flex-1 resize-none border-0 bg-transparent py-1 text-xs sm:text-sm text-fg placeholder:text-fg-3/70 focus:outline-none"
+              aria-label={t.askButton}
+              className="max-h-36 min-h-[44px] flex-1 resize-none border-0 bg-transparent px-1 py-2.5 text-[16px] leading-snug text-fg placeholder:text-fg-3 focus:outline-none sm:text-[15px]"
             />
 
             {q.trim() && (
               <button
                 type="button"
                 onClick={() => setQ("")}
-                className="p-1 text-fg-3 hover:text-fg transition-colors"
+                className="grid h-11 w-9 shrink-0 place-items-center text-fg-3 transition-colors hover:text-fg"
                 title="Clear text"
+                aria-label="Clear text"
               >
                 <X size={15} />
               </button>
@@ -779,10 +735,10 @@ export function AskView({
               aria-label={micState === "listening" ? t.stop : t.speak}
               title={micState === "listening" ? "Stop listening" : "Voice question"}
               className={cx(
-                "grid h-8 w-8 shrink-0 place-items-center rounded-xl transition-all",
+                "grid h-11 w-11 shrink-0 place-items-center rounded-full border transition-colors",
                 micState === "listening"
-                  ? "bg-high text-white animate-pulse"
-                  : "text-fg-3 hover:bg-hover hover:text-accent"
+                  ? "animate-pulse border-high bg-high text-white"
+                  : "border-line bg-surface text-fg-2 hover:border-fg/30 hover:text-fg"
               )}
             >
               {micState === "transcribing" ? (
@@ -790,7 +746,7 @@ export function AskView({
               ) : micState === "listening" ? (
                 <Stop size={14} weight="fill" />
               ) : (
-                <Microphone size={17} weight="duotone" />
+                <Microphone size={19} weight="bold" />
               )}
             </button>
 
@@ -798,14 +754,14 @@ export function AskView({
               disabled={busy || !q.trim()}
               aria-label={t.askButton}
               title="Press Enter to send"
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-accent text-accent-fg transition-all disabled:opacity-30 shadow-xs hover:opacity-90"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-30"
             >
               {busy ? <Spinner /> : <ArrowUp size={16} weight="bold" />}
             </button>
           </form>
 
           {/* Under-input Disclaimer matching professional chatbots */}
-          <p className="mt-1.5 text-center text-[10px] text-fg-3 leading-tight">
+          <p className="mt-1.5 text-center text-[11px] leading-tight text-fg-3">
             Health Copilot can make mistakes. Verify important medical decisions with your doctor.
           </p>
         </div>
@@ -982,9 +938,9 @@ function renderAnswer(
       blocks.push(
         <blockquote
           key={`bq-${blocks.length}`}
-          className="my-2.5 flex items-start gap-2.5 rounded-xl border-l-4 border-amber-500 bg-amber-500/10 p-3 text-xs sm:text-[13.5px] text-fg leading-relaxed"
+          className="my-2.5 flex items-start gap-2.5 rounded-xl border border-warn/30 bg-warn-soft p-3 text-sm leading-relaxed text-fg"
         >
-          <WarningCircle size={16} weight="fill" className="shrink-0 text-amber-500 mt-0.5" />
+          <WarningCircle size={16} weight="fill" className="mt-0.5 shrink-0 text-warn" />
           <div className="flex-1">{inline(quoteText, `bq-${blocks.length}`)}</div>
         </blockquote>
       );

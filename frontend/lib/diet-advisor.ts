@@ -728,9 +728,9 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
     te: "వ్యక్తిగతీకరించిన భారతీయ ఆహార & జీవనశైలి ప్రణాళిక",
   };
   let focusSubtitle = {
-    en: "Clinically customized based on active diagnoses and out-of-range lab reports.",
-    hi: "सक्रिय स्वास्थ्य रिपोर्ट और जांच परिणामों के आधार पर तैयार किया गया।",
-    te: "తాజా ల్యాబ్ రిపోర్టులు మరియు వ్యాధి నిర్ధారణల ఆధారంగా రూపొందించబడింది.",
+    en: "General suggestions based on the conditions and results in these records. Check with the doctor before changing diet.",
+    hi: "इन रिकॉर्ड की बीमारियों और नतीजों पर आधारित सामान्य सुझाव। खान-पान बदलने से पहले डॉक्टर से पूछें।",
+    te: "ఈ రికార్డుల్లోని వ్యాధులు, ఫలితాల ఆధారంగా సాధారణ సూచనలు. ఆహారం మార్చే ముందు డాక్టర్‌ను అడగండి.",
   };
 
   if (isDiabetic && isCardiacOrHypertensive) {

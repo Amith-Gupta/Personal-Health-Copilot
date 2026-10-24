@@ -199,67 +199,76 @@ export function Overview({
         </aside>
       )}
 
-      {/* Unified Health Profile Overview dl */}
-      <section aria-label={t.profileTitle}>
-        <div className="mb-4 flex items-baseline justify-between">
-          <p className="eyebrow">{t.profileTitle}</p>
-          <span className="text-xs text-fg-3">
-            {t.documents(records.length)}
-          </span>
+      {/* Lab Results / Attention Needed */}
+      {out.length > 0 && (
+        <section aria-label={t.needsAttention}>
+          <div className="mb-4 flex items-baseline justify-between">
+            <p className="eyebrow">{t.needsAttention}</p>
+            <p className="hidden text-xs text-fg-3 sm:block">{t.attentionNote}</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {out.map(({ o, r }, i) => {
+              const low = o.flag === "LOW";
+              return (
+                <button
+                  key={i}
+                  onClick={() => onOpen(r.id)}
+                  className="group relative flex flex-col panel p-5 text-left transition-all hover:-translate-y-0.5 hover:border-fg/30"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-[15px] font-medium leading-snug">{o.test_name}</p>
+                    <span className="shrink-0 rounded-full bg-high-soft px-2.5 py-0.5 text-xs font-semibold text-high">
+                      {low ? "↓" : "↑"} {t[o.flag]}
+                    </span>
+                  </div>
+                  <p className="mt-6 flex items-baseline gap-2">
+                    <span className="display text-[56px] font-semibold leading-none text-high">
+                      {o.observed_value}
+                    </span>
+                    <span className="text-sm text-fg-3">{o.unit}</span>
+                  </p>
+                  <RangeBar o={o} className="mt-6" />
+                  <div className="mt-2 flex justify-between text-xs text-fg-3">
+                    <span>
+                      {t.normal} <span className="num">{o.reference_range}</span>
+                    </span>
+                    <span>{formatDate(r.record_date, lang)}</span>
+                  </div>
+                  {o.explanation && (
+                    <p className="mt-4 border-t border-line pt-4 text-sm leading-relaxed text-fg-2">
+                      {highlight(pick(o.explanation, lang), [
+                        "low",
+                        "high",
+                        "lower",
+                        "higher",
+                        "anaemia",
+                        "deficiency",
+                        "underactive",
+                        "infection",
+                        "inflammation",
+                      ])}
+                    </p>
+                  )}
+                  <ArrowUpRight
+                    size={16}
+                    className="absolute right-4 top-14 text-fg-3 opacity-0 transition-opacity group-hover:opacity-100"
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {tests.length > 0 && out.length === 0 && (
+        <div className="flex items-center gap-2 text-ok text-sm font-medium">
+          <CheckCircle size={18} weight="fill" />
+          <span>{t.allClear}</span>
         </div>
-        <dl className="grid overflow-hidden panel sm:grid-cols-2 lg:grid-cols-4">
-          <div className="min-w-0 border-line p-5 sm:border-r lg:border-b-0">
-            <dt className="text-xs font-medium text-fg-3">{t.conditions}</dt>
-            <dd className="mt-2.5 flex flex-wrap gap-1.5 min-w-0">
-              {conditions.length ? (
-                conditions.map((c) => (
-                  <span
-                    key={c}
-                    title={c}
-                    className="inline-flex max-w-full items-center rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent ring-1 ring-inset ring-accent/15 leading-snug break-words"
-                  >
-                    <span className="line-clamp-2">{c}</span>
-                  </span>
-                ))
-              ) : (
-                <span className="text-sm text-fg-3">–</span>
-              )}
-            </dd>
-          </div>
-          <div className="min-w-0 border-t border-line p-5 sm:border-t-0 lg:border-r">
-            <dt className="text-xs font-medium text-fg-3">{t.nowMeds}</dt>
-            <dd className="mt-1">
-              <span className="display text-[32px] font-semibold">{meds.length}</span>
-              <span className="mt-0.5 block truncate text-sm text-fg-2">
-                {meds.map(({ m }) => m.name).join(", ") || "–"}
-              </span>
-            </dd>
-          </div>
-          <div className="min-w-0 border-t border-line p-5 sm:border-r lg:border-t-0">
-            <dt className="text-xs font-medium text-fg-3">{t.careTeam}</dt>
-            <dd className="mt-2 space-y-1 text-sm">
-              {team.slice(0, 3).map((x) => (
-                <span key={x} className="block truncate font-medium">
-                  {x}
-                </span>
-              ))}
-              {team.length > 3 && <span className="text-xs text-fg-3">+{team.length - 3} more</span>}
-              {!team.length && <span className="text-sm text-fg-3">–</span>}
-            </dd>
-          </div>
-          <div className="min-w-0 border-t border-line p-5 lg:border-t-0">
-            <dt className="text-xs font-medium text-fg-3">{t.lastUpdated}</dt>
-            <dd className="mt-1">
-              <span className="display text-[22px] font-semibold">
-                {latest?.record_date ? formatDate(latest.record_date, lang) : "–"}
-              </span>
-              <span className="block text-sm text-fg-2">
-                {latest ? t.types[latest.document_type] : ""}
-              </span>
-            </dd>
-          </div>
-        </dl>
-      </section>
+      )}
+
+      {/* Same test across reports */}
+      <Trends trends={trends} onOpen={onOpen} />
 
       {/* Doctor's Advice & Clinical Impression */}
       {clinicalSummaryText && (
@@ -477,7 +486,7 @@ export function Overview({
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Follow-up card */}
             {followUpText && (
-              <div className="panel p-5 flex flex-col justify-between">
+              <div className="panel flex flex-col p-5 lg:self-start">
                 <div>
                   <div className="flex items-center gap-2.5 text-sm font-semibold text-fg">
                     <span className="grid h-8 w-8 place-items-center rounded-lg bg-ok-soft text-ok">
@@ -527,22 +536,16 @@ export function Overview({
 
                 <ul className="mt-3 space-y-2.5">
                   {questionsList.map((q, qi) => (
-                    <li
-                      key={qi}
-                      className="group flex items-start justify-between gap-3 rounded-lg border border-line bg-canvas p-2.5 text-xs sm:text-sm transition-colors hover:border-accent/40"
-                    >
-                      <span
-                        onClick={() => (onAsk ? onAsk(q) : onTab("ask"))}
-                        className="cursor-pointer text-fg-2 leading-relaxed transition-colors group-hover:text-fg"
-                      >
-                        {q}
-                      </span>
+                    <li key={qi}>
                       <button
                         onClick={() => (onAsk ? onAsk(q) : onTab("ask"))}
-                        className="shrink-0 rounded-md bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-white transition-colors shadow-xs"
-                        title={t.askThisQuestion}
+                        className="group flex min-h-11 w-full items-start justify-between gap-3 rounded-lg border border-line bg-canvas p-3 text-left text-sm transition-colors hover:border-fg/30"
                       >
-                        {t.askThisQuestion}
+                        <span className="leading-relaxed text-fg-2 transition-colors group-hover:text-fg">{q}</span>
+                        <span className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-fg">
+                          {t.askThisQuestion}
+                          <ArrowRight size={12} aria-hidden />
+                        </span>
                       </button>
                     </li>
                   ))}
@@ -553,79 +556,67 @@ export function Overview({
         </section>
       )}
 
-      {/* Lab Results / Attention Needed */}
-      {out.length > 0 && (
-        <section aria-label={t.needsAttention}>
-          <div className="mb-4 flex items-baseline justify-between">
-            <p className="eyebrow">{t.needsAttention}</p>
-            <p className="hidden text-xs text-fg-3 sm:block">{t.attentionNote}</p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {out.map(({ o, r }, i) => {
-              const low = o.flag === "LOW";
-              return (
-                <button
-                  key={i}
-                  onClick={() => onOpen(r.id)}
-                  className="group relative flex flex-col panel p-5 text-left transition-all hover:-translate-y-0.5 hover:border-fg/30"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-[15px] font-medium leading-snug">{o.test_name}</p>
-                    <span className="shrink-0 rounded-full bg-high-soft px-2.5 py-0.5 text-xs font-semibold text-high">
-                      {low ? "↓" : "↑"} {t[o.flag]}
-                    </span>
-                  </div>
-                  <p className="mt-6 flex items-baseline gap-2">
-                    <span className="display text-[56px] font-semibold leading-none text-high">
-                      {o.observed_value}
-                    </span>
-                    <span className="text-sm text-fg-3">{o.unit}</span>
-                  </p>
-                  <RangeBar o={o} className="mt-6" />
-                  <div className="mt-2 flex justify-between text-xs text-fg-3">
-                    <span>
-                      {t.normal} <span className="num">{o.reference_range}</span>
-                    </span>
-                    <span>{formatDate(r.record_date, lang)}</span>
-                  </div>
-                  {o.explanation && (
-                    <p className="mt-4 border-t border-line pt-4 text-sm leading-relaxed text-fg-2">
-                      {highlight(pick(o.explanation, lang), [
-                        "low",
-                        "high",
-                        "lower",
-                        "higher",
-                        "anaemia",
-                        "deficiency",
-                        "underactive",
-                        "infection",
-                        "inflammation",
-                      ])}
-                    </p>
-                  )}
-                  <ArrowUpRight
-                    size={16}
-                    className="absolute right-4 top-14 text-fg-3 opacity-0 transition-opacity group-hover:opacity-100"
-                  />
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {tests.length > 0 && out.length === 0 && (
-        <div className="flex items-center gap-2 text-ok text-sm font-medium">
-          <CheckCircle size={18} weight="fill" />
-          <span>{t.allClear}</span>
+      {/* Unified Health Profile Overview dl */}
+      <section aria-label={t.profileTitle}>
+        <div className="mb-4 flex items-baseline justify-between">
+          <p className="eyebrow">{t.profileTitle}</p>
+          <span className="text-xs text-fg-3">
+            {t.documents(records.length)}
+          </span>
         </div>
-      )}
-
-      {/* Same test across reports */}
-      <Trends trends={trends} onOpen={onOpen} />
-
-      {/* Personalized Indian Diet & Lifestyle Guide */}
-      <DietGuide records={records} profile={profile} />
+        <dl className="grid overflow-hidden panel sm:grid-cols-2 lg:grid-cols-4">
+          <div className="min-w-0 border-line p-5 sm:border-r lg:border-b-0">
+            <dt className="text-xs font-medium text-fg-3">{t.conditions}</dt>
+            <dd className="mt-2.5 flex flex-wrap gap-1.5 min-w-0">
+              {conditions.length ? (
+                conditions.map((c) => (
+                  <span
+                    key={c}
+                    title={c}
+                    className="inline-flex max-w-full items-center rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent ring-1 ring-inset ring-accent/15 leading-snug break-words"
+                  >
+                    <span className="line-clamp-2">{c}</span>
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm text-fg-3">–</span>
+              )}
+            </dd>
+          </div>
+          <div className="min-w-0 border-t border-line p-5 sm:border-t-0 lg:border-r">
+            <dt className="text-xs font-medium text-fg-3">{t.nowMeds}</dt>
+            <dd className="mt-1">
+              <span className="display text-[32px] font-semibold">{meds.length}</span>
+              <span className="mt-0.5 block truncate text-sm text-fg-2">
+                {meds.map(({ m }) => m.name).join(", ") || "–"}
+              </span>
+            </dd>
+          </div>
+          <div className="min-w-0 border-t border-line p-5 sm:border-r lg:border-t-0">
+            <dt className="text-xs font-medium text-fg-3">{t.careTeam}</dt>
+            <dd className="mt-2 space-y-1 text-sm">
+              {team.slice(0, 3).map((x) => (
+                <span key={x} className="block truncate font-medium">
+                  {x}
+                </span>
+              ))}
+              {team.length > 3 && <span className="text-xs text-fg-3">+{team.length - 3} more</span>}
+              {!team.length && <span className="text-sm text-fg-3">–</span>}
+            </dd>
+          </div>
+          <div className="min-w-0 border-t border-line p-5 lg:border-t-0">
+            <dt className="text-xs font-medium text-fg-3">{t.lastUpdated}</dt>
+            <dd className="mt-1">
+              <span className="display text-[22px] font-semibold">
+                {latest?.record_date ? formatDate(latest.record_date, lang) : "–"}
+              </span>
+              <span className="block text-sm text-fg-2">
+                {latest ? t.types[latest.document_type] : ""}
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </section>
 
       {/* Health timeline */}
       <section aria-label={t.journey}>
@@ -641,6 +632,9 @@ export function Overview({
         </div>
         <Timeline records={records} onOpen={onOpen} limit={3} />
       </section>
+
+      {/* Personalized Indian Diet & Lifestyle Guide */}
+      <DietGuide records={records} profile={profile} />
     </div>
   );
 }
@@ -775,19 +769,17 @@ export function Findings({ records }: { records: HealthRecord[] | null }) {
   } else if (conditions.length > 0 && meds.length > 0) {
     headline = (
       <span>
-        Active care for{" "}
+        {t.activeCareLead}{" "}
         <span className="text-accent">
           {conditions.slice(0, 2).join(" & ")}
           {conditions.length > 2 ? ` +${conditions.length - 2}` : ""}
         </span>{" "}
-        · {meds.length} {t.medsCount(meds.length)}
+        · {t.medsCount(meds.length)}
       </span>
     );
   } else if (meds.length > 0) {
     headline = (
-      <span>
-        {meds.length} {t.medsCount(meds.length)} prescribed on recent visits
-      </span>
+      <span>{t.medsPrescribed(meds.length)}</span>
     );
   } else if (tests.length > 0) {
     headline = t.heroClear;

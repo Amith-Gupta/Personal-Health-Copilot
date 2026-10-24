@@ -31,9 +31,9 @@ type ViewMode = "routine" | "grid" | "table";
 type FormFilter = "all" | "tablet" | "syrup" | "drops";
 
 const ROUTINE_SLOTS: { slot: Slot; label: string; time: string; Icon: typeof Sun; tone: string }[] = [
-  { slot: "morning", label: "Morning", time: "8:00 AM – 9:00 AM", Icon: SunHorizon, tone: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
-  { slot: "afternoon", label: "Afternoon", time: "1:00 PM – 2:00 PM", Icon: Sun, tone: "text-orange-500 bg-orange-500/10 border-orange-500/20" },
-  { slot: "night", label: "Night", time: "9:00 PM – 10:00 PM", Icon: Moon, tone: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20" },
+  { slot: "morning", label: "Morning", time: "8:00 AM – 9:00 AM", Icon: SunHorizon, tone: "text-fg-2 bg-subtle border-line" },
+  { slot: "afternoon", label: "Afternoon", time: "1:00 PM – 2:00 PM", Icon: Sun, tone: "text-fg-2 bg-subtle border-line" },
+  { slot: "night", label: "Night", time: "9:00 PM – 10:00 PM", Icon: Moon, tone: "text-fg-2 bg-subtle border-line" },
 ];
 
 function getFormIcon(form?: string | null, name?: string) {
@@ -53,15 +53,15 @@ function getFormIcon(form?: string | null, name?: string) {
 function getFormBadgeTone(form?: string | null, name?: string) {
   const str = `${form || ""} ${name || ""}`.toLowerCase();
   if (str.includes("syrup") || str.includes("suspension") || str.includes("liquid")) {
-    return "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400";
+    return "border-warn/30 bg-warn-soft text-warn";
   }
   if (str.includes("drop") || str.includes("drops") || str.includes("saline")) {
-    return "border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400";
+    return "border-line bg-subtle text-fg-2";
   }
   if (str.includes("inj") || str.includes("injection")) {
-    return "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400";
+    return "border-high/30 bg-high-soft text-high";
   }
-  return "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
+  return "border-ok/30 bg-ok-soft text-ok";
 }
 
 export function MedicinesView({
@@ -187,7 +187,7 @@ export function MedicinesView({
                       .join(", ")}.`
                   )
                 }
-                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent transition-all hover:bg-accent hover:text-white shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent transition-all hover:bg-accent hover:text-accent-fg shadow-xs"
               >
                 <Sparkle size={13} weight="fill" />
                 <span>Check Interactions</span>
@@ -207,7 +207,7 @@ export function MedicinesView({
         {/* Routine Time Slot Pill Summary */}
         <div className="mt-3.5 grid grid-cols-2 gap-2 sm:grid-cols-4 border-t border-line/80 pt-3">
           <div className="flex items-center gap-2.5 rounded-lg border border-line bg-canvas/60 p-2 sm:p-2.5">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-amber-500/10 text-amber-500">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-subtle text-fg-2">
               <SunHorizon size={16} weight="duotone" />
             </span>
             <div>
@@ -217,7 +217,7 @@ export function MedicinesView({
           </div>
 
           <div className="flex items-center gap-2.5 rounded-lg border border-line bg-canvas/60 p-2 sm:p-2.5">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-orange-500/10 text-orange-500">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-subtle text-fg-2">
               <Sun size={16} weight="duotone" />
             </span>
             <div>
@@ -227,7 +227,7 @@ export function MedicinesView({
           </div>
 
           <div className="flex items-center gap-2.5 rounded-lg border border-line bg-canvas/60 p-2 sm:p-2.5">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-indigo-500/10 text-indigo-400">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-subtle text-fg-2">
               <Moon size={16} weight="duotone" />
             </span>
             <div>
@@ -237,7 +237,7 @@ export function MedicinesView({
           </div>
 
           <div className="flex items-center gap-2.5 rounded-lg border border-line bg-canvas/60 p-2 sm:p-2.5">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-emerald-500/10 text-emerald-500">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-subtle text-fg-2">
               <Clock size={16} weight="duotone" />
             </span>
             <div>
@@ -480,7 +480,7 @@ export function MedicinesView({
           {allRows.some(({ m }) => schedule(m).kind === "asNeeded") && (
             <div className="panel p-5">
               <div className="flex items-center gap-2 border-b border-line pb-3">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-500/10 text-emerald-500">
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-ok-soft text-ok">
                   <Clock size={16} weight="duotone" />
                 </span>
                 <h3 className="text-sm font-semibold text-fg">As Needed / PRN Medications</h3>
@@ -588,7 +588,7 @@ export function MedicinesView({
                           `Please explain the dosage instructions, intended purpose, and precautions for ${m.name} (${m.dosage || "prescribed dosage"}) in simple words.`
                         )
                       }
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-white transition-colors shadow-xs"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-accent-fg transition-colors shadow-xs"
                       title="Ask Copilot about this medicine"
                     >
                       <Sparkle size={12} weight="fill" />
@@ -660,7 +660,7 @@ export function MedicinesView({
                                 `What is ${m.name} prescribed for, and how should it be taken?`
                               )
                             }
-                            className="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-white transition-colors"
+                            className="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-accent-fg transition-colors"
                           >
                             <span>Ask</span>
                             <ArrowRight size={11} />

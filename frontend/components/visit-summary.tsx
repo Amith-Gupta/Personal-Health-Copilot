@@ -197,8 +197,8 @@ export function VisitSummary({ profile, records, onBack }: { profile: Profile; r
           <Button
             variant="secondary"
             size="sm"
-            className="hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400"
-            icon={<WhatsappLogo size={15} weight="fill" className="text-emerald-500" />}
+            className="hover:border-ok hover:text-ok"
+            icon={<WhatsappLogo size={15} weight="fill" className="text-ok" />}
             onClick={handleWhatsAppShare}
           >
             {t.shareWhatsApp}

@@ -23,7 +23,7 @@ export function DoctorCard({
             <span className="truncate max-w-[150px]">{doc.specialty}</span>
           </span>
           {doc.rating != null && (
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-amber-600 dark:text-amber-400">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-warn-soft px-1.5 py-0.5 text-[11px] font-semibold text-warn">
               <Star size={10} weight="fill" />
               {doc.rating.toFixed(1)}
             </span>
@@ -42,7 +42,7 @@ export function DoctorCard({
           {doc.distance_km !== null && doc.distance_km !== undefined && (
             <>
               <span className="text-line-strong">·</span>
-              <span className="shrink-0 font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="shrink-0 font-medium text-ok">
                 {doc.distance_km} km
               </span>
             </>

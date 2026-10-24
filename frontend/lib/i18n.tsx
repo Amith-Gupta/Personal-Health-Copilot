@@ -21,7 +21,7 @@ const en = {
   appName: "Health Copilot",
   heroOut: (n: number): string => (n === 1 ? "result needs a look" : "results need a look"),
   heroClear: "Everything in range", heroEmpty: "Nothing here yet",
-  heroSub: (tests: number, meds: number, recs: number) => `${tests} test${tests === 1 ? "" : "s"} · ${meds} medicine${meds === 1 ? "" : "s"} · ${recs} record${recs === 1 ? "" : "s"}`,
+  heroSub: (tests: number, meds: number, recs: number) => [tests && `${tests} test${tests === 1 ? "" : "s"}`, meds && `${meds} medicine${meds === 1 ? "" : "s"}`, `${recs} record${recs === 1 ? "" : "s"}`].filter(Boolean).join(" · "),
   normal: "Normal", day: "Today",
   tabs: { overview: "Overview", records: "Timeline", medicines: "Medicines", ask: "Ask" },
   needsAttention: "Needs attention", attentionNote: "Latest value of each test, outside the range printed on the report.",
@@ -115,6 +115,20 @@ const en = {
   durationLabel: "Duration",
   formLabel: "Form",
   instructionsLabel: "Instructions",
+  activeCareLead: "Active care for",
+  medsPrescribed: (n: number) => `${n} medicine${n === 1 ? "" : "s"} prescribed on recent visits`,
+  emergencyId: "Emergency ID",
+  aiAccess: "ChatGPT & AI app access",
+  language: "Language",
+  askWelcome: (n: string) => `What would you like to know about ${n}'s health?`,
+  askWelcomeBody: (n: string) => `Answers come only from ${n}'s saved prescriptions, lab reports and notes, with a link to each source.`,
+  askStarters: [
+    ["Medicine schedule", "What to take morning, afternoon and night.", "When should each prescribed medicine be taken and what are the specific food directions?"],
+    ["Precautions", "Foods, drinks and medicines to avoid.", "What foods, drinks, or other medicines should be avoided with these prescribed medications?"],
+    ["Test results", "Which values are outside the printed range, and what that means.", "Are there any abnormal, high, or low lab test values in these records?"],
+    ["Questions for the doctor", "A short list to take to the next visit.", "What important follow-up questions should we ask the doctor at the next visit?"],
+  ] as [string, string, string][],
+  askCites: "Cites records", voiceOn: "Voice on", voiceOff: "Muted", clearChat: "Clear",
 };
 type Dict = typeof en;
 
@@ -138,7 +152,7 @@ const hi: Dict = {
   appName: "हेल्थ कोपायलट",
   heroOut: (_n: number) => "नतीजे देखने लायक",
   heroClear: "सब कुछ सीमा में", heroEmpty: "अभी कुछ नहीं",
-  heroSub: (tests: number, meds: number, recs: number) => `${tests} जांच · ${meds} दवाएं · ${recs} रिकॉर्ड`,
+  heroSub: (tests: number, meds: number, recs: number) => [tests && `${tests} जांच`, meds && `${meds} दवाएं`, `${recs} रिकॉर्ड`].filter(Boolean).join(" · "),
   normal: "सामान्य", day: "आज",
   tabs: { overview: "सारांश", records: "टाइमलाइन", medicines: "दवाएं", ask: "पूछें" },
   needsAttention: "ध्यान देने योग्य", attentionNote: "हर जांच का नवीनतम मान, जो रिपोर्ट पर छपी सीमा से बाहर है।",
@@ -232,6 +246,20 @@ const hi: Dict = {
   durationLabel: "अवधि",
   formLabel: "प्रकार",
   instructionsLabel: "निर्देश",
+  activeCareLead: "चल रहा इलाज:",
+  medsPrescribed: (n: number) => `हाल की मुलाकातों में ${n} दवाएं लिखी गईं`,
+  emergencyId: "आपातकालीन आईडी",
+  aiAccess: "ChatGPT और AI ऐप एक्सेस",
+  language: "भाषा",
+  askWelcome: (n: string) => `${n} की सेहत के बारे में क्या जानना है?`,
+  askWelcomeBody: (n: string) => `जवाब सिर्फ़ ${n} के सहेजे गए पर्चों, जांच रिपोर्ट और नोट्स से आते हैं, हर स्रोत के लिंक के साथ।`,
+  askStarters: [
+    ["दवा का समय", "सुबह, दोपहर और रात में क्या लेना है।", "हर दवा कब लेनी है और खाने से पहले या बाद में?"],
+    ["सावधानियां", "किन खाने, पेय और दवाओं से बचना है।", "इन दवाओं के साथ किन खाने, पेय या दूसरी दवाओं से बचना चाहिए?"],
+    ["जांच के नतीजे", "कौन से मान छपी सीमा से बाहर हैं और उसका मतलब।", "इन रिकॉर्ड में कौन से जांच मान ज़्यादा या कम हैं?"],
+    ["डॉक्टर से सवाल", "अगली मुलाकात के लिए छोटी सूची।", "अगली मुलाकात में डॉक्टर से कौन से ज़रूरी सवाल पूछें?"],
+  ],
+  askCites: "रिकॉर्ड का हवाला", voiceOn: "आवाज़ चालू", voiceOff: "आवाज़ बंद", clearChat: "साफ़ करें",
 };
 
 const te: Dict = {
@@ -254,7 +282,7 @@ const te: Dict = {
   appName: "హెల్త్ కోపైలట్",
   heroOut: (_n: number) => "ఫలితాలు చూడాలి",
   heroClear: "అన్నీ పరిధిలోనే", heroEmpty: "ఇంకా ఏమీ లేదు",
-  heroSub: (tests: number, meds: number, recs: number) => `${tests} పరీక్షలు · ${meds} మందులు · ${recs} రికార్డులు`,
+  heroSub: (tests: number, meds: number, recs: number) => [tests && `${tests} పరీక్షలు`, meds && `${meds} మందులు`, `${recs} రికార్డులు`].filter(Boolean).join(" · "),
   normal: "సాధారణం", day: "ఈరోజు",
   tabs: { overview: "సారాంశం", records: "టైమ్‌లైన్", medicines: "మందులు", ask: "అడగండి" },
   needsAttention: "గమనించాల్సినవి", attentionNote: "ప్రతి పరీక్ష తాజా విలువ, రిపోర్ట్‌పై ముద్రించిన పరిధి దాటినవి.",
@@ -348,6 +376,20 @@ const te: Dict = {
   durationLabel: "వ్యవధి",
   formLabel: "రకం",
   instructionsLabel: "సూచనలు",
+  activeCareLead: "కొనసాగుతున్న చికిత్స:",
+  medsPrescribed: (n: number) => `ఇటీవలి సందర్శనల్లో ${n} మందులు రాశారు`,
+  emergencyId: "ఎమర్జెన్సీ ఐడీ",
+  aiAccess: "ChatGPT & AI యాప్ యాక్సెస్",
+  language: "భాష",
+  askWelcome: (n: string) => `${n} ఆరోగ్యం గురించి ఏమి తెలుసుకోవాలి?`,
+  askWelcomeBody: (n: string) => `సమాధానాలు ${n} సేవ్ చేసిన ప్రిస్క్రిప్షన్లు, ల్యాబ్ రిపోర్టులు, నోట్స్ నుండి మాత్రమే, ప్రతి మూలానికి లింక్‌తో.`,
+  askStarters: [
+    ["మందుల సమయం", "ఉదయం, మధ్యాహ్నం, రాత్రి ఏమి వేసుకోవాలి.", "ప్రతి మందు ఎప్పుడు వేసుకోవాలి, భోజనానికి ముందా తర్వాతా?"],
+    ["జాగ్రత్తలు", "ఏ ఆహారం, పానీయాలు, మందులు మానుకోవాలి.", "ఈ మందులతో ఏ ఆహారం, పానీయాలు లేదా ఇతర మందులు మానుకోవాలి?"],
+    ["పరీక్ష ఫలితాలు", "ఏ విలువలు ముద్రించిన పరిధి దాటాయి, దాని అర్థం.", "ఈ రికార్డుల్లో ఏ పరీక్ష విలువలు ఎక్కువగా లేదా తక్కువగా ఉన్నాయి?"],
+    ["డాక్టర్‌కు ప్రశ్నలు", "తదుపరి సందర్శనకు చిన్న జాబితా.", "తదుపరి సందర్శనలో డాక్టర్‌ను ఏ ముఖ్యమైన ప్రశ్నలు అడగాలి?"],
+  ],
+  askCites: "రికార్డుల ఆధారంగా", voiceOn: "వాయిస్ ఆన్", voiceOff: "మ్యూట్", clearChat: "క్లియర్",
 };
 
 const DICTS: Record<Lang, Dict> = { en, hi, te };
