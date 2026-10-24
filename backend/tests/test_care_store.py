@@ -127,3 +127,11 @@ def test_dose_log_feeds_today_and_adherence(db):
     logs = care_store.logs_for("u1", [m["id"] for m in meds], date(2026, 10, 16))
     states = {(d["name"], d["state"]) for d in doses_for_day(meds, logs, TODAY)}
     assert ("Levothyroxine", "taken") in states and ("Ferrous Ascorbate", "pending") in states
+
+
+def test_adherence_only_counts_days_after_the_reminder_existed():
+    from app.services.care_store import adherence
+    med = {"id": "m1", "kind": "medicine", "status": "active", "title": "Levothyroxine", "times": ["07:00"],
+           "schedule": "daily", "start_date": "2026-09-02", "end_date": "2026-11-30", "meta": {}, "created_at": "2026-10-22T09:00:00Z"}
+    logs = [{"item_id": "m1", "dose_date": "2026-10-23", "dose_time": "07:00", "action": "taken", "at": "2026-10-23T01:40:00Z"}]
+    assert adherence([med], logs, TODAY) == {"due": 2, "taken": 1, "days": 7}   # 22 and 23 Oct only

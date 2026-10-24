@@ -121,7 +121,10 @@ def adherence(meds: List[Dict], logs: List[Dict], today: date, days: int = 7) ->
     """Taken doses over the last `days` days, counting only doses that were due in that window."""
     due = taken = 0
     for k in range(1, days + 1):
-        for d in doses_for_day(meds, logs, today - timedelta(days=k)):
+        day = today - timedelta(days=k)
+        # Only days after the reminder existed: doses before that were never asked about.
+        tracked = [m for m in meds if str(m.get("created_at") or "")[:10] <= day.isoformat()]
+        for d in doses_for_day(tracked, logs, day):
             due += 1
             taken += d["state"] == "taken"
     return {"due": due, "taken": taken, "days": days}
