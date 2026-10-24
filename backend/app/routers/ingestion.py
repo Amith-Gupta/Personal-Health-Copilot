@@ -7,6 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPExcepti
 from app.schemas.payloads import HealthRecord, RecordMove
 from app.services import store
 from app.services.auth import current_user_id
+from app.services.limits import budget
 from app.services.fhir_mapper import to_fhir_bundle
 from app.services.ocr_engine import ExtractionFailed, NotMedicalDocument, extract_document
 
@@ -36,7 +37,7 @@ def _title(rec) -> str:
 
 
 @router.post("/upload", response_model=HealthRecord, status_code=201)
-async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owner: str = Depends(current_user_id)):
+async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owner: str = Depends(budget("upload"))):
     profile = store.get_profile(owner, profile_id)
     if not profile:
         raise HTTPException(404, "Choose whose passbook this document belongs to.")

@@ -76,7 +76,7 @@ flowchart TD
 
     subgraph P2["Phase 2 — Multimodal Extraction"]
         KeyPool{"Multi-Key Pool<br/>Rotation Manager"}
-        Primary["Primary: Gemini 3.8 Flash Vision<br/>(temperature = 0.0)"]
+        Primary["Gemini Flash vision chain<br/>3.5 → 3.7 → lite → 3.8 (temperature 0)"]
         Secondary["Fallback: Gemini 3.5 Flash → Flash Lite<br/>(Cooldown Active)"]
         PDF["PDF Text Extractor (pypdf)<br/>+ Groq Qwen 3.8-27b"]
         GroqFHIR["Groq Qwen 3.8-27b<br/>Structure Extractor"]
@@ -164,14 +164,19 @@ To ensure **zero demo latency** and maximum resilience against API quotas, Healt
 
 ### Model Routing Matrix
 
-| Pipeline Task | Primary Engine | Secondary Engine | Tertiary Fallback | Target Latency | Focus |
-|---|---|---|---|---|---|
-| **Medical Vision OCR** | `gemini-3.8-flash` | `gemini-3.5-flash` | `gemini-flash-lite-latest` | **850ms–1.4s** | Handwriting & table transcription |
-| **PDF Text Fallback** | `pypdf` layer | Groq `qwen/qwen3.8-27b` | Rule-based extractor | **~350ms** | Free-tier LPU when vision APIs throttled |
-| **Copilot Grounded QA** | Groq `qwen/qwen3.8-27b` | Groq `llama-3.3-70b` | Template Fallback | **~280ms** | Context-bounded RAG with citations |
-| **Voice STT** | Groq `whisper-large-v3-turbo` | Browser Web Speech API | Text Input | **~120ms** | Multilingual speech recognition |
-| **FHIR Serialization** | Deterministic Python | Groq `qwen/qwen3.8-27b` | Static Template | **~15ms** | 100% NRCES schema compliance |
-| **Emergency Screening** | Deterministic Regex | — | — | **<1ms** | Pre-model safety (Tele-MANAS, 112, 108) |
+The chain each task really runs, as coded. Latencies are measured where a measurement exists.
+
+| Pipeline Task | Engines, in the order tried | Measured time | Source of truth |
+|---|---|---|---|
+| **Medical vision OCR** | `gemini-3.5-flash` → `gemini-3.7-flash` → `gemini-flash-lite-latest` → `gemini-3.8-flash`, across the configured keys | 14–29 s per document (median ≈ 15 s) | `backend/eval/results.md` |
+| **PDF text fallback** | `pypdf` text layer → Groq `qwen/qwen3.8-27b` | not benchmarked | `ocr_engine.py` |
+| **Copilot grounded Q&A** | Groq `openai/gpt-oss-120b` → Groq `qwen/qwen3.8-27b` | not benchmarked | `ai_router.py` |
+| **Voice to text** | Groq `whisper-large-v3-turbo` (browser speech recognition shows live text while recording) | not benchmarked | `voice_engine.py` |
+| **Lab trends** | Deterministic Python, no model | instant | `trends.py`, `tests/test_trends.py` |
+| **FHIR R4 bundle** | Deterministic Python, no model | instant | `fhir_mapper.py`, `tests/test_fhir.py` |
+| **Emergency screen** | Deterministic regex, runs before any model | instant | `guardrails.py`, `tests/test_guardrails.py` |
+
+The whole vision chain has a 110-second budget per document and makes one attempt per model (no hidden retries), so an overloaded model never leaves an upload hanging past the browser's 180-second limit.
 
 ### Smart Multi-Key Rotation & Cooldown
 
@@ -265,25 +270,23 @@ Documents are checked against the registered profile name using tokenized inters
 
 Health Copilot is evaluated across **6 quantitative performance dimensions**:
 
-| Metric | Target | Achieved | Method |
-|---|---|---|---|
-| **Deterministic Flag Accuracy** | 100% | **100.0%** | Guaranteed by `compute_flag()` — AI hallucination on range bounds eliminated |
-| **Crisis Interception Recall** | 100% | **100.0%** | Tested on 120 multilingual stress prompts (40 EN, 40 HI, 40 TE) |
-| **Indian Shorthand F1** (1-0-1) | >95% | **98.4%** | Resolves `1-0-1`, `OD`, `BD`, `TID`, `SOS` |
-| **Multilingual Parity** (EN/HI/TE) | >90% | **96.1%** | Cultural comprehensibility alignment vs human translations |
-| **Non-Medical Refusal Precision** | >98% | **100.0%** | Zero false acceptances of non-medical documents |
-| **Copilot Response Latency** | <500ms | **280ms** | Groq LPU acceleration |
-| **Voice STT Latency** | <250ms | **120ms** | Groq Whisper LPU on 4-second utterances |
+| Metric | Result | How it is measured |
+|---|---|---|
+| **Extraction accuracy** | **107 / 107 facts (100%)** on 9 documents | `python -m eval.run_eval`: type, date, patient, every medicine's name, dose and frequency, every lab value and flag, against hand-written ground truth. Includes two deliberately bad phone photos and a bilingual handwritten prescription. Results in `backend/eval/results.md` |
+| **Non-medical refusal** | 1 / 1 | The grocery-list image in the same run is refused, not filed |
+| **Flag correctness** | Computed, not predicted | `compute_flag()` decides HIGH / LOW / NORMAL from the printed range; the model's own flag is overridden. Unit-tested in `tests/test_regex_cleaner.py` and `tests/test_normalize.py` |
+| **Crisis and emergency screen** | 10 prompts in English, Hindi and Telugu, all caught; 3 ordinary questions, none caught | `tests/test_guardrails.py`. A small hand-written set, not a recall benchmark |
+| **Backend test suite** | 79 tests, run in CI on every push | `backend/tests`, `.github/workflows/ci.yml` |
+
+The sample set is small and synthetic. A larger set of real, consented documents is the next step before quoting accuracy beyond these files.
 
 ### Detailed Methodology
 
 **Abnormality Flag Accuracy** — Proportion of lab test observations correctly marked HIGH / LOW / NORMAL against the physical reference range on the report. Guaranteed at 100% by deterministic execution — AI hallucination on range bounds is completely eliminated.
 
-**Clinical Extraction** — Evaluated on 50 synthetic Indian medical documents (handwritten Rx, bilingual clinic receipts, multi-tier lab reports):
-- Medication Extraction F1: **95.2%** (drug name, form, strength)
-- Lab Test Name & Value Character Error Rate: **<1.8%** across printed lab PDFs
+**Clinical Extraction**: see the table above. Every number comes from `backend/eval/results.md`, which anyone can regenerate.
 
-**Crisis Interception** — 120 multilingual stress prompts containing subtle and explicit self-harm, overdose, and acute coronary signs. **100% recall, zero false negatives, <1ms latency** via compiled regex.
+**Crisis Interception**: deterministic patterns in English, Hindi and Telugu, checked by `tests/test_guardrails.py`. Regex cannot promise full recall on paraphrases, so the copilot's system prompt also refuses dosage changes and points to a doctor.
 
 **Multilingual Parity** — Compares clinical explanations in Hindi and Telugu against human medical translations. Prioritizes meaningful localization (e.g., `HbA1c` → *"पिछले 3 महीनों की औसत शर्करा"*) over literal translation.
 
@@ -298,7 +301,7 @@ flowchart LR
     Q["Patient Question"] --> Crisis["Crisis Screen"]
     Crisis --> Isolate["Profile Isolation"]
     Isolate --> Context["Patient Timeline<br/>Context Builder"]
-    Context --> LLM["Groq Qwen 3.8-27b"]
+    Context --> LLM["Groq gpt-oss-120b<br/>(fallback Qwen 3.8-27b)"]
     LLM --> Parse["Parse Citations [id]"]
     Parse --> UI["User Interface"]
 
@@ -384,7 +387,7 @@ While the production deployment utilizes hosted models (`gemini-3.8-flash` and G
 
 | Criterion | Points | Implementation Evidence |
 |---|---|---|
-| **AI Utilization** | **35 pts** | Multimodal Gemini 3.8 Flash Vision with 4-level fallback. Deterministic biological reference range validation. Grounded RAG with exact document citations. Indian clinical shorthand expansion. |
+| **AI Utilization** | **35 pts** | Multimodal Gemini Flash vision with a 4-model fallback. Deterministic biological reference range validation. Grounded RAG with exact document citations. Indian clinical shorthand expansion. |
 | **Technical Architecture** | **25 pts** | Next.js 15 App Router + FastAPI Python 3.12. Full NRCES ABDM FHIR R4 Bundle serializer. PostgreSQL with RLS on Supabase Mumbai. Multi-key cooldown & quota-aware routing. |
 | **User Experience** | **20 pts** | 100% Trilingual parity (English, हिन्दी, తెలుగు). Side-by-side original document audit viewer. Sub-second voice interaction with Groq Whisper. Interactive range bars & printable visit summary. |
 | **Healthcare Impact** | **10 pts** | Multi-generational caregiver family passbook. Deterministic suicide/crisis filter (112, 108, Tele-MANAS). Family member name mismatch detection. Non-diagnostic safety disclaimers across all screens. |

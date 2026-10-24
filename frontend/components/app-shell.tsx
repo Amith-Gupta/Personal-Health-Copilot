@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { cachedImage } from "@/lib/image-cache";
 import { useI18n } from "@/lib/i18n";
-import type { FileUrls, HealthRecord, Profile } from "@/lib/types";
+import type { FileUrls, HealthRecord, Profile, Trend } from "@/lib/types";
 import { TopBar } from "./top-bar";
 import { FamilyRow } from "./family-row";
 import { PatientHeader } from "./patient-header";
@@ -39,6 +39,7 @@ export function AppShell({ email }: { email: string }) {
   const [emergencyOpen, setEmergencyOpen] = useState(false);
   const [mcpOpen, setMcpOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [trends, setTrends] = useState<Record<string, Trend[]>>({});
 
   const [justUploadedRecord, setJustUploadedRecord] = useState<HealthRecord | null>(null);
   const [askQuery, setAskQuery] = useState<string | null>(null);
@@ -72,6 +73,15 @@ export function AppShell({ email }: { email: string }) {
       if (u) cachedImage(u).catch(() => {});
     });
   }, [records, fileUrls]);
+
+  // Trends are computed server-side (same rules the copilot uses); refetch when this person's records change.
+  const recordKey = records ? records.map((r) => r.id).join(",") : null;
+  useEffect(() => {
+    if (!activeId || recordKey === null) return;
+    let live = true;
+    api.trends(activeId).then((ts) => { if (live) setTrends((m) => ({ ...m, [activeId]: ts })); }).catch(() => {});
+    return () => { live = false; };
+  }, [activeId, recordKey]);
 
   const active = useMemo(() => profiles?.find((p) => p.id === activeId) || null, [profiles, activeId]);
   const selected = records?.find((r) => r.id === openRecord) || null;
@@ -149,6 +159,7 @@ export function AppShell({ email }: { email: string }) {
                   <Overview
                     records={records}
                     profile={active}
+                    trends={trends[active.id] || []}
                     onOpen={openRec}
                     onTab={setTab}
                     onFile={startUpload}

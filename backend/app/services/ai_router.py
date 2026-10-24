@@ -5,6 +5,7 @@ from typing import List, Tuple, Optional
 
 from app.config import settings
 from app.schemas.payloads import Citation, HealthRecord, Profile, ConversationTurn
+from app.services.trends import build_trends
 
 logger = logging.getLogger(__name__)
 MODELS = ["openai/gpt-oss-120b", "qwen/qwen3.8-27b"]
@@ -13,6 +14,31 @@ LANG_NAME = {"en": "English", "hi": "Hindi (Devanagari script)", "te": "Telugu (
 
 class CopilotUnavailable(Exception):
     pass
+
+
+# Some models pad "[ab12cd34]" with zero-width characters, which hides the citation from a plain regex.
+_INVISIBLE = re.compile(r"[\u200b\u200c\u200d\u2060\ufeff]")
+
+
+# ...and in Hindi or Telugu answers they often switch to full-width brackets: 【ab12cd34】 ［ab12cd34］.
+_BRACKETS = str.maketrans({"【": "[", "】": "]", "［": "[", "］": "]", "〔": "[", "〕": "]", "〖": "[", "〗": "]"})
+
+
+def clean_answer(answer: str) -> str:
+    answer = re.sub(r"<think>.*?</think>", "", answer, flags=re.DOTALL)
+    answer = _INVISIBLE.sub("", answer)
+    # Only rewrite brackets that wrap a record id, so other text is left alone.
+    answer = re.sub(r"[【［〔〖]\s*([0-9a-f]{8})\s*[】］〕〗]", lambda m: m.group(0).translate(_BRACKETS), answer)
+    return answer.strip()
+
+
+def extract_citations(answer: str, records: List[HealthRecord]) -> List[Citation]:
+    by_short = {r.id[:8]: r for r in records}
+    cited: List[str] = []
+    for short in re.findall(r"\[\s*([0-9a-f]{8})\s*\]", answer):
+        if short in by_short and short not in cited:
+            cited.append(short)
+    return [Citation(record_id=by_short[s].id, title=by_short[s].title, record_date=by_short[s].record_date) for s in cited]
 
 
 def build_context(records: List[HealthRecord]) -> str:
@@ -28,6 +54,13 @@ def build_context(records: List[HealthRecord]) -> str:
             lines.append(f"  Test: {o.test_name} = {o.observed_value} {o.unit or ''} (range {o.reference_range or 'n/a'}) -> {o.flag}")
         if e.follow_up:
             lines.append(f"  Follow-up: {e.follow_up}")
+        blocks.append("\n".join(lines))
+    trends = build_trends(records)
+    if trends:
+        lines = ["Trends computed from the reports above (oldest to newest, judged against the printed range):"]
+        for t in trends:
+            refs = " ".join(f"[{p.record_id[:8]}]" for p in t.points)
+            lines.append(f"  {t.sentence} {refs}")
         blocks.append("\n".join(lines))
     return "\n\n".join(blocks)
 
@@ -106,7 +139,7 @@ def answer_question(
         context = build_context(records)
     
     target_lang = LANG_NAME.get(language, 'English')
-    system = f"""You are Gemini Health Copilot, an empathetic, highly knowledgeable medical AI assistant helping an Indian family understand {profile.name}'s medical records.
+    system = f"""You are Health Copilot, an empathetic, highly knowledgeable medical AI assistant helping an Indian family understand {profile.name}'s medical records.
 
 Core Principle: Conversational by default. Structured when useful. Safety always.
 Do not force a fixed layout on every answer. Do not build a dashboard for every question. Do not make users choose a response format.
@@ -180,8 +213,7 @@ Authorized Medical Records for {profile.name}:
         logger.error(f"All Copilot models failed. Last error: {last_err}")
         raise CopilotUnavailable(str(last_err))
 
-    # Clean any internal reasoning tags if present
-    answer = re.sub(r"<think>.*?</think>", "", answer, flags=re.DOTALL).strip()
+    answer = clean_answer(answer)
     
     # Extract up to 2 contextual follow-up question chips from the answer
     suggested_questions: List[str] = []
@@ -212,25 +244,10 @@ Authorized Medical Records for {profile.name}:
             if len(suggested_questions) == 2:
                 break
 
-    # Normalize any full-width brackets to standard square brackets
-    answer = re.sub(r"【([a-zA-Z0-9_-]{8})】", r"[\1]", answer)
-
-    # Citations extraction & validation against authorized records
-    by_short = {r.id[:8]: r for r in records}
-    cited_ids = []
-    for short in re.findall(r"\[([a-zA-Z0-9_-]{8})\]", answer):
-        if short in by_short and short not in cited_ids:
-            cited_ids.append(short)
-    citations = [
-        Citation(
-            record_id=by_short[s].id,
-            title=by_short[s].title,
-            record_date=by_short[s].record_date
-        )
-        for s in cited_ids
-    ]
+    # Citations: zero-width characters and full-width brackets are normalised in clean_answer()
+    citations = extract_citations(answer, records)
     
     format_hint = detect_format_hint(question, answer)
 
-    return answer, citations, f"Gemini Copilot ({chosen_model.split('/')[-1]})", suggested_questions, format_hint
+    return answer, citations, f"{chosen_model.split('/')[-1]} on Groq", suggested_questions, format_hint
 

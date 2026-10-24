@@ -46,3 +46,5 @@ backend/data/
 # Archives & build artifacts
 *.zip
 
+# Private team notes (never committed)
+.private/

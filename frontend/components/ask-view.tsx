@@ -341,9 +341,9 @@ export function AskView({
             <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-emerald-500 ring-1 ring-surface" />
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-xs sm:text-sm font-bold text-fg">Gemini Health Copilot</span>
+            <span className="text-xs sm:text-sm font-bold text-fg">Health Copilot</span>
             <Badge tone="accent" className="text-[10px] font-semibold py-0 px-1.5">
-              120B
+              Cites records
             </Badge>
           </div>
         </div>
@@ -806,7 +806,7 @@ export function AskView({
 
           {/* Under-input Disclaimer matching professional chatbots */}
           <p className="mt-1.5 text-center text-[10px] text-fg-3 leading-tight">
-            Gemini Health Copilot can make mistakes. Verify important medical decisions with your doctor.
+            Health Copilot can make mistakes. Verify important medical decisions with your doctor.
           </p>
         </div>
       </div>

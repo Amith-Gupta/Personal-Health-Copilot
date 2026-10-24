@@ -1,0 +1,87 @@
+{
+  "_about": "Hand-written from the printed documents in docs/sample-documents, not from model output. Every value here can be checked by opening the file.",
+  "2026-06-07_ravi_discharge_summary.pdf": {
+    "record_type": "DischargeSummary", "record_date": "2026-06-07", "patient": "Ravi Kumar",
+    "medications": [
+      {"name": "Cefuroxime", "dose": "500", "frequency": "1-0-1"},
+      {"name": "Paracetamol", "dose": "650", "frequency": "SOS"},
+      {"name": "Pantoprazole", "dose": "40", "frequency": "1-0-0"}
+    ],
+    "labs": [
+      {"test": "WBC", "value": 13800, "flag": "HIGH"},
+      {"test": "CRP", "value": 48, "flag": "HIGH"}
+    ]
+  },
+  "2026-07-18_venkata_rao_bilingual_prescription.jpg": {
+    "record_type": "Prescription", "record_date": "2026-07-18", "patient": "Venkata Rao",
+    "medications": [
+      {"name": "Telmisartan", "dose": "40", "frequency": "1-0-0"},
+      {"name": "Metformin", "dose": "500", "frequency": "1-0-1"},
+      {"name": "Atorvastatin", "dose": "10", "frequency": "0-0-1"}
+    ],
+    "labs": []
+  },
+  "2026-08-14_lakshmi_lab_report.jpg": {
+    "record_type": "DiagnosticReport", "record_date": "2026-08-14", "patient": "Lakshmi Devi",
+    "medications": [],
+    "labs": [
+      {"test": "Haemoglobin", "value": 9.6, "flag": "LOW"},
+      {"test": "WBC", "value": 7400, "flag": "NORMAL"},
+      {"test": "TSH", "value": 7.9, "flag": "HIGH"},
+      {"test": "Vitamin D", "value": 14, "flag": "LOW"},
+      {"test": "Fasting Blood Sugar", "value": 92, "flag": "NORMAL"},
+      {"test": "Creatinine", "value": 0.8, "flag": "NORMAL"}
+    ]
+  },
+  "2026-09-02_lakshmi_prescription.jpg": {
+    "record_type": "Prescription", "record_date": "2026-09-02", "patient": "Lakshmi Devi",
+    "medications": [
+      {"name": "Levothyroxine", "dose": "50", "frequency": "1-0-0"},
+      {"name": "Ferrous Ascorbate", "dose": "100", "frequency": "0-1-0"},
+      {"name": "Cholecalciferol", "dose": "60000", "frequency": "week"}
+    ],
+    "labs": []
+  },
+  "2026-10-14_lakshmi_followup_lab_report.jpg": {
+    "record_type": "DiagnosticReport", "record_date": "2026-10-14", "patient": "Lakshmi Devi",
+    "medications": [],
+    "labs": [
+      {"test": "Haemoglobin", "value": 11.1, "flag": "LOW"},
+      {"test": "WBC", "value": 6900, "flag": "NORMAL"},
+      {"test": "TSH", "value": 3.4, "flag": "NORMAL"},
+      {"test": "Vitamin D", "value": 33, "flag": "NORMAL"},
+      {"test": "Fasting Blood Sugar", "value": 95, "flag": "NORMAL"},
+      {"test": "Creatinine", "value": 0.8, "flag": "NORMAL"}
+    ]
+  },
+  "live-demo_phone_photo_lab_report.jpg": {
+    "record_type": "DiagnosticReport", "record_date": "2026-08-14", "patient": "Lakshmi Devi",
+    "medications": [],
+    "labs": [
+      {"test": "Haemoglobin", "value": 9.6, "flag": "LOW"},
+      {"test": "WBC", "value": 7400, "flag": "NORMAL"},
+      {"test": "TSH", "value": 7.9, "flag": "HIGH"},
+      {"test": "Vitamin D", "value": 14, "flag": "LOW"},
+      {"test": "Fasting Blood Sugar", "value": 92, "flag": "NORMAL"},
+      {"test": "Creatinine", "value": 0.8, "flag": "NORMAL"}
+    ]
+  },
+  "live-demo_phone_photo_prescription.jpg": {
+    "record_type": "Prescription", "record_date": "2026-09-02", "patient": "Lakshmi Devi",
+    "medications": [
+      {"name": "Levothyroxine", "dose": "50", "frequency": "1-0-0"},
+      {"name": "Ferrous Ascorbate", "dose": "100", "frequency": "0-1-0"},
+      {"name": "Cholecalciferol", "dose": "60000", "frequency": "week"}
+    ],
+    "labs": []
+  },
+  "live-demo_suresh_yadav_hindi_prescription.png": {
+    "record_type": "Prescription", "record_date": "2026-07-21", "patient": "Suresh Yadav",
+    "medications": [
+      {"name": "Amlodipine", "dose": "5", "frequency": "1-0-0"},
+      {"name": "Aspirin", "dose": "75", "frequency": "0-1-0"}
+    ],
+    "labs": []
+  },
+  "live-demo_not_a_medical_document.png": {"not_medical": true}
+}

@@ -1937,6 +1937,588 @@
    },
    "is_sample": true,
    "created_at": "2026-10-12T17:55:30Z"
+  },
+  {
+   "id": "3a49b42d-cbc4-412d-9dc7-e902f273ca3e",
+   "profile_id": "b1672a1f-5df0-415e-b7b5-390a390df276",
+   "document_type": "DiagnosticReport",
+   "record_date": "2026-10-14",
+   "title": "Lab report, SRI VENKATESWARA DIAGNOSTICS, TIRUPATI",
+   "extracted": {
+    "record_type": "DiagnosticReport",
+    "record_date": "2026-10-14",
+    "patient_name": "Mrs. Lakshmi Devi",
+    "patient_age": "44",
+    "patient_sex": "F",
+    "doctor_name": "Dr. Anitha Reddy, MD",
+    "facility_name": "SRI VENKATESWARA DIAGNOSTICS, TIRUPATI",
+    "diagnoses": [],
+    "medications": [],
+    "lab_observations": [
+     {
+      "test_name": "Haemoglobin",
+      "observed_value": "11.1",
+      "unit": "g/dL",
+      "reference_range": "12.0 - 15.5",
+      "flag": "LOW",
+      "flag_source": "computed",
+      "explanation": {
+       "english": "Haemoglobin carries oxygen throughout the body. A slightly lower level can indicate mild anaemia, which is commonly related to low iron or nutritional factors.",
+       "hindi": "हीमोग्लोबिन शरीर में ऑक्सीजन पहुंचाने का काम करता है। इसका स्तर थोड़ा कम होना हल्के एनीमिया (खून की कमी) का संकेत हो सकता है, जो आमतौर पर आयरन की कमी से जुड़ा होता है।",
+       "telugu": "హిమోగ్లోబిన్ శరీరమంతటా ఆక్సిజన్‌ను మోసుకెళుతుంది. ఇది కొద్దిగా తక్కువగా ఉండటం తేలికపాటి రక్తహీనతను సూచిస్తుంది, ఇది సాధారణంగా ఐరన్ లోపం వల్ల వస్తుంది."
+      },
+      "uncertain": false
+     },
+     {
+      "test_name": "Total WBC Count",
+      "observed_value": "6,900",
+      "unit": "/cumm",
+      "reference_range": "4,000 - 11,000",
+      "flag": "NORMAL",
+      "flag_source": "computed",
+      "explanation": null,
+      "uncertain": false
+     },
+     {
+      "test_name": "TSH (Ultrasensitive)",
+      "observed_value": "3.4",
+      "unit": "uIU/mL",
+      "reference_range": "0.4 - 4.0",
+      "flag": "NORMAL",
+      "flag_source": "computed",
+      "explanation": null,
+      "uncertain": false
+     },
+     {
+      "test_name": "25-OH Vitamin D",
+      "observed_value": "33",
+      "unit": "ng/mL",
+      "reference_range": "30 - 100",
+      "flag": "NORMAL",
+      "flag_source": "computed",
+      "explanation": null,
+      "uncertain": false
+     },
+     {
+      "test_name": "Fasting Blood Sugar",
+      "observed_value": "95",
+      "unit": "mg/dL",
+      "reference_range": "70 - 99",
+      "flag": "NORMAL",
+      "flag_source": "computed",
+      "explanation": null,
+      "uncertain": false
+     },
+     {
+      "test_name": "Serum Creatinine",
+      "observed_value": "0.8",
+      "unit": "mg/dL",
+      "reference_range": "0.6 - 1.1",
+      "flag": "NORMAL",
+      "flag_source": "computed",
+      "explanation": null,
+      "uncertain": false
+     }
+    ],
+    "summary": {
+     "english": "This is a blood test report for Mrs. Lakshmi Devi dated 14 October 2026. Most results, including white blood cells, thyroid (TSH), vitamin D, fasting blood sugar, and kidney function (serum creatinine), are within normal ranges. The Haemoglobin level is slightly low at 11.1 g/dL, which points to mild anaemia. Please discuss this report with Dr. Anitha Reddy during your follow-up.",
+     "hindi": "यह 14 अक्टूबर 2026 की श्रीमती लक्ष्मी देवी की रक्त जांच रिपोर्ट है। सफेद रक्त कोशिकाएं (WBC), थायरॉयड (TSH), विटामिन डी, फास्टिंग ब्लड शुगर और किडनी की कार्यप्रणाली (सीरम क्रिएटिनिन) पूरी तरह सामान्य हैं। केवल हीमोग्लोबिन 11.1 g/dL है जो सामान्य स्तर से थोड़ा कम है और हल्के एनीमिया को दर्शाता है। कृपया अपने फॉलो-अप के दौरान डॉक्टर अनीता रेड्डी से इस पर चर्चा करें।",
+     "telugu": "ఇది 14 అక్టోబర్ 2026 నాటి శ్రీమతి లక్ష్మీ దేవి గారి రక్త పరీక్ష నివేదిక. తెల్ల రక్త కణాలు, థైరాయిడ్ (TSH), విటమిన్ D, ఫాస్టింగ్ బ్లడ్ షుగర్ మరియు కిడ్నీ పనితీరు (సీరం క్రియాటినిన్) అన్నీ సాధారణ పరిధిలోనే ఉన్నాయి. హిమోగ్లోబిన్ మాత్రమే 11.1 g/dL గా కొద్దిగా తక్కువగా ఉంది, ఇది తేలికపాటి రక్తహీనతను సూచిస్తుంది. దయచేసి మీ తదుపరి సంప్రదింపులో డాక్టర్ అనిత రెడ్డి గారితో ఈ నివేదిక గురించి మాట్లాడండి."
+    },
+    "doctor_questions": {
+     "english": [
+      "Does my slightly low haemoglobin level require any iron supplements or dietary changes?",
+      "Are any further tests needed to check for the cause of mild anaemia?",
+      "When should I repeat the blood count to recheck my haemoglobin?"
+     ],
+     "hindi": [
+      "क्या मेरे थोड़े कम हीमोग्लोबिन के लिए किसी आयरन सप्लीमेंट या खान-पान में बदलाव की जरूरत है?",
+      "क्या हल्के एनीमिया के कारण का पता लगाने के लिए किसी और जांच की आवश्यकता है?",
+      "हीमोग्लोबिन की दोबारा जांच के लिए मुझे यह टेस्ट कब दोबारा कराना चाहिए?"
+     ],
+     "telugu": [
+      "నా హిమోగ్లోబిన్ కొద్దిగా తక్కువగా ఉండటం వల్ల ఐరన్ సప్లిమెంట్లు లేదా ఆహారంలో మార్పులు అవసరమా?",
+      "ఈ తేలికపాటి రక్తహీనతకు గల కారణాన్ని తెలుసుకోవడానికి మరిన్ని పరీక్షలు ఏమైనా చేయించాలా?",
+      "హిమోగ్లోబిన్ స్థాయిని మళ్లీ తనిఖీ చేయడానికి నేను ఈ పరీక్షను ఎప్పుడు మళ్లీ చేయించాలి?"
+     ]
+    },
+    "follow_up": "Follow-up",
+    "handwritten": false,
+    "languages_detected": [
+     "English"
+    ],
+    "unreadable_parts": []
+   },
+   "source_filename": "2026-10-14_lakshmi_followup_lab_report.jpg",
+   "source_mime": "image/jpeg",
+   "has_source_file": true,
+   "name_check": "match",
+   "extraction": {
+    "engine": "Gemini vision",
+    "model": "gemini-3.7-flash",
+    "duration_ms": 30962,
+    "warnings": []
+   },
+   "fhir_bundle": {
+    "resourceType": "Bundle",
+    "id": "3a49b42d-cbc4-412d-9dc7-e902f273ca3e",
+    "meta": {
+     "lastUpdated": "2026-10-18T13:45:32Z",
+     "profile": [
+      "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DocumentBundle"
+     ]
+    },
+    "identifier": {
+     "system": "https://health-copilot.local/bundles",
+     "value": "3a49b42d-cbc4-412d-9dc7-e902f273ca3e"
+    },
+    "type": "document",
+    "timestamp": "2026-10-18T13:45:32Z",
+    "entry": [
+     {
+      "fullUrl": "urn:uuid:6a1b613c-ffe3-4467-b42c-907ba0bb6d35",
+      "resource": {
+       "resourceType": "Composition",
+       "id": "6a1b613c-ffe3-4467-b42c-907ba0bb6d35",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DiagnosticReportRecord"
+        ]
+       },
+       "status": "final",
+       "type": {
+        "coding": [
+         {
+          "system": "http://snomed.info/sct",
+          "code": "721981007",
+          "display": "Diagnostic studies report"
+         }
+        ],
+        "text": "Diagnostic studies report"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "date": "2026-10-14T00:00:00+05:30",
+       "author": [
+        {
+         "reference": "urn:uuid:7f81b277-e839-4689-9454-85db77ebbeb7"
+        }
+       ],
+       "title": "Diagnostic studies report",
+       "section": [
+        {
+         "title": "Laboratory report",
+         "code": {
+          "coding": [
+           {
+            "system": "http://snomed.info/sct",
+            "code": "4241000179101",
+            "display": "Laboratory report"
+           }
+          ]
+         },
+         "entry": [
+          {
+           "reference": "urn:uuid:f0583cda-5670-4892-b6f8-cb556bfc7f74"
+          }
+         ]
+        }
+       ],
+       "custodian": {
+        "reference": "urn:uuid:4cb92c27-de09-4c7c-b0c8-98e08aeb5ee3"
+       }
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276",
+      "resource": {
+       "resourceType": "Patient",
+       "id": "b1672a1f-5df0-415e-b7b5-390a390df276",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Patient"
+        ]
+       },
+       "identifier": [],
+       "name": [
+        {
+         "text": "Lakshmi Devi"
+        }
+       ],
+       "gender": "female"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:7f81b277-e839-4689-9454-85db77ebbeb7",
+      "resource": {
+       "resourceType": "Practitioner",
+       "id": "7f81b277-e839-4689-9454-85db77ebbeb7",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Practitioner"
+        ]
+       },
+       "name": [
+        {
+         "text": "Dr. Anitha Reddy, MD"
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:4cb92c27-de09-4c7c-b0c8-98e08aeb5ee3",
+      "resource": {
+       "resourceType": "Organization",
+       "id": "4cb92c27-de09-4c7c-b0c8-98e08aeb5ee3",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Organization"
+        ]
+       },
+       "name": "SRI VENKATESWARA DIAGNOSTICS, TIRUPATI"
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:a1eed003-bb81-4dbe-90ab-3196f6abb2f8",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "a1eed003-bb81-4dbe-90ab-3196f6abb2f8",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Haemoglobin"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-10-14",
+       "valueQuantity": {
+        "value": 11.1,
+        "unit": "g/dL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "L",
+           "display": "Low"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "12.0 - 15.5",
+         "low": {
+          "value": 12.0,
+          "unit": "g/dL"
+         },
+         "high": {
+          "value": 15.5,
+          "unit": "g/dL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:aa5b74c3-f37e-426c-8121-70cb17970189",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "aa5b74c3-f37e-426c-8121-70cb17970189",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Total WBC Count"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-10-14",
+       "valueQuantity": {
+        "value": 6900.0,
+        "unit": "/cumm"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "N",
+           "display": "Normal"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "4,000 - 11,000",
+         "low": {
+          "value": 4000.0,
+          "unit": "/cumm"
+         },
+         "high": {
+          "value": 11000.0,
+          "unit": "/cumm"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:88512e59-54c4-4fbb-accd-76f81bf5eacf",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "88512e59-54c4-4fbb-accd-76f81bf5eacf",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "TSH (Ultrasensitive)"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-10-14",
+       "valueQuantity": {
+        "value": 3.4,
+        "unit": "uIU/mL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "N",
+           "display": "Normal"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "0.4 - 4.0",
+         "low": {
+          "value": 0.4,
+          "unit": "uIU/mL"
+         },
+         "high": {
+          "value": 4.0,
+          "unit": "uIU/mL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:bc8c8349-3a30-4853-94f4-43fca8c54fd8",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "bc8c8349-3a30-4853-94f4-43fca8c54fd8",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "25-OH Vitamin D"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-10-14",
+       "valueQuantity": {
+        "value": 33.0,
+        "unit": "ng/mL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "N",
+           "display": "Normal"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "30 - 100",
+         "low": {
+          "value": 30.0,
+          "unit": "ng/mL"
+         },
+         "high": {
+          "value": 100.0,
+          "unit": "ng/mL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:7686d0ad-a031-4788-8735-91f9b289cedf",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "7686d0ad-a031-4788-8735-91f9b289cedf",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Fasting Blood Sugar"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-10-14",
+       "valueQuantity": {
+        "value": 95.0,
+        "unit": "mg/dL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "N",
+           "display": "Normal"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "70 - 99",
+         "low": {
+          "value": 70.0,
+          "unit": "mg/dL"
+         },
+         "high": {
+          "value": 99.0,
+          "unit": "mg/dL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:ad33dce7-3532-4674-998d-449ad620f246",
+      "resource": {
+       "resourceType": "Observation",
+       "id": "ad33dce7-3532-4674-998d-449ad620f246",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/Observation"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Serum Creatinine"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-10-14",
+       "valueQuantity": {
+        "value": 0.8,
+        "unit": "mg/dL"
+       },
+       "interpretation": [
+        {
+         "coding": [
+          {
+           "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+           "code": "N",
+           "display": "Normal"
+          }
+         ]
+        }
+       ],
+       "referenceRange": [
+        {
+         "text": "0.6 - 1.1",
+         "low": {
+          "value": 0.6,
+          "unit": "mg/dL"
+         },
+         "high": {
+          "value": 1.1,
+          "unit": "mg/dL"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "fullUrl": "urn:uuid:f0583cda-5670-4892-b6f8-cb556bfc7f74",
+      "resource": {
+       "resourceType": "DiagnosticReport",
+       "id": "f0583cda-5670-4892-b6f8-cb556bfc7f74",
+       "meta": {
+        "profile": [
+         "https://nrces.in/ndhm/fhir/r4/StructureDefinition/DiagnosticReportLab"
+        ]
+       },
+       "status": "final",
+       "code": {
+        "text": "Laboratory report"
+       },
+       "subject": {
+        "reference": "urn:uuid:b1672a1f-5df0-415e-b7b5-390a390df276"
+       },
+       "effectiveDateTime": "2026-10-14",
+       "issued": "2026-10-18T13:45:32Z",
+       "result": [
+        {
+         "reference": "urn:uuid:a1eed003-bb81-4dbe-90ab-3196f6abb2f8"
+        },
+        {
+         "reference": "urn:uuid:aa5b74c3-f37e-426c-8121-70cb17970189"
+        },
+        {
+         "reference": "urn:uuid:88512e59-54c4-4fbb-accd-76f81bf5eacf"
+        },
+        {
+         "reference": "urn:uuid:bc8c8349-3a30-4853-94f4-43fca8c54fd8"
+        },
+        {
+         "reference": "urn:uuid:7686d0ad-a031-4788-8735-91f9b289cedf"
+        },
+        {
+         "reference": "urn:uuid:ad33dce7-3532-4674-998d-449ad620f246"
+        }
+       ],
+       "conclusion": "This is a blood test report for Mrs. Lakshmi Devi dated 14 October 2026. Most results, including white blood cells, thyroid (TSH), vitamin D, fasting blood sugar, and kidney function (serum creatinine), are within normal ranges. The Haemoglobin level is slightly low at 11.1 g/dL, which points to mild anaemia. Please discuss this report with Dr. Anitha Reddy during your follow-up.",
+       "performer": [
+        {
+         "reference": "urn:uuid:4cb92c27-de09-4c7c-b0c8-98e08aeb5ee3"
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "is_sample": true,
+   "created_at": "2026-10-14T11:20:00+00:00",
+   "has_preview": true
   }
  ]
 }

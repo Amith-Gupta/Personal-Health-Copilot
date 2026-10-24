@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { CopilotAnswer, FileUrls, HealthRecord, Lang, Profile } from "./types";
+import type { CopilotAnswer, FileUrls, HealthRecord, Lang, Profile, Trend } from "./types";
 
 export function getBaseUrl(): string {
   if (typeof window !== "undefined") {
@@ -126,7 +126,17 @@ export const api = {
     fd.append("language", language);
     return call<{ text: string }>("/voice/transcribe", { method: "POST", body: fd }, 60000);
   },
-  ttsUrl: (text: string, language: Lang) => `${getBaseUrl()}/voice/tts?text=${encodeURIComponent(text)}&language=${language}`,
+  /** Spoken audio for one sentence, fetched with the user's token (the endpoint is not public). */
+  tts: async (text: string, language: Lang): Promise<Blob> => {
+    const { data } = await supabase().auth.getSession();
+    const token = data.session?.access_token;
+    const res = await fetch(`${getBaseUrl()}/voice/tts?text=${encodeURIComponent(text.slice(0, 600))}&language=${language}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(res.status, "Speech is not available right now.");
+    return res.blob();
+  },
+  trends: (profileId: string) => call<Trend[]>(`/profiles/${profileId}/trends`),
   loadSample: () => call<{ records: number }>("/sample-family", { method: "POST" }, 120000),
   exportFhir: async (profileId: string, name: string) => {
     const bundle = await call<unknown>(`/profiles/${profileId}/fhir`);

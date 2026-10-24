@@ -88,6 +88,8 @@ export function useSpeech() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const activeLangRef = useRef<Lang>("en");
   const onFinishRef = useRef<(() => void) | null>(null);
+  // Bumped by stop(); audio that arrives for an older generation is discarded.
+  const genRef = useRef(0);
 
   // Load and cache voices across browsers
   useEffect(() => {
@@ -155,6 +157,7 @@ export function useSpeech() {
   }, []);
 
   const stop = useCallback(() => {
+    genRef.current += 1;
     queueRef.current = [];
     currentUtteranceRef.current = null;
     if (audioRef.current) {
@@ -200,23 +203,29 @@ export function useSpeech() {
           audioRef.current.pause();
           audioRef.current = null;
         }
-        const streamUrl = api.ttsUrl(sentence, lang);
-        const audio = new Audio(streamUrl);
-        audioRef.current = audio;
-
-        audio.onended = () => {
-          playNextInQueue();
-        };
-
-        audio.onerror = (e) => {
-          console.warn("Neural audio stream failed, skipping sentence:", e);
-          playNextInQueue();
-        };
-
-        audio.play().catch((err) => {
-          console.warn("Audio play prevented:", err);
-          playNextInQueue();
-        });
+        // The speech endpoint needs the user's token, so fetch the audio and play it from memory.
+        const gen = genRef.current;
+        api.tts(sentence, lang)
+          .then((blob) => {
+            if (genRef.current !== gen) return;
+            const src = URL.createObjectURL(blob);
+            const audio = new Audio(src);
+            audioRef.current = audio;
+            const done = () => { URL.revokeObjectURL(src); playNextInQueue(); };
+            audio.onended = done;
+            audio.onerror = (e) => {
+              console.warn("Neural audio failed, skipping sentence:", e);
+              done();
+            };
+            audio.play().catch((err) => {
+              console.warn("Audio play prevented:", err);
+              done();
+            });
+          })
+          .catch((err) => {
+            console.warn("Neural audio fetch failed, skipping sentence:", err);
+            if (genRef.current === gen) playNextInQueue();
+          });
         return;
       } catch (err) {
         console.warn("Neural audio play error:", err);

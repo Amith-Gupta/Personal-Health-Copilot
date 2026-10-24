@@ -16,18 +16,12 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://mycopilot.qd.je",
-        "http://mycopilot.qd.je",
-        "https://main.d2wddruuen8xa2.amplifyapp.com",
-        "http://localhost:3000",
-        "http://localhost:3010",
-        "*"
-    ],
-    allow_origin_regex=r".*",
+    # Only the real frontends may call the API from a browser. Add more with FRONTEND_ORIGIN (comma-separated).
+    allow_origins=settings.allowed_origins,
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+    max_age=600,
 )
 
 for r in (profiles, ingestion, search, voice, chatgpt_router, mcp_governance_router):

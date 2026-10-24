@@ -17,12 +17,13 @@ import {
 } from "@phosphor-icons/react";
 import { currentMedicines, isOut, latestTests, schedule, tidyName, type Slot } from "@/lib/clinical";
 import { formatDate, useI18n } from "@/lib/i18n";
-import { pick, pickList, type HealthRecord, type Profile } from "@/lib/types";
+import { pick, pickList, type HealthRecord, type Profile, type Trend } from "@/lib/types";
 import type { Tab } from "./app-shell";
 import { RangeBar } from "./range-bar";
 import { DocIcon } from "./doc-icon";
 import { Timeline } from "./timeline";
 import { DietGuide } from "./diet-guide";
+import { Trends } from "./trends";
 import { highlight } from "@/lib/highlight";
 import { Badge, Button, Skeleton, cx } from "./ui";
 
@@ -42,6 +43,7 @@ const SLOTS: { slot: Slot; Icon: typeof Sun }[] = [
 export function Overview({
   records,
   profile,
+  trends = [],
   onOpen,
   onTab,
   onFile,
@@ -51,6 +53,7 @@ export function Overview({
 }: {
   records: HealthRecord[] | null;
   profile: Profile;
+  trends?: Trend[];
   onOpen: (id: string) => void;
   onTab: (t: Tab) => void;
   onFile: (f: File) => void;
@@ -617,6 +620,9 @@ export function Overview({
           <span>{t.allClear}</span>
         </div>
       )}
+
+      {/* Same test across reports */}
+      <Trends trends={trends} onOpen={onOpen} />
 
       {/* Personalized Indian Diet & Lifestyle Guide */}
       <DietGuide records={records} profile={profile} />

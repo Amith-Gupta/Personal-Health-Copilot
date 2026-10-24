@@ -1,8 +1,11 @@
 "use client";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Lang } from "./types";
+import type { Lang, TrendVerdict } from "./types";
 
 const en = {
+  trendsTitle: "How results are changing", trendsNote: "The same test across reports, judged against the range printed on each report.",
+  trendVerdict: { improving: "Improving", worsening: "Getting worse", steady: "About the same", in_range: "In range", watch: "Changed" } as Record<TrendVerdict, string>,
+  trendBackInRange: "Now back in range", trendStillOut: "Still outside range", trendReports: (n: number) => `${n} reports`,
   addYourself: "Add yourself", startBody: "Add the first person, then scan a document. You can add parents, a spouse or children later.",
   removeMember: "Remove from family", confirmRemove: (n: string) => `Remove ${n} and all their records? This cannot be undone.`, removed: (n: string) => `${n} removed`,
   visitSummary: "Visit summary", visitIntro: "One page to take to the doctor.", printPage: "Print or save as PDF", preparedOn: "Prepared on", outOfRangeTitle: "Values outside the printed range", recentDocs: "Recent documents", noneRecorded: "None recorded",
@@ -117,6 +120,9 @@ type Dict = typeof en;
 
 const hi: Dict = {
   ...en,
+  trendsTitle: "नतीजे कैसे बदल रहे हैं", trendsNote: "अलग-अलग रिपोर्ट में एक ही जांच, हर रिपोर्ट पर छपी सीमा से तुलना।",
+  trendVerdict: { improving: "सुधार हो रहा है", worsening: "बिगड़ रहा है", steady: "लगभग वैसा ही", in_range: "सीमा में", watch: "बदला है" },
+  trendBackInRange: "अब सीमा में", trendStillOut: "अभी भी सीमा से बाहर", trendReports: (n) => `${n} रिपोर्ट`,
   addYourself: "खुद को जोड़ें", startBody: "पहले व्यक्ति को जोड़ें, फिर दस्तावेज़ स्कैन करें। माता-पिता, जीवनसाथी या बच्चों को बाद में जोड़ सकते हैं।",
   removeMember: "परिवार से हटाएं", confirmRemove: (n: string) => `${n} और उनके सभी रिकॉर्ड हटाएं? इसे वापस नहीं किया जा सकता।`, removed: (n: string) => `${n} हटाए गए`,
   visitSummary: "डॉक्टर के लिए सारांश", visitIntro: "डॉक्टर के पास ले जाने के लिए एक पन्ना।", printPage: "प्रिंट करें या PDF सहेजें", preparedOn: "तैयार किया गया", outOfRangeTitle: "छपी सीमा से बाहर मान", recentDocs: "हाल के दस्तावेज़", noneRecorded: "कुछ दर्ज नहीं",
@@ -230,6 +236,9 @@ const hi: Dict = {
 
 const te: Dict = {
   ...en,
+  trendsTitle: "ఫలితాలు ఎలా మారుతున్నాయి", trendsNote: "వేర్వేరు రిపోర్టుల్లో ఒకే పరీక్ష, ప్రతి రిపోర్ట్‌పై ముద్రించిన పరిధితో పోల్చి.",
+  trendVerdict: { improving: "మెరుగవుతోంది", worsening: "తీవ్రమవుతోంది", steady: "దాదాపు అలాగే", in_range: "పరిధిలో ఉంది", watch: "మారింది" },
+  trendBackInRange: "ఇప్పుడు పరిధిలో ఉంది", trendStillOut: "ఇంకా పరిధి దాటి ఉంది", trendReports: (n) => `${n} రిపోర్టులు`,
   addYourself: "మిమ్మల్ని జోడించండి", startBody: "మొదటి వ్యక్తిని జోడించి, పత్రం స్కాన్ చేయండి. తల్లిదండ్రులు, భాగస్వామి లేదా పిల్లలను తర్వాత జోడించవచ్చు.",
   removeMember: "కుటుంబం నుండి తీసివేయండి", confirmRemove: (n: string) => `${n}ని, వారి రికార్డులన్నింటినీ తీసివేయాలా? దీన్ని వెనక్కి తీసుకోలేరు.`, removed: (n: string) => `${n} తీసివేయబడ్డారు`,
   visitSummary: "డాక్టర్ కోసం సారాంశం", visitIntro: "డాక్టర్ దగ్గరకు తీసుకెళ్ళడానికి ఒక పేజీ.", printPage: "ప్రింట్ లేదా PDFగా సేవ్", preparedOn: "తయారు చేసిన తేదీ", outOfRangeTitle: "ముద్రించిన పరిధి దాటిన విలువలు", recentDocs: "ఇటీవలి పత్రాలు", noneRecorded: "ఏమీ నమోదు కాలేదు",

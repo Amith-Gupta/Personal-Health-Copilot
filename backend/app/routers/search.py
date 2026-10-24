@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.payloads import CopilotQueryRequest, CopilotQueryResponse, DoctorRecommendation, DoctorSearchRequest
 from app.services import store
 from app.services.auth import current_user_id
+from app.services.limits import budget
 from app.services.ai_router import CopilotUnavailable, answer_question
 from app.services.guardrails import DISCLAIMER, crisis_reply
 from app.services.hospital_finder import get_doctor_recommendations, is_doctor_query
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/copilot", tags=["Copilot"])
 
 
 @router.post("/query", response_model=CopilotQueryResponse)
-async def query(body: CopilotQueryRequest, owner: str = Depends(current_user_id)):
+async def query(body: CopilotQueryRequest, owner: str = Depends(budget("ask"))):
     disclaimer = DISCLAIMER[body.language]
     crisis = crisis_reply(body.query, body.language)
     if crisis:
