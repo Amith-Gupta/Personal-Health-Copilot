@@ -230,15 +230,15 @@ A major drawback identified during the investigation is that several core featur
 
 ## 5. Comprehensive Remediation Roadmap & Recommended Fixes
 
-### Priority 0: Critical Fixes
-1. **Fix Supabase Schema:** Update `database/schema.sql` to match `store.py` (`patients`, `health_records`, `medications`, `lab_observations`, `audit_log`).
-2. **Dynamic Emergency Pass Extraction:** Extract blood group and allergies dynamically from the patient's parsed lab records and prescriptions, eliminating the fake "O+" and fake phone defaults.
-3. **TTS Audio Stream Truncation:** Replace the 200-character Google Translate hack with client-side SpeechSynthesis or proper streaming voice engine.
+### Priority 0: Critical Fixes (Implemented & Pushed to Main)
+1. **Fix Supabase Schema:** [COMPLETED] Updated `database/schema.sql` to match `store.py` (`patients`, `health_records`, `medications`, `lab_observations`, `conditions`, `audit_log`).
+2. **Dynamic Emergency Pass Extraction:** [COMPLETED] Extracted blood group (`detectBloodGroup`) and allergies (`detectAllergies`) dynamically from the patient's parsed lab observations and diagnoses, eliminating fake mock defaults.
+3. **TTS Audio Stream Truncation:** [COMPLETED] Replaced the 200-character hard truncation in `backend/app/services/voice_engine.py` with multi-chunk sentence streaming and concatenating MP3 bitstream segments.
+4. **Container Width Unification:** [COMPLETED] Aligned `TopBar` max-width (`max-w-[1240px]`) with `AppShell`, `PatientHeader`, and `FamilyRow` to eliminate visual layout seams.
 
 ### Priority 1: Data Dynamism Enhancements
 1. **Dynamic Drug Safety Screening:** Combine the 8 static rules with an LLM prompt that checks any pair of drugs for contraindications.
 2. **Expand Diet Advisor Biometrics:** Add condition checks for TSH (Hypothyroidism) and Uric Acid (Gout/Arthritis).
-3. **Container Width Unification:** Align `TopBar` and main content containers to a shared `max-w-[1180px]` width.
 
 ### Priority 2: UI Polish
 1. **Light/Dark Token Conformity:** Replace hardcoded `#141414` in modals with responsive `--surface` tokens.
