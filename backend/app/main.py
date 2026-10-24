@@ -19,7 +19,7 @@ app.add_middleware(
     # Only the real frontends may call the API from a browser. Add more with FRONTEND_ORIGIN (comma-separated).
     allow_origins=settings.allowed_origins,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
     max_age=600,
 )

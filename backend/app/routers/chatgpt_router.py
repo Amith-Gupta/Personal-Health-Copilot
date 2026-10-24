@@ -7,7 +7,7 @@ Features optional authentication via 'X-API-Key' or 'Authorization: Bearer <key>
 to securely scope queries to the authenticated user's family records and enforce governance.
 """
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Header, Query
+from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.services.mcp_governance import (
@@ -32,9 +32,15 @@ router = APIRouter(prefix="/chatgpt", tags=["ChatGPT Connector"])
 def resolve_chatgpt_context(
     x_api_key: Optional[str] = None,
     authorization: Optional[str] = None,
+    required: bool = True,
 ) -> Optional[MCPCallerContext]:
+    """Resolves the caller's personal access token. Endpoints that touch patient data require one:
+    without it there is no owner to scope the query to."""
     token = x_api_key or authorization
-    return authenticate_caller(token) if token else None
+    ctx = authenticate_caller(token) if token else None
+    if ctx is None and required:
+        raise HTTPException(401, "A valid Health Copilot access token is required. Create one under Security in the app.")
+    return ctx
 
 
 # Request payload schemas
@@ -146,7 +152,7 @@ def check_drug_safety(
     authorization: Optional[str] = Header(None),
 ) -> Dict[str, Any]:
     """Analyzes a list of medications for drug-drug interactions, duplicate therapeutic classes, and food/alcohol precautions."""
-    ctx = resolve_chatgpt_context(x_api_key, authorization)
+    ctx = resolve_chatgpt_context(x_api_key, authorization, required=False)  # no patient data
     result = check_drug_safety_service(body.medications)
     if ctx:
         log_mcp_activity(
@@ -195,7 +201,7 @@ def find_doctors(
     authorization: Optional[str] = Header(None),
 ) -> List[Dict[str, Any]]:
     """Finds top verified medical specialists and hospitals based on clinical diagnosis and city location."""
-    ctx = resolve_chatgpt_context(x_api_key, authorization)
+    ctx = resolve_chatgpt_context(x_api_key, authorization, required=False)  # no patient data
     result = find_specialist_doctors_service(specialty_or_condition, city)
     if ctx:
         log_mcp_activity(

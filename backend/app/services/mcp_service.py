@@ -42,12 +42,10 @@ def fetch_all_patients(
     patients: List[Dict[str, Any]] = []
     seen_ids = set()
 
-    # 1. Fetch from Supabase (strictly scoped by owner if provided)
+    # 1. Fetch from Supabase. Only ever for a verified owner: the service key bypasses
+    #    row-level security, so an unscoped query would return every family's records.
     try:
-        query = store.db().table("patients").select("*")
-        if owner:
-            query = query.eq("owner_id", owner)
-        rows = query.execute().data
+        rows = store.db().table("patients").select("*").eq("owner_id", owner).execute().data if owner else []
         for r in rows:
             patients.append({
                 "id": r["id"],
@@ -137,12 +135,10 @@ def fetch_records_for_patient(
     source = patient.get("source", "database")
     records: List[Dict[str, Any]] = []
 
-    if source == "database":
+    if source == "database" and owner:
         try:
-            q = store.db().table("health_records").select("*").eq("patient_id", patient_id)
-            if owner:
-                q = q.eq("owner_id", owner)
-            records = q.execute().data
+            records = (store.db().table("health_records").select("*")
+                       .eq("patient_id", patient_id).eq("owner_id", owner).execute().data)
         except Exception as e:
             logger.warning(f"Supabase records query note for {patient_id}: {e}")
 
@@ -165,10 +161,7 @@ def get_all_patient_profiles(
     record_counts: Dict[str, int] = {}
 
     try:
-        q = store.db().table("health_records").select("id,patient_id")
-        if owner:
-            q = q.eq("owner_id", owner)
-        rows = q.execute().data
+        rows = store.db().table("health_records").select("id,patient_id").eq("owner_id", owner).execute().data if owner else []
         for r in rows:
             pid = r.get("patient_id")
             if pid:
