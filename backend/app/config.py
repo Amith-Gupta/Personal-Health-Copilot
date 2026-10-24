@@ -31,8 +31,21 @@ class Settings(BaseSettings):
     SUPABASE_JWKS_URL: str = ""
     SUPABASE_PUBLISHABLE_KEY: str = ""
     
-    # Allowed CORS Origins for Frontend
-    CORS_ORIGINS: List[str] = [o.strip() for o in os.getenv("FRONTEND_ORIGIN", "http://localhost:3000").split(",")] + ["http://localhost:3010", "http://127.0.0.1:3010"]
+    # Browser origins allowed to call the API. FRONTEND_ORIGIN adds to the known deployments below.
+    FRONTEND_ORIGIN: str = os.getenv("FRONTEND_ORIGIN", "")
+    KNOWN_ORIGINS: List[str] = [
+        "https://mycopilot.qd.je",
+        "https://main.d2wddruuen8xa2.amplifyapp.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3010",
+        "http://127.0.0.1:3010",
+    ]
+
+    @property
+    def allowed_origins(self) -> List[str]:
+        extra = [o.strip().rstrip("/") for o in self.FRONTEND_ORIGIN.split(",") if o.strip()]
+        return list(dict.fromkeys(self.KNOWN_ORIGINS + extra))
 
     class Config:
         env_file = ".env"

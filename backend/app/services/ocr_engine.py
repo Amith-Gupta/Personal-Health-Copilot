@@ -11,7 +11,7 @@ import logging
 import re
 import time
 from datetime import date
-from typing import Any, Dict, Optional, Tuple
+from typing import List, Any, Dict, Optional, Tuple
 
 from app.config import settings
 from app.schemas.payloads import (
@@ -26,6 +26,10 @@ GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-flash-lite-late
 _COOLDOWN_UNTIL: Dict[str, float] = {}
 _KEY_COOLDOWN_UNTIL: Dict[str, float] = {}
 GROQ_MODEL = "qwen/qwen3.8-27b"
+# Total seconds the vision chain may spend on one document. The browser waits 180 s for an
+# upload, so the chain must give up (or fall back to the PDF text path) well before that.
+VISION_BUDGET_S = 110
+PER_CALL_S = 45
 
 
 class NotMedicalDocument(Exception):
@@ -56,13 +60,15 @@ Return ONE JSON object, no markdown:
    "dosage": "strength as written e.g. 50 mcg", "frequency": "as written e.g. 1-0-1, BD, once a week",
    "timing": "e.g. after food, empty stomach, or null", "duration": "e.g. 30 days, or null",
    "instructions": {"english": "how to take it in one simple sentence", "hindi": "...", "telugu": "..."},
-   "uncertain": true if any part was hard to read
+   "uncertain": true if any part was hard to read,
+   "source_box": [ymin, xmin, ymax, xmax] of the line where this medicine is written on the image, integers 0-1000, or null for a PDF or if unsure
  }],
  "lab_observations": [{
    "test_name": "as printed", "observed_value": "exactly as printed, keep commas", "unit": "as printed",
    "reference_range": "exactly as printed or null", "flag": "HIGH|LOW|NORMAL|ABNORMAL as marked or implied by the range",
    "explanation": only when the value is outside the range: {"english": "what this test measures and what a high/low result can mean, 1-2 calm sentences, no diagnosis", "hindi": "...", "telugu": "..."},
-   "uncertain": true if hard to read
+   "uncertain": true if hard to read,
+   "source_box": [ymin, xmin, ymax, xmax] of this test's row (name to value) on the image, integers 0-1000, or null for a PDF or if unsure
  }],
  "summary": {"english": "3-5 short plain sentences for a family member with no medical training: what this document is, what was found or prescribed, what stands out. Mention every out-of-range value by name.", "hindi": "same in simple Hindi", "telugu": "same in simple Telugu"},
  "doctor_questions": {"english": ["2-4 specific questions the patient could ask their doctor about this document"], "hindi": [...], "telugu": [...]},
@@ -81,6 +87,17 @@ Rules:
 - Do not recommend changing, starting or stopping any medicine. Do not diagnose. Use calm, non-alarming words.
 - Hindi in Devanagari, Telugu in Telugu script, simple everyday words.
 """
+
+
+def _box(raw) -> Optional[List[int]]:
+    """A [ymin, xmin, ymax, xmax] box on the 0-1000 grid, or None if it is not a sane box."""
+    try:
+        y0, x0, y1, x1 = (int(round(float(v))) for v in raw)
+    except (TypeError, ValueError):
+        return None
+    if not (0 <= y0 < y1 <= 1000 and 0 <= x0 < x1 <= 1000) or (y1 - y0) > 400:
+        return None
+    return [y0, x0, y1, x1]
 
 
 def _strip_fences(raw: str) -> str:
@@ -108,17 +125,13 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
     from google import genai
     from google.genai import types
     part = types.Part.from_bytes(data=file_bytes, mime_type=mime)
+    deadline = time.monotonic() + VISION_BUDGET_S
 
     for key_idx, key in enumerate(keys):
-        masked_key = f"{key[:8]}...{key[-4:]}" if len(key) >= 12 else "***"
+        masked_key = f"...{key[-4:]}" if len(key) >= 12 else "***"
         if _KEY_COOLDOWN_UNTIL.get(key, 0) > time.time():
             remaining = int(_KEY_COOLDOWN_UNTIL[key] - time.time())
             errors.append(f"key[{key_idx}]({masked_key}): cooling down ({remaining}s remaining)")
-            continue
-        try:
-            client = genai.Client(api_key=key, http_options=types.HttpOptions(timeout=45000))
-        except Exception as e:
-            errors.append(f"key[{key_idx}]({masked_key}) client init failed: {e}")
             continue
 
         key_quota_exhausted = False
@@ -127,7 +140,15 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
             if _COOLDOWN_UNTIL.get(model_key, 0) > time.time():
                 errors.append(f"{model} on key[{key_idx}]: cooling down")
                 continue
+            remaining = deadline - time.monotonic()
+            if remaining < 8:
+                errors.append("vision time budget used up")
+                return None, "", errors
             try:
+                # One attempt per call (no hidden SDK retries) and never longer than the budget left.
+                client = genai.Client(api_key=key, http_options=types.HttpOptions(
+                    timeout=int(min(PER_CALL_S, remaining) * 1000),
+                    retry_options=types.HttpRetryOptions(attempts=1)))
                 resp = client.models.generate_content(
                     model=model,
                     contents=[part, PROMPT],
@@ -139,7 +160,10 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
                 logger.warning(f"Gemini {model} on key[{key_idx}]({masked_key}) failed: {msg[:160]}")
                 errors.append(f"{model}(key_{key_idx}): {type(e).__name__}")
                 is_quota = "RESOURCE_EXHAUSTED" in msg or " 429" in msg or "quota" in msg.lower()
-                is_unavailable = "503" in msg or "UNAVAILABLE" in msg or "high demand" in msg.lower() or "overloaded" in msg.lower()
+                low = msg.lower()
+                # Overloaded or timing out: cool this model down so the next document skips it.
+                is_unavailable = any(k in msg for k in ("503", "504", "UNAVAILABLE", "DEADLINE_EXCEEDED")) or any(
+                    k in low for k in ("high demand", "overloaded", "timed out", "timeout")) or isinstance(e, TimeoutError)
                 if is_quota:
                     delay = re.search(r"retryDelay['\"]?: ?['\"]?(\d+)s", msg)
                     cooldown = int(delay.group(1)) if delay else 600
@@ -152,7 +176,7 @@ def _gemini(file_bytes: bytes, mime: str) -> Tuple[Optional[Dict[str, Any]], str
                     key_quota_exhausted = True
                     break  # Move to the next fallback API key immediately!
                 elif is_unavailable:
-                    _COOLDOWN_UNTIL[model_key] = time.time() + 300
+                    _COOLDOWN_UNTIL[model_key] = time.time() + 180
                     logger.warning(
                         f"Gemini {model} on key[{key_idx}] hit 503/high demand. "
                         f"Cooling down {model} and immediately trying next model/key."
@@ -259,7 +283,7 @@ def normalize(data: Dict[str, Any]) -> Tuple[ExtractedRecord, list]:
             name=name, form=form, dosage=m.get("dosage") or "",
             frequency=normalize_frequency(m.get("frequency")), timing=m.get("timing"),
             duration=m.get("duration"), instructions=_localized(m.get("instructions")),
-            uncertain=bool(m.get("uncertain")),
+            uncertain=bool(m.get("uncertain")), source_box=_box(m.get("source_box")),
         ))
     labs = []
     for o in data.get("lab_observations") or []:
@@ -280,7 +304,7 @@ def normalize(data: Dict[str, Any]) -> Tuple[ExtractedRecord, list]:
             test_name=o["test_name"], observed_value=value, unit=o.get("unit") or "",
             reference_range=o.get("reference_range"), flag=flag, flag_source=source,
             explanation=_localized(o.get("explanation")) if flag in ("HIGH", "LOW", "ABNORMAL") else None,
-            uncertain=bool(o.get("uncertain")),
+            uncertain=bool(o.get("uncertain")), source_box=_box(o.get("source_box")),
         ))
     summary = _localized(data.get("summary")) or Localized(english="This document was read, but no summary was produced.")
     q = data.get("doctor_questions") or {}

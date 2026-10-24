@@ -25,7 +25,10 @@ async def run_all_tests():
     print("\n2. Testing get_patient_summary('Surya')...")
     res = await app.call_tool("get_patient_summary", {"patient_name_or_id": "Surya"})
     summary = parse_mcp_result(res)
-    print(f"-> Patient: {summary['patient']['name']}")
+    if "error" in summary:
+        print(f"-> {summary['error']}")
+    else:
+        print(f"-> Patient: {summary['patient']['name']}")
     print(f"   Diagnoses: {summary.get('diagnosed_conditions')}")
     print(f"   Active Medications Count: {summary.get('active_medications_count')}")
     print(f"   Encounters: {[e['title'] for e in summary.get('clinical_encounters', [])]}")

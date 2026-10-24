@@ -133,31 +133,6 @@ export function AuthScreen() {
             <h1 className="display text-[32px] font-semibold">{mode === "in" ? t.signIn : t.signUp}</h1>
             <p className="mt-1 text-[14px] text-fg-3">{t.demoNote}</p>
 
-            {/* Quick Demo Credentials Banner */}
-            <div className="mt-5 rounded-2xl border border-line bg-surface/70 p-3.5 shadow-sm backdrop-blur-sm transition-all hover:border-accent/40">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent">
-                    <Sparkle weight="fill" className="h-3.5 w-3.5 text-accent" />
-                    <span>Demo Account</span>
-                  </div>
-                  <p className="mt-0.5 truncate text-xs text-fg-3">
-                    Kumar family · 3 profiles & records preloaded
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={fillDemoCredentials}
-                  className="shrink-0 gap-1.5 border-accent/30 bg-accent/5 font-medium text-accent hover:bg-accent hover:text-accent-fg"
-                >
-                  <Key className="h-3.5 w-3.5" />
-                  <span>{t.demoCredentials}</span>
-                </Button>
-              </div>
-            </div>
-
             <form onSubmit={submit} className="mt-6 space-y-3.5">
               {/* Additional Account Details for SignUp */}
               {mode === "up" && (
@@ -287,7 +262,7 @@ export function AuthScreen() {
                   className="h-11 w-full gap-2 border-dashed font-medium text-fg-2 hover:border-fg hover:text-fg"
                 >
                   <Key className="h-4 w-4 text-accent" />
-                  <span>{t.useDemo} ({t.demoCredentials})</span>
+                  <span>{t.useDemo}</span>
                 </Button>
               )}
             </form>

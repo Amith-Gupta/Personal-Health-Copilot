@@ -28,6 +28,7 @@ class MedicationItem(BaseModel):
     duration: Optional[str] = None
     instructions: Optional[Localized] = None
     uncertain: bool = False
+    source_box: Optional[List[int]] = None  # [ymin, xmin, ymax, xmax] on a 0-1000 grid of the page image
 
 
 class LabObservationItem(BaseModel):
@@ -39,6 +40,7 @@ class LabObservationItem(BaseModel):
     flag_source: Literal["computed", "document", "ai"] = "ai"
     explanation: Optional[Localized] = None
     uncertain: bool = False
+    source_box: Optional[List[int]] = None  # [ymin, xmin, ymax, xmax] on a 0-1000 grid of the page image
 
 
 class ExtractedRecord(BaseModel):
@@ -122,11 +124,11 @@ class DoctorRecommendation(BaseModel):
     address: str
     city: str
     distance_km: Optional[float] = None
-    rating: float = 4.8
+    rating: Optional[float] = None
     maps_url: str
     phone: Optional[str] = None
     reason: str
-    timings: Optional[str] = "Mon - Sat (10:00 AM - 5:00 PM)"
+    timings: Optional[str] = None
 
 
 class DoctorSearchRequest(BaseModel):
@@ -141,7 +143,7 @@ class DoctorSearchRequest(BaseModel):
 
 class ConversationTurn(BaseModel):
     role: Literal["user", "assistant"]
-    content: str
+    content: str = Field(..., max_length=4000)
 
 
 class CopilotQueryRequest(BaseModel):
@@ -150,8 +152,8 @@ class CopilotQueryRequest(BaseModel):
     profile_id: str
     lat: Optional[float] = None
     lon: Optional[float] = None
-    city: Optional[str] = None
-    history: Optional[List[ConversationTurn]] = None
+    city: Optional[str] = Field(None, max_length=60)
+    history: Optional[List[ConversationTurn]] = Field(None, max_length=12)
 
 
 class Citation(BaseModel):

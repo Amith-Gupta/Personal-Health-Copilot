@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
+  WarningCircle,
   Plant,
   Drop,
   BowlFood,
@@ -93,6 +94,12 @@ function SlotIcon({ slot }: { slot: MealTimeSlot }) {
   }
 }
 
+const GI_LABEL: Record<"en" | "hi" | "te", Record<"very-low" | "low" | "medium", string>> = {
+  en: { "very-low": "Very low sugar impact", low: "Low sugar impact", medium: "Medium sugar impact" },
+  hi: { "very-low": "शुगर पर बहुत कम असर", low: "शुगर पर कम असर", medium: "शुगर पर मध्यम असर" },
+  te: { "very-low": "చక్కెరపై చాలా తక్కువ ప్రభావం", low: "చక్కెరపై తక్కువ ప్రభావం", medium: "చక్కెరపై మధ్యస్థ ప్రభావం" },
+};
+
 export function DietGuide({
   records,
   profile,
@@ -100,7 +107,7 @@ export function DietGuide({
   records: HealthRecord[];
   profile: Profile;
 }) {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const pushToast = useToast();
   const speech = useSpeech();
 
@@ -112,11 +119,10 @@ export function DietGuide({
     [records, profile]
   );
 
-  useEffect(() => {
-    return () => {
-      speech.stop();
-    };
-  }, [speech]);
+  // useSpeech returns a new object every render; depend on the stable stop() so narration
+  // is only cut on unmount, not on every re-render.
+  const stopSpeech = speech.stop;
+  useEffect(() => () => stopSpeech(), [stopSpeech]);
 
   // Speech Narrative for accessibility
   const handleListen = useCallback(() => {
@@ -171,6 +177,8 @@ export function DietGuide({
       lines.push(`  ${habit.desc[lang]}`);
     });
 
+    lines.push("");
+    lines.push(`_${t.dietDisclaimer}_`);
     const fullText = lines.join("\n");
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(fullText).catch(() => {});
@@ -187,7 +195,7 @@ export function DietGuide({
 
     const url = `https://wa.me/?text=${encodeURIComponent(fullText)}`;
     window.open(url, "_blank", "noopener,noreferrer");
-  }, [profile.name, plan, lang, pushToast]);
+  }, [profile.name, plan, lang, pushToast, t]);
 
   const filteredFoods = useMemo(() => {
     if (selectedCategory === "all") return plan.eat;
@@ -220,19 +228,28 @@ export function DietGuide({
     drink: { en: "Drinks", hi: "पेय", te: "పానీయాలు" },
   };
 
+  const title = lang === "te" ? "ఆహార & జీవనశైలి మార్గదర్శి" : lang === "hi" ? "आहार और जीवनशैली मार्गदर्शन" : "Diet & daily habits";
+
+  // Nothing on file to base advice on: ask for a record instead of showing a generic plan.
+  if (plan.eat.length === 0 && plan.avoid.length === 0) {
+    return (
+      <section aria-label={title}>
+        <p className="eyebrow mb-4">{title}</p>
+        <div className="panel px-5 py-6">
+          <p className="text-[15px] font-medium text-fg">{t.dietNeedRecords}</p>
+          <p className="mt-1 max-w-xl text-sm text-fg-3">{t.dietNeedRecordsBody}</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section aria-label="Personalized Diet and Lifestyle Guide" className="animate-fade-up">
+    <section aria-label={title} className="animate-fade-up">
       {/* ─── Clean Header matching overview.tsx ─── */}
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <p className="eyebrow">
-              {lang === "te"
-                ? "ఆహార & జీవనశైలి మార్గదర్శి"
-                : lang === "hi"
-                ? "आहार और जीवनशैली मार्गदर्शन"
-                : "Personalized Diet & Lifestyle"}
-            </p>
+            <p className="eyebrow">{title}</p>
             {plan.triggeredBy.map((item, i) => (
               <Badge key={i} tone="accent">
                 {item[lang]}
@@ -241,6 +258,10 @@ export function DietGuide({
           </div>
           <p className="mt-1 text-sm text-fg-3">
             {plan.focusTitle[lang]} · <span className="text-fg-2">{plan.focusSubtitle[lang]}</span>
+          </p>
+          <p className="mt-2 flex max-w-2xl items-start gap-1.5 text-[13px] leading-snug text-warn">
+            <WarningCircle size={15} weight="fill" className="mt-px shrink-0" aria-hidden />
+            <span>{t.dietDisclaimer}</span>
           </p>
         </div>
 
@@ -400,7 +421,7 @@ export function DietGuide({
                         {item.glycemicImpact && (
                           <>
                             <span>·</span>
-                            <span className="text-ok font-medium">{item.glycemicImpact} GI</span>
+                            <span className="text-ok font-medium">{GI_LABEL[lang][item.glycemicImpact]}</span>
                           </>
                         )}
                       </div>

@@ -58,6 +58,12 @@ def set_active_token(token: Optional[str]) -> None:
     _ACTIVE_TOKEN = token
 
 
+def _token_given() -> bool:
+    """A token was configured. If it does not resolve (wrong or revoked), every tool must refuse
+    rather than fall back to the anonymous sample-family view."""
+    return bool((_ACTIVE_TOKEN or os.getenv("MCP_API_KEY") or "").strip())
+
+
 def get_current_context() -> Optional[MCPCallerContext]:
     global _ACTIVE_TOKEN
     token = _ACTIVE_TOKEN or os.getenv("MCP_API_KEY")
@@ -77,7 +83,7 @@ def list_patient_profiles() -> List[Dict[str, Any]]:
     """
     ctx = get_current_context()
     allowed, reason = authorize_mcp_request(ctx, "list_patient_profiles")
-    if not allowed and ctx is not None:
+    if not allowed and (ctx is not None or _token_given()):
         return [{"error": reason, "patient_id": "none", "name": "Access Restricted"}]
 
     owner = ctx.owner_id if ctx else None
@@ -108,7 +114,7 @@ def get_patient_summary(patient_name_or_id: str) -> Dict[str, Any]:
     """
     ctx = get_current_context()
     allowed, reason = authorize_mcp_request(ctx, "get_patient_summary")
-    if not allowed and ctx is not None:
+    if not allowed and (ctx is not None or _token_given()):
         return {"error": reason}
 
     owner = ctx.owner_id if ctx else None
@@ -144,8 +150,8 @@ def get_prescribed_medications(patient_name_or_id: str) -> List[Dict[str, Any]]:
     """
     ctx = get_current_context()
     allowed, reason = authorize_mcp_request(ctx, "get_prescribed_medications")
-    if not allowed and ctx is not None:
-        return [{"error": reason, "medication_name": "None"}]
+    if not allowed and (ctx is not None or _token_given()):
+        return [{"error": reason}]
 
     owner = ctx.owner_id if ctx else None
     allowed_pids = ctx.allowed_patient_ids if ctx else None
@@ -181,7 +187,7 @@ def get_lab_reports(patient_name_or_id: str, test_name_filter: Optional[str] = N
     """
     ctx = get_current_context()
     allowed, reason = authorize_mcp_request(ctx, "get_lab_reports")
-    if not allowed and ctx is not None:
+    if not allowed and (ctx is not None or _token_given()):
         return [{"error": reason, "test_name": "None"}]
 
     owner = ctx.owner_id if ctx else None
@@ -218,7 +224,7 @@ def check_drug_safety(medications: List[str]) -> Dict[str, Any]:
     """
     ctx = get_current_context()
     allowed, reason = authorize_mcp_request(ctx, "check_drug_safety")
-    if not allowed and ctx is not None:
+    if not allowed and (ctx is not None or _token_given()):
         return {"error": reason}
 
     result = check_drug_safety_service(medications)
@@ -249,7 +255,7 @@ def ask_health_copilot(query: str, patient_name_or_id: Optional[str] = None, lan
     """
     ctx = get_current_context()
     allowed, reason = authorize_mcp_request(ctx, "ask_health_copilot")
-    if not allowed and ctx is not None:
+    if not allowed and (ctx is not None or _token_given()):
         return {"answer": f"Policy restriction: {reason}", "safety": "blocked"}
 
     owner = ctx.owner_id if ctx else None
@@ -288,7 +294,7 @@ def find_specialist_doctors(specialty_or_condition: str, city: str = "Hyderabad"
     """
     ctx = get_current_context()
     allowed, reason = authorize_mcp_request(ctx, "find_specialist_doctors")
-    if not allowed and ctx is not None:
+    if not allowed and (ctx is not None or _token_given()):
         return [{"error": reason, "doctor_name": "None"}]
 
     result = find_specialist_doctors_service(specialty_or_condition, city)

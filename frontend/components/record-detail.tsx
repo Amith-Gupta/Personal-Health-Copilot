@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowSquareOut, Code, SpeakerHigh, SpeakerSlash, Trash, WarningCircle } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
+import { FilePdf, MagnifyingGlass, ArrowLeft, ArrowSquareOut, Code, SpeakerHigh, SpeakerSlash, Trash, WarningCircle } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { cachedImage } from "@/lib/image-cache";
 import { isOut, tidyName } from "@/lib/clinical";
@@ -25,6 +25,9 @@ export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, 
   const [original, setOriginal] = useState<string | null>(urls?.original || null);
   const [srcErr, setSrcErr] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  // The extracted value whose printed line is highlighted on the original page.
+  const [mark, setMark] = useState<{ box: number[]; label: string } | null>(null);
+  const pageRef = useRef<HTMLDivElement | null>(null);
   const [fhir, setFhir] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -50,6 +53,17 @@ export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, 
     return () => { live = false; speech.stop?.(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [record.id, urls?.preview, urls?.original]);
+
+  const canMark = !isPdf && record.has_source_file;
+  function point(box: number[] | null | undefined, label: string, scroll = false) {
+    if (!canMark || !box) return;
+    setMark({ box, label });
+    if (scroll && pageRef.current && window.innerWidth < 1024) pageRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function markProps(box: number[] | null | undefined, label: string) {
+    if (!canMark || !box) return {};
+    return { onMouseEnter: () => point(box, label), onFocus: () => point(box, label), onMouseLeave: () => setMark(null) };
+  }
 
   async function move(to: Profile) {
     setBusy(to.id);
@@ -100,19 +114,36 @@ export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, 
               {srcErr || !record.has_source_file ? <p className="py-16 text-center text-sm text-fg-3">Original file not available.</p>
                 : !src ? <Skeleton className="aspect-[3/4] w-full" />
                 : isPdf ? (
-                  <object data={`${src}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} type="application/pdf" aria-label={record.source_filename} className="aspect-[3/4] w-full rounded bg-white">
+                  <>
+                  {/* Phone browsers rarely embed PDFs (blank box or forced download): offer a clear open action instead. */}
+                  <a href={original || src || "#"} target="_blank" rel="noreferrer"
+                    className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded bg-surface text-center text-sm text-fg-2 sm:hidden">
+                    <FilePdf size={40} className="text-fg-3" />
+                    <span className="max-w-[16rem] truncate font-medium text-fg">{record.source_filename}</span>
+                    <span className="rounded-full bg-accent px-4 py-2 font-medium text-accent-fg">{t.openOriginal}</span>
+                  </a>
+                  <object data={`${src}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} type="application/pdf" aria-label={record.source_filename} className="hidden aspect-[3/4] w-full rounded bg-white sm:block">
                     <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded bg-surface text-sm text-fg-3">
                       <p>PDF preview is not available in this browser.</p>
                       <a href={original || src || "#"} target="_blank" rel="noreferrer" className="rounded-full bg-accent px-4 py-2 font-medium text-accent-fg">{t.openOriginal}</a>
                     </div>
                   </object>
+                  </>
                 )
                 : (
-                  <div className="relative">
+                  // The wrapper is exactly the size of the rendered image (block, full width, natural
+                  // height; no object-contain), so boxes placed in percent of it stay on the right
+                  // line at every screen size. Boxes are on the model's 0-1000 grid of the page.
+                  <div ref={pageRef} className="relative">
                     {!imgLoaded && <Skeleton className="absolute inset-0" />}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={src} alt={`${t.original}: ${record.source_filename}`} onLoad={() => setImgLoaded(true)}
-                      className={cx("w-full rounded shadow-card transition-opacity", imgLoaded ? "opacity-100" : "opacity-0")} />
+                      className={cx("block h-auto w-full rounded shadow-card transition-opacity", imgLoaded ? "opacity-100" : "opacity-0")} />
+                    {mark && imgLoaded && (
+                      <span aria-hidden className="pointer-events-none absolute rounded-[3px] bg-yellow-300/40 ring-2 ring-yellow-500/80 transition-all duration-200"
+                        style={{ top: `${mark.box[0] / 10}%`, left: `${mark.box[1] / 10}%`, height: `${(mark.box[2] - mark.box[0]) / 10}%`, width: `${(mark.box[3] - mark.box[1]) / 10}%` }} />
+                    )}
+                    <span className="sr-only" aria-live="polite">{mark ? `${t.showOnPage}: ${mark.label}` : ""}</span>
                   </div>
                 )}
             </div>
@@ -143,9 +174,15 @@ export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, 
                   const bad = isOut(o.flag);
                   const tone = o.flag === "LOW" ? "low" : bad ? "high" : "ok";
                   return (
-                    <li key={i} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1.5 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_7.5rem_9rem]">
+                    <li key={i} {...markProps(o.source_box, o.test_name)}
+                      className={cx("grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1.5 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_7.5rem_9rem]", canMark && o.source_box && "transition-colors hover:bg-yellow-300/10")}>
                       <div className="min-w-0">
                         <p className="text-[14px] font-medium">{o.test_name}</p>
+                        {canMark && o.source_box && (
+                          <button type="button" onClick={() => point(o.source_box, o.test_name, true)} className="mt-0.5 inline-flex min-h-[28px] items-center gap-1 text-xs text-fg-3 hover:text-fg">
+                            <MagnifyingGlass size={12} />{t.showOnPage}
+                          </button>
+                        )}
                         {bad && o.explanation && <p className="mt-1 text-sm leading-relaxed text-fg-2">{pick(o.explanation, lang)}</p>}
                         {o.uncertain && <p className="mt-1 text-xs text-warn">{t.hardToRead}</p>}
                       </div>
@@ -170,9 +207,15 @@ export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, 
               <CardHeader title={t.medicines} />
               <ul className="divide-y divide-line">
                 {e.medications.map((m, i) => (
-                  <li key={i} className="grid gap-x-4 gap-y-2 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <li key={i} {...markProps(m.source_box, m.name)}
+                    className={cx("grid gap-x-4 gap-y-2 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_auto]", canMark && m.source_box && "transition-colors hover:bg-yellow-300/10")}>
                     <div className="min-w-0">
                       <p className="text-[14px] font-medium">{m.name} <span className="num text-sm font-normal text-fg-3">{m.dosage}</span>{m.form && <span className="ml-1.5 text-xs text-fg-3">{m.form}</span>}</p>
+                      {canMark && m.source_box && (
+                        <button type="button" onClick={() => point(m.source_box, m.name, true)} className="mt-0.5 inline-flex min-h-[28px] items-center gap-1 text-xs text-fg-3 hover:text-fg">
+                          <MagnifyingGlass size={12} />{t.showOnPage}
+                        </button>
+                      )}
                       {m.instructions && <p className="mt-0.5 text-sm text-fg-2">{pick(m.instructions, lang)}</p>}
                       <p className="num mt-0.5 text-xs text-fg-3">{[m.frequency, m.timing, m.duration].filter(Boolean).join(" · ")}</p>
                       {m.uncertain && <p className="mt-1 text-xs text-warn">{t.hardToRead}</p>}

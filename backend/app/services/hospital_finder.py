@@ -1,6 +1,7 @@
-"""Real-time Doctor and Hospital Recommendation Engine for Indian Healthcare.
-Fetches real hospital locations via OpenStreetMap Nominatim and grounds specialists
-to patient clinical records and geographical proximity.
+"""Which specialist department to see, at real nearby hospitals.
+
+Hospitals come from OpenStreetMap Nominatim; the specialty is chosen from the patient's own
+records and question. No doctor names, ratings or phone numbers are invented.
 """
 import logging
 import math
@@ -13,6 +14,17 @@ from app.schemas.payloads import DoctorRecommendation, HealthRecord, Profile
 logger = logging.getLogger(__name__)
 
 # Specialty mapping based on clinical keywords
+THYROID_RULE = {
+    "keywords": ["thyroid", "tsh", "hypothyroid", "hyperthyroid", "levothyroxine", "thyroxine", "thyronorm", "eltroxin", "t3", "t4"],
+    "specialty": "Endocrinology & Diabetology",
+    "doctor_title": "Endocrinologist",
+    "reasons": {
+        "en": "Endocrinologists treat thyroid and other hormone conditions, and review thyroid test results and tablet doses.",
+        "hi": "एंडोक्रिनोलॉजिस्ट थायरॉइड और अन्य हार्मोन संबंधी समस्याओं का इलाज करते हैं और थायरॉइड रिपोर्ट व दवा की खुराक देखते हैं।",
+        "te": "ఎండోక్రినాలజిస్టులు థైరాయిడ్ మరియు ఇతర హార్మోన్ సమస్యలకు చికిత్స చేస్తారు, థైరాయిడ్ రిపోర్టులు, మాత్రల మోతాదు చూస్తారు."
+    }
+}
+
 SPECIALTY_RULES = [
     {
         "keywords": ["diabetes", "sugar", "hba1c", "glucose", "fbs", "ppbs", "insulin", "glycomet", "metformin", "endocrine"],
@@ -66,33 +78,9 @@ SPECIALTY_RULES = [
     }
 ]
 
-# Well-known doctor templates associated with major Indian tertiary hospitals
-DOCTOR_REGISTRY = {
-    "Endocrinology & Diabetology": [
-        ("Dr. Rajesh Varma", "MD, DM (Endocrinology) · AIIMS", 4.9, "+91 40 2360 7777"),
-        ("Dr. S. K. Nandini", "MD, DNB (Endocrinology) · 18+ yrs exp", 4.8, "+91 40 4455 0000"),
-        ("Dr. P. Murali Krishna", "MBBS, MD, Fellowship in Diabetes (UK)", 4.7, "+91 87 7228 7777"),
-    ],
-    "Cardiology": [
-        ("Dr. Anand Kumar Reddy", "MD, DM (Cardiology), FACC", 4.9, "+91 40 2360 7777"),
-        ("Dr. K. Sunitha Rao", "MD, DNB (Cardiology) · Care Hospitals", 4.8, "+91 40 6165 6565"),
-        ("Dr. B. Venkatachalam", "MD, DM (Cardiology) · SVIMS", 4.8, "+91 87 7228 7777"),
-    ],
-    "Gastroenterology & General Surgery": [
-        ("Dr. M. Prasad", "MS, MCh (Surgical Gastro) · SVIMS", 4.9, "+91 87 7228 7777"),
-        ("Dr. Vikram Sharma", "MS, DNB (General & Laparoscopic Surgery)", 4.8, "+91 40 2360 7777"),
-        ("Dr. N. Sudhakar", "MD, DM (Gastroenterology)", 4.7, "+91 40 4455 0000"),
-    ],
-    "Nephrology": [
-        ("Dr. G. Sivakumar", "MD, DM (Nephrology) · Senior Consultant", 4.8, "+91 40 2360 7777"),
-        ("Dr. R. Anuradha", "DNB (Nephrology) · Care Hospital", 4.9, "+91 40 6165 6565"),
-    ],
-    "Internal Medicine / General Physician": [
-        ("Dr. K. Srinivas", "MD (Internal Medicine) · Senior Physician", 4.8, "+91 40 2360 7777"),
-        ("Dr. Meera Nambiar", "MBBS, MD (General Medicine) · 15+ yrs exp", 4.9, "+91 40 4455 0000"),
-        ("Dr. T. Radhakrishnan", "MD (General Medicine) · SVIMS OPD", 4.7, "+91 87 7228 7777"),
-    ]
-}
+# No named doctors are suggested: we have no verified roster, so inventing names, ratings or phone
+# numbers would mislead a patient. We recommend the right department at a real (OpenStreetMap) hospital,
+# and name a doctor only when the family's own records show one at that hospital.
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -104,33 +92,52 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return round(R * c, 1)
 
 
+DOCTOR_WORDS = re.compile(
+    r"\b(doctor|doctors|hospital|hospitals|clinic|specialist|consult|consultation|appointment|physician|surgeon|opd"
+    r"|near me|nearby|whom should i see|who should i see|where should i go)\b"
+    r"|డాక్టర్|ఆసుపత్రి|వైద్యుడు|కన్సల్ట్|डॉक्टर|अस्पताल|चिकित्सक",
+    re.IGNORECASE,
+)
+
+
 def is_doctor_query(query: str) -> bool:
-    q = query.lower()
-    triggers = [
-        "doctor", "hospital", "clinic", "specialist", "consult", "appointment", "near", "best",
-        "dr", "physician", "surgeon", "whom should i see", "where should i go", "opd",
-        "డాక్టర్", "ఆసుపత్రి", "వైద్యుడు", "కన్సల్ట్",
-        "डॉक्टर", "अस्पताल", "सलाह", "वैद्य"
-    ]
-    return any(t in q for t in triggers)
+    """True only for questions about seeing a doctor. Whole words, so "drug", "address" or
+    "reference range" do not trigger a hospital search."""
+    return bool(DOCTOR_WORDS.search(query or ""))
+
+
+SPECIALTY_NAMES = {
+    "Endocrinology & Diabetology": ["endocrinology", "endocrinologist", "diabetologist", "diabetology", "thyroid"],
+    "Cardiology": ["cardiology", "cardiologist", "heart specialist"],
+    "Nephrology": ["nephrology", "nephrologist", "kidney specialist"],
+    "Gastroenterology & General Surgery": ["gastroenterology", "gastroenterologist", "gastro", "surgeon", "surgery"],
+}
+
+
+def _match_rule(text: str) -> Optional[dict]:
+    t = (text or "").lower()
+    for rule in [THYROID_RULE] + SPECIALTY_RULES:
+        names = SPECIALTY_NAMES.get(rule["specialty"], [])
+        if any(re.search(rf"\b{re.escape(w)}\b", t) for w in names + rule["keywords"]):
+            return rule
+    return None
 
 
 def detect_specialty(query: str, records: List[HealthRecord]) -> dict:
-    combined_text = query.lower()
-    for r in records:
-        e = r.extracted
-        combined_text += " " + " ".join(e.diagnoses).lower()
-        combined_text += " " + " ".join(m.name for m in e.medications).lower()
-        combined_text += " " + " ".join(o.test_name for o in e.lab_observations).lower()
-    
-    for rule in SPECIALTY_RULES:
-        for kw in rule["keywords"]:
-            if kw in combined_text:
-                return rule
-    return SPECIALTY_RULES[-1]
+    """The question decides first ("I have fever" means a physician even for a diabetic);
+    the person's records are used only when the question names no specialty or condition."""
+    rule = _match_rule(query)
+    if rule:
+        return rule
+    combined = " ".join(
+        " ".join(r.extracted.diagnoses) + " " + " ".join(m.name for m in r.extracted.medications) + " "
+        + " ".join(o.test_name for o in r.extracted.lab_observations)
+        for r in records
+    )
+    return _match_rule(combined) or SPECIALTY_RULES[-1]
 
 
-def fetch_real_hospitals(city: str, lat: Optional[float] = None, lon: Optional[float] = None, limit: int = 5) -> List[dict]:
+def _fetch_real_hospitals_uncached(city: str, lat: Optional[float] = None, lon: Optional[float] = None, limit: int = 5) -> List[dict]:
     """Queries OpenStreetMap Nominatim in real-time for authentic hospitals."""
     headers = {"User-Agent": "PersonalHealthCopilot/2.0 (health-hackathon)"}
     hospitals = []
@@ -167,9 +174,9 @@ def fetch_real_hospitals(city: str, lat: Optional[float] = None, lon: Optional[f
                     dist = haversine_km(lat, lon, h_lat, h_lon) if (lat and lon) else None
                     address_str = ", ".join(parts[1:4]) if len(parts) > 1 else city
                     
-                    # Avoid generic street names if OSM tag is loose
+                    # Loose OSM tags sometimes return a road name; skip it rather than invent a hospital name.
                     if any(bad in h_name.lower() for bad in ["road", "street", "lane", "colony"]):
-                        h_name = f"City Care Hospital ({parts[1] if len(parts) > 1 else city})"
+                        continue
                     
                     hospitals.append({
                         "hospital_name": h_name,
@@ -183,47 +190,72 @@ def fetch_real_hospitals(city: str, lat: Optional[float] = None, lon: Optional[f
     except Exception as e:
         logger.warning(f"Live Nominatim fetch failed ({e}), using verified local hospital fallback")
     
-    # Robust fallback to verified major tertiary healthcare centers in India
+    # Fallback when the live search fails: a short list of large hospitals, only for the cities
+    # it covers, and with distance shown only when we know where the user is.
     if not hospitals:
         city_lower = (city or "hyderabad").lower()
         if "tirupati" in city_lower:
-            base_lat, base_lon = 13.6288, 79.4192
-            verified = [
+            fallback_city, verified = "Tirupati", [
                 ("SVIMS Super Speciality Hospital", "Alipiri Road, Tirupati", 13.6373, 79.4065),
                 ("Apollo Hospitals", "Old PB Road, Renigunta, Tirupati", 13.6401, 79.4350),
                 ("Amara Hospital", "Karakambadi Road, Tirupati", 13.6620, 79.4600),
             ]
         elif "bangalore" in city_lower or "bengaluru" in city_lower:
-            base_lat, base_lon = 12.9716, 77.5946
-            verified = [
+            fallback_city, verified = "Bengaluru", [
                 ("Manipal Hospital", "Old Airport Road, Kodihalli, Bengaluru", 12.9592, 77.6499),
                 ("Apollo Hospitals", "Bannerghatta Main Road, Bengaluru", 12.8941, 77.5986),
                 ("Fortis Hospital", "Cunningham Road, Vasanth Nagar, Bengaluru", 12.9881, 77.5934),
             ]
-        else:
-            base_lat, base_lon = 17.3850, 78.4867
-            verified = [
+        elif "hyderabad" in city_lower or "secunderabad" in city_lower:
+            fallback_city, verified = "Hyderabad", [
                 ("Apollo Hospitals", "Road No 72, Film Nagar, Jubilee Hills, Hyderabad", 17.4168, 78.4116),
                 ("KIMS Hospitals", "1-8-31/1, Minister Road, Krishna Nagar Colony, Secunderabad", 17.4359, 78.4871),
                 ("CARE Hospitals", "Road No 1, Banjara Hills, Hyderabad", 17.4156, 78.4487),
                 ("Yashoda Hospitals", "Raj Bhavan Road, Somajiguda, Hyderabad", 17.4265, 78.4589),
             ]
-        
+        else:
+            return []  # never show another city's hospitals under this city's name
         for name, addr, h_lat, h_lon in verified[:limit]:
-            ref_lat = lat or base_lat
-            ref_lon = lon or base_lon
-            dist = haversine_km(ref_lat, ref_lon, h_lat, h_lon)
             hospitals.append({
                 "hospital_name": name,
                 "address": addr,
-                "city": city,
+                "city": fallback_city,
                 "lat": h_lat,
                 "lon": h_lon,
-                "distance_km": dist,
-                "maps_url": f"https://www.google.com/maps/search/?api=1&query={name.replace(' ', '+')}+{city.replace(' ', '+')}"
+                "distance_km": haversine_km(lat, lon, h_lat, h_lon) if (lat and lon) else None,
+                "maps_url": f"https://www.google.com/maps/search/?api=1&query={name.replace(' ', '+')}+{fallback_city}"
             })
 
     return hospitals[:limit]
+
+
+_HOSPITAL_CACHE: dict = {}
+_CACHE_SECONDS = 3600
+
+
+def fetch_real_hospitals(city: str, lat: Optional[float] = None, lon: Optional[float] = None, limit: int = 5) -> List[dict]:
+    """OpenStreetMap search with a one-hour cache, so repeated questions do not hit the public service."""
+    import time
+    key = ((city or "").strip().lower(), round(lat, 2) if lat else None, round(lon, 2) if lon else None, limit)
+    hit = _HOSPITAL_CACHE.get(key)
+    if hit and time.time() - hit[0] < _CACHE_SECONDS:
+        return hit[1]
+    result = _fetch_real_hospitals_uncached(city=city, lat=lat, lon=lon, limit=limit + 3)
+    _HOSPITAL_CACHE[key] = (time.time(), result)
+    return result
+
+
+KNOWN_CITIES = ["Hyderabad", "Secunderabad", "Tirupati", "Bengaluru", "Bangalore", "Vijayawada", "Visakhapatnam", "Chennai", "Mumbai", "Delhi", "Pune", "Warangal", "Guntur", "Nellore"]
+
+
+def city_from_records(records: List[HealthRecord]) -> Optional[str]:
+    """The city printed on the person's most recent clinic or lab document, if any."""
+    for r in sorted(records, key=lambda r: r.record_date or "", reverse=True):
+        place = f"{r.extracted.facility_name or ''} {r.title or ''}"
+        for c in KNOWN_CITIES:
+            if c.lower() in place.lower():
+                return "Bengaluru" if c == "Bangalore" else c
+    return None
 
 
 def get_doctor_recommendations(
@@ -251,34 +283,30 @@ def get_doctor_recommendations(
         reason_text = prefix + reason_text
 
     hospitals = fetch_real_hospitals(city=city, lat=lat, lon=lon, limit=3)
-    registry = DOCTOR_REGISTRY.get(specialty, DOCTOR_REGISTRY["Internal Medicine / General Physician"])
-    
+    if "oncolog" not in specialty.lower():
+        # A cancer centre is the wrong place to send a thyroid or heart question.
+        hospitals = [h for h in hospitals if not re.search(r"cancer|oncolog", h["hospital_name"], re.I)]
+    hospitals = hospitals[:3]
     recommendations: List[DoctorRecommendation] = []
-    for i, h in enumerate(hospitals):
-        doc_info = registry[i % len(registry)]
-        doc_name = doc_info[0]
-        qualification = doc_info[1]
-        rating = doc_info[2]
-        phone = doc_info[3]
-        
-        # If user has an existing doctor mentioned in their records from that facility, respect it!
+    for h in hospitals:
+        name = f"{specialty} department"
         for r in records:
-            if r.extracted.doctor_name and (r.extracted.facility_name and h["hospital_name"].lower() in r.extracted.facility_name.lower()):
-                doc_name = r.extracted.doctor_name
+            if r.extracted.doctor_name and r.extracted.facility_name and h["hospital_name"].lower() in r.extracted.facility_name.lower():
+                name = f"{r.extracted.doctor_name} (your doctor here)"
                 break
 
         rec = DoctorRecommendation(
-            name=f"{doc_name}, {qualification}",
+            name=name,
             specialty=specialty,
             hospital_name=h["hospital_name"],
             address=h["address"],
             city=h["city"],
             distance_km=h["distance_km"],
-            rating=rating,
+            rating=None,
             maps_url=h["maps_url"],
-            phone=phone,
+            phone=h.get("phone"),
             reason=reason_text,
-            timings="Mon - Sat (10:00 AM - 5:00 PM)"
+            timings=None,
         )
         recommendations.append(rec)
         

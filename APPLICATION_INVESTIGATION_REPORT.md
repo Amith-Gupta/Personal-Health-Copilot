@@ -247,3 +247,26 @@ A major drawback identified during the investigation is that several core featur
 ---
 
 *Report compiled by Antigravity AI Architecture Inspector.*
+
+---
+
+## 6. Resolution Status (24 Oct 2026, PR #2)
+
+| Finding | Status | Where / how verified |
+|:---|:---|:---|
+| 2.1 Schema desync | Fixed on main | `database/schema.sql`; the Supabase migrations in `supabase/migrations/` were also applied to a fresh Postgres and pass row-level-security checks |
+| 2.2 Model chain | Hardened | `gemini-3.7-flash` is a working model (it answered documents in the evaluation run). Overloaded or timing-out models are now cooled down and skipped, with a 110 s total budget per document |
+| 2.3 TTS 200-character cut | Fixed on main | Multi-chunk speech in `voice_engine.py`; speech endpoints now require sign-in |
+| 2.4 Speech API on Safari / Firefox | Fixed | The mic falls back to recording + Whisper; when recording is impossible the person is told why, in their language |
+| 2.5 PDF preview on phones | Fixed | Phones show an "open the original" card instead of a blank embed |
+| 3.1 Emergency ID mock data | Fixed | Blood group and allergies only from the person's own records; contact, donor status start empty; QR drawn on the device |
+| 3.2 Static doctor registry | Fixed | Department recommendations at real OpenStreetMap hospitals; no invented names, ratings or phone numbers |
+| 3.3 8-rule drug check | Fixed | Indian brand names, drug-class rules, the interactions named above (warfarin + ciprofloxacin, methotrexate + NSAIDs, digoxin + amiodarone); every result states that it is not exhaustive |
+| 3.4 Diet advisor coverage | Fixed | Thyroid, uric acid and kidney guidance from the records; disclaimer and cautions on every card |
+| 3.5 Fixed medicine clock times | Fixed | The Care plan uses the prescription's own slots and timing notes; the Medicines tab no longer shows invented clock ranges |
+| 4.1 Width mismatch | Fixed on main | Top bar aligned to 1240px |
+| 4.2 Hard-coded dark modals | Fixed | Modals use theme tokens in light and dark |
+| 4.3 Mobile header | Fixed | 44px targets, no horizontal scroll at 390px |
+| 4.4 Font loading | No change needed | Fonts are self-hosted by `next/font` at build time and already use `display: "swap"` |
+
+Checks: 160 backend tests, extraction evaluation 107/107 facts, copilot evaluation 20/20, frontend type-check and production build, backend container built and started (health check healthy, non-root user).

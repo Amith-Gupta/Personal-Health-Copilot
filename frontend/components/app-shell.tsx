@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { cachedImage } from "@/lib/image-cache";
 import { useI18n } from "@/lib/i18n";
-import type { FileUrls, HealthRecord, Profile } from "@/lib/types";
+import type { FileUrls, HealthRecord, Profile, Trend } from "@/lib/types";
 import { TopBar } from "./top-bar";
 import { FamilyRow } from "./family-row";
 import { PatientHeader } from "./patient-header";
@@ -17,10 +17,12 @@ import { UploadPanel } from "./upload-panel";
 import { Button, ErrorNote, Skeleton, cx, useToast } from "./ui";
 import { MemberForm } from "./sidebar";
 import { VisitSummary } from "./visit-summary";
+import { CarePlanView } from "./care-plan";
+import { useDoseReminders } from "./use-dose-reminders";
 import { EmergencyIdModal } from "./emergency-id-modal";
 import { McpGovernanceModal } from "./mcp-governance-modal";
 
-export type Tab = "overview" | "records" | "medicines" | "ask";
+export type Tab = "overview" | "records" | "medicines" | "care" | "ask";
 const byDate = (a: HealthRecord, b: HealthRecord) => (b.record_date || "").localeCompare(a.record_date || "") || b.created_at.localeCompare(a.created_at);
 
 export function AppShell({ email }: { email: string }) {
@@ -39,6 +41,7 @@ export function AppShell({ email }: { email: string }) {
   const [emergencyOpen, setEmergencyOpen] = useState(false);
   const [mcpOpen, setMcpOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [trends, setTrends] = useState<Record<string, Trend[]>>({});
 
   const [justUploadedRecord, setJustUploadedRecord] = useState<HealthRecord | null>(null);
   const [askQuery, setAskQuery] = useState<string | null>(null);
@@ -62,6 +65,7 @@ export function AppShell({ email }: { email: string }) {
   useEffect(() => { loadAll(); }, [loadAll]);
 
   const records = useMemo(() => (allRecords ? allRecords.filter((r) => r.profile_id === activeId) : null), [allRecords, activeId]);
+  useDoseReminders(profiles);
   const refreshUrls = useCallback(() => { api.fileUrls().then(({ urls }) => setFileUrls(urls)).catch(() => {}); }, []);
 
   // Warm the browser cache with this person's document previews so a record opens with its page already there.
@@ -72,6 +76,15 @@ export function AppShell({ email }: { email: string }) {
       if (u) cachedImage(u).catch(() => {});
     });
   }, [records, fileUrls]);
+
+  // Trends are computed server-side (same rules the copilot uses); refetch when this person's records change.
+  const recordKey = records ? records.map((r) => r.id).join(",") : null;
+  useEffect(() => {
+    if (!activeId || recordKey === null) return;
+    let live = true;
+    api.trends(activeId).then((ts) => { if (live) setTrends((m) => ({ ...m, [activeId]: ts })); }).catch(() => {});
+    return () => { live = false; };
+  }, [activeId, recordKey]);
 
   const active = useMemo(() => profiles?.find((p) => p.id === activeId) || null, [profiles, activeId]);
   const selected = records?.find((r) => r.id === openRecord) || null;
@@ -119,7 +132,7 @@ export function AppShell({ email }: { email: string }) {
               cta={tab === "ask" ? undefined : <UploadCta name={active.name} onFile={startUpload} />} />
             </div>
             <div className={cx(
-              "mx-auto w-full max-w-[1240px] px-3 sm:px-6",
+              "mx-auto w-full max-w-[1240px] px-4 sm:px-6",
               tab === "ask" ? "pt-2 pb-2 flex-1 flex flex-col min-h-0" : "pb-12 pt-5 flex-1 flex flex-col justify-between"
             )}>
               {uploading && (
@@ -149,6 +162,7 @@ export function AppShell({ email }: { email: string }) {
                   <Overview
                     records={records}
                     profile={active}
+                    trends={trends[active.id] || []}
                     onOpen={openRec}
                     onTab={setTab}
                     onFile={startUpload}
@@ -158,6 +172,7 @@ export function AppShell({ email }: { email: string }) {
                   />
                 ) : tab === "records" ? <RecordsView records={records} onOpen={openRec} />
                 : tab === "medicines" ? <MedicinesView records={records} onOpen={openRec} onAsk={handleAsk} />
+                : tab === "care" ? <CarePlanView profile={active} onOpen={openRec} />
                 : (
                   <AskView
                     profile={active}
@@ -195,13 +210,13 @@ export function AppShell({ email }: { email: string }) {
 function HeaderSkeleton() {
   // Mirrors the overview layout so the page takes shape while the family loads.
   return (
-    <div className="mx-auto max-w-[1240px] px-4 pt-6 sm:px-6" aria-busy="true" aria-label="Loading">
+    <div className="mx-auto max-w-[1240px] overflow-hidden px-4 pt-6 sm:px-6" aria-busy="true" aria-label="Loading">
       <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <div className="flex flex-col justify-between gap-6">
+        <div className="flex min-w-0 flex-col justify-between gap-6">
           <div>
             <Skeleton className="h-4 w-28" />
             <Skeleton className="mt-3 h-12 w-72 max-w-full" />
-            <div className="mt-4 flex gap-2"><Skeleton className="h-9 w-28 rounded-full" /><Skeleton className="h-9 w-40 rounded-full" /><Skeleton className="h-9 w-32 rounded-full" /></div>
+            <div className="mt-4 flex flex-wrap gap-2"><Skeleton className="h-9 w-28 rounded-full" /><Skeleton className="h-9 w-40 rounded-full" /><Skeleton className="h-9 w-32 rounded-full" /></div>
           </div>
           <div><Skeleton className="h-9 w-[28rem] max-w-full" /><Skeleton className="mt-3 h-4 w-44" /></div>
         </div>

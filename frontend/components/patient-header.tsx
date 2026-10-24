@@ -14,7 +14,8 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
   const toast = useToast();
   const [abhaOpen, setAbhaOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const tabs: Tab[] = ["overview", "records", "medicines", "ask"];
+  const tabs: Tab[] = ["overview", "care", "records", "medicines", "ask"];
+  const chip = "!h-11 text-[13px] sm:!h-9";
   return (
     <section className="mx-auto max-w-[1240px] px-4 pt-4 sm:pt-5 sm:px-6">
       <div className={cx(
@@ -25,43 +26,36 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
           <div>
             <p className="flex items-center gap-1.5 text-xs text-fg-3">
               {relationLabel(profile.relation, lang)}{profile.age ? ` · ${ageLabel(profile.age, lang)}` : ""}{profile.sex ? ` · ${profile.sex}` : ""}
-              {profile.is_sample && <Badge tone="accent" className="text-[10px] py-0">{t.sample}</Badge>}
+              {profile.is_sample && <Badge className="py-0 text-[11px]">{t.sample}</Badge>}
             </p>
             <h1 className="display mt-1 truncate text-[28px] font-bold leading-tight sm:text-[36px]">{profile.name}</h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-              {profile.abha_linked ? (
-                <button onClick={() => setAbhaOpen((v) => !v)} className="flex h-8 items-center gap-1.5 rounded-full border border-line pl-1 pr-2.5 hover:border-fg/40 text-xs">
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-ok-soft text-ok"><IdentificationCard size={13} weight="fill" /></span>
-                  <span className="num text-fg">{profile.abha_number || profile.abha_address}</span>
-                  <span className="text-[10px] text-fg-3">ABHA</span>
-                </button>
-              ) : (
-                <button onClick={() => setAbhaOpen((v) => !v)} className="flex h-8 items-center gap-1.5 rounded-full border border-dashed border-line-strong px-2.5 text-xs text-fg-2 hover:border-fg hover:text-fg">
-                  <IdentificationCard size={13} /> {t.abhaLink}
+            {/* Visit summary and Emergency ID first: they serve the caregiver at the clinic. Record-keeping actions follow. */}
+            <div className="-mx-4 mt-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 text-xs [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+              {onVisit && <Button size="sm" className={chip} icon={<Printer size={14} aria-hidden />} onClick={onVisit}>{t.visitSummary}</Button>}
+              {onEmergency && (
+                <button type="button" onClick={onEmergency}
+                  className={cx(chip, "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-high/35 bg-high-soft px-3.5 font-semibold text-high transition-colors hover:bg-high/15 active:scale-[.98]")}>
+                  <FirstAid size={14} weight="fill" aria-hidden />
+                  {t.emergencyId}
                 </button>
               )}
-              <Button size="sm" className="h-8 text-xs py-0" loading={exporting} icon={<DownloadSimple size={13} />} onClick={async () => {
+              {profile.abha_linked ? (
+                <button onClick={() => setAbhaOpen((v) => !v)} aria-expanded={abhaOpen} className={cx(chip, "flex shrink-0 items-center gap-1.5 rounded-full border border-line pl-1 pr-3 hover:border-fg/40")}>
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-ok-soft text-ok"><IdentificationCard size={13} weight="fill" aria-hidden /></span>
+                  <span className="num text-fg">{profile.abha_number || profile.abha_address}</span>
+                  <span className="text-[11px] text-fg-3">ABHA</span>
+                </button>
+              ) : (
+                <button onClick={() => setAbhaOpen((v) => !v)} aria-expanded={abhaOpen} className={cx(chip, "flex shrink-0 items-center gap-1.5 rounded-full border border-dashed border-line-strong px-3.5 text-fg-2 hover:border-fg hover:text-fg")}>
+                  <IdentificationCard size={14} aria-hidden /> {t.abhaLink}
+                </button>
+              )}
+              <Button size="sm" className={chip} loading={exporting} icon={<DownloadSimple size={14} aria-hidden />} onClick={async () => {
                 setExporting(true);
                 try { await api.exportFhir(profile.id, profile.name); } catch (e) { toast((e as Error).message, "error"); }
                 setExporting(false);
               }}>{t.exportAbdm}</Button>
-              {onVisit && <Button size="sm" className="h-8 text-xs py-0" icon={<Printer size={13} />} onClick={onVisit}>{t.visitSummary}</Button>}
-              {onEmergency && (
-                <button
-                  type="button"
-                  onClick={onEmergency}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-high/35 bg-high-soft px-3 text-xs font-semibold text-high hover:bg-high/20 transition-all active:scale-[.98] shadow-xs"
-                  title="Generate Emergency Medical Pass & QR Triage Pass"
-                >
-                  <FirstAid size={13} weight="fill" />
-                  <span>Emergency ID</span>
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-high opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-high"></span>
-                  </span>
-                </button>
-              )}
-              {onRemove && <Button size="sm" variant="ghost" className="h-8 text-xs py-0 text-fg-3" icon={<UserMinus size={13} />} onClick={onRemove} aria-label={t.removeMember} title={t.removeMember} />}
+              {onRemove && <Button size="sm" variant="ghost" className={cx(chip, "w-11 px-0 text-fg-3 hover:text-high sm:w-9")} icon={<UserMinus size={15} aria-hidden />} onClick={onRemove} aria-label={t.removeMember} title={t.removeMember} />}
             </div>
           </div>
           {findings}
@@ -69,10 +63,10 @@ export function PatientHeader({ profile, tab, onTab, recordCount, onUpload, onPr
         {cta}
       </div>
       {abhaOpen && <AbhaForm profile={profile} onDone={(p) => { if (p) onProfile(p); setAbhaOpen(false); }} />}
-      <nav className="mt-4 sm:mt-5 flex gap-1 overflow-x-auto border-b border-line" aria-label="Sections">
+      <nav className="mt-4 flex gap-1 overflow-x-auto border-b border-line sm:mt-5" aria-label="Sections">
         {tabs.map((x) => (
           <button key={x} onClick={() => onTab(x)} aria-current={tab === x ? "page" : undefined}
-            className={cx("relative -mb-px whitespace-nowrap border-b-2 px-2.5 pb-2 pt-0.5 text-xs sm:text-sm transition-colors",
+            className={cx("relative -mb-px flex min-h-11 items-center whitespace-nowrap border-b-2 px-3 text-sm transition-colors sm:min-h-10 sm:text-[15px]",
               tab === x ? "border-fg font-semibold text-fg" : "border-transparent text-fg-3 hover:text-fg")}>
             {t.tabs[x]}{x === "records" && recordCount !== undefined && <span className="num ml-1 text-[11px] text-fg-3">{recordCount}</span>}
           </button>

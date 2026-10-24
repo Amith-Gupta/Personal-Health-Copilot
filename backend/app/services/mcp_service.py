@@ -7,6 +7,7 @@ Shared between:
 """
 import json
 import logging
+import re
 from typing import Any, Dict, List, Optional
 
 from app.config import settings
@@ -42,12 +43,10 @@ def fetch_all_patients(
     patients: List[Dict[str, Any]] = []
     seen_ids = set()
 
-    # 1. Fetch from Supabase (strictly scoped by owner if provided)
+    # 1. Fetch from Supabase. Only ever for a verified owner: the service key bypasses
+    #    row-level security, so an unscoped query would return every family's records.
     try:
-        query = store.db().table("patients").select("*")
-        if owner:
-            query = query.eq("owner_id", owner)
-        rows = query.execute().data
+        rows = store.db().table("patients").select("*").eq("owner_id", owner).execute().data if owner else []
         for r in rows:
             patients.append({
                 "id": r["id"],
@@ -91,41 +90,26 @@ def resolve_patient(
     owner: Optional[str] = None,
     allowed_patient_ids: Optional[List[str]] = None,
 ) -> Optional[Dict[str, Any]]:
-    """Resolves a patient by exact UUID or fuzzy case-insensitive name match within the owner's scope."""
+    """Finds one patient by id or name within the owner's scope. Exact id or name wins; otherwise
+    the name words must match exactly one patient. An ambiguous or empty identifier matches nobody,
+    because answering about the wrong family member is worse than asking again."""
+    clean = (identifier or "").strip().lower()
+    if not clean:
+        return None
     patients = fetch_all_patients(owner=owner, allowed_patient_ids=allowed_patient_ids)
-    clean = identifier.strip().lower()
-
-    # Exact ID match
     for p in patients:
-        if p["id"].lower() == clean:
+        if p["id"].lower() == clean or p["name"].lower() == clean:
             return p
+    words = [w for w in re.findall(r"[^\W\d_]+", clean) if len(w) > 1]
+    if not words:
+        return None
 
-    # Exact name match
-    for p in patients:
-        if p["name"].lower() == clean:
-            return p
+    def matches(p: Dict[str, Any]) -> bool:
+        name_words = re.findall(r"[^\W\d_]+", p["name"].lower())
+        return all(any(n == w or n.startswith(w) for n in name_words) for w in words)
 
-    # Partial / substring name match (e.g. "surya", "ravi", "lakshmi")
-    for p in patients:
-        if clean in p["name"].lower() or p["name"].lower() in clean:
-            return p
-
-    # If not found in owner's db and running in local seed fallback
-    if not owner:
-        seed = load_seed_data()
-        for p in seed.get("profiles", []):
-            if clean in p["name"].lower() or p["name"].lower() in clean or p["id"].lower() == clean:
-                return {
-                    "id": p["id"],
-                    "name": p["name"],
-                    "relation": p.get("relation", "Family member"),
-                    "age": p.get("age"),
-                    "sex": p.get("sex"),
-                    "source": "sample_seed",
-                    "owner_id": "seed",
-                }
-
-    return None
+    hits = [p for p in patients if matches(p)]
+    return hits[0] if len(hits) == 1 else None
 
 
 def fetch_records_for_patient(
@@ -137,12 +121,10 @@ def fetch_records_for_patient(
     source = patient.get("source", "database")
     records: List[Dict[str, Any]] = []
 
-    if source == "database":
+    if source == "database" and owner:
         try:
-            q = store.db().table("health_records").select("*").eq("patient_id", patient_id)
-            if owner:
-                q = q.eq("owner_id", owner)
-            records = q.execute().data
+            records = (store.db().table("health_records").select("*")
+                       .eq("patient_id", patient_id).eq("owner_id", owner).execute().data)
         except Exception as e:
             logger.warning(f"Supabase records query note for {patient_id}: {e}")
 
@@ -165,10 +147,7 @@ def get_all_patient_profiles(
     record_counts: Dict[str, int] = {}
 
     try:
-        q = store.db().table("health_records").select("id,patient_id")
-        if owner:
-            q = q.eq("owner_id", owner)
-        rows = q.execute().data
+        rows = store.db().table("health_records").select("id,patient_id").eq("owner_id", owner).execute().data if owner else []
         for r in rows:
             pid = r.get("patient_id")
             if pid:
@@ -207,10 +186,6 @@ def get_patient_summary_service(
     if not patient:
         return {
             "error": f"Patient '{patient_name_or_id}' not found or access restricted by privacy settings. Call list_patient_profiles to view available patients.",
-            "patient": {"name": patient_name_or_id, "id": "unknown"},
-            "diagnosed_conditions": [],
-            "active_medications_count": 0,
-            "clinical_encounters": [],
         }
 
     records = fetch_records_for_patient(patient, owner=owner)
@@ -279,10 +254,7 @@ def get_prescribed_medications_service(
 ) -> List[Dict[str, Any]]:
     patient = resolve_patient(patient_name_or_id, owner=owner, allowed_patient_ids=allowed_patient_ids)
     if not patient:
-        return [{
-            "error": f"Patient '{patient_name_or_id}' not found or access restricted.",
-            "medication_name": "None",
-        }]
+        return [{"error": f"Patient '{patient_name_or_id}' not found or access restricted. Call list_patient_profiles to view available patients."}]
 
     records = fetch_records_for_patient(patient, owner=owner)
     meds_output = []
@@ -357,118 +329,151 @@ def get_lab_reports_service(
 # Drug Safety
 # ---------------------------------------------------------------------------
 
-KNOWN_INTERACTIONS = [
-    {
-        "drugs": ["paracetamol", "alcohol"],
-        "severity": "CRITICAL",
-        "title": "Severe Hepatotoxicity Risk",
-        "description": "Combining paracetamol with alcohol significantly increases the formation of toxic NAPQI metabolites, causing acute liver damage.",
-        "action": "Avoid alcohol completely while taking paracetamol. Do not exceed 3-4 grams of paracetamol daily."
-    },
-    {
-        "drugs": ["telmisartan", "ibuprofen"],
-        "severity": "HIGH",
-        "title": "Acute Kidney Impairment & Reduced BP Control",
-        "description": "NSAIDs like Ibuprofen inhibit renal prostaglandins, blunting the antihypertensive effect of ARBs (Telmisartan) and precipitating acute renal failure.",
-        "action": "Avoid NSAIDs. Use Paracetamol for analgesia or consult the cardiologist for renal-safe pain relief."
-    },
-    {
-        "drugs": ["telmisartan", "diclofenac"],
-        "severity": "HIGH",
-        "title": "Renal Vasoconstriction Risk",
-        "description": "Diclofenac plus Telmisartan can cause sudden deterioration in kidney filtration and hyperkalemia.",
-        "action": "Avoid concurrent use; check serum creatinine and potassium if co-administered."
-    },
-    {
-        "drugs": ["metformin", "alcohol"],
-        "severity": "CRITICAL",
-        "title": "Lactic Acidosis Hazard",
-        "description": "Alcohol potentiates metformin's inhibition of lactate metabolism in the liver, drastically elevating lactic acidosis risk.",
-        "action": "Strictly avoid binge drinking or excessive alcohol intake on Metformin."
-    },
-    {
-        "drugs": ["levocetirizine", "alcohol"],
-        "severity": "HIGH",
-        "title": "Severe Sedation & Psychomotor Impairment",
-        "description": "Additive central nervous system depression causing dangerous drowsiness and impaired reaction time.",
-        "action": "Do not drive, operate machinery, or consume alcohol while on Levocetirizine."
-    },
-    {
-        "drugs": ["atorvastatin", "clarithromycin"],
-        "severity": "CRITICAL",
-        "title": "Rhabdomyolysis Risk (CYP3A4 Inhibition)",
-        "description": "Clarithromycin strongly inhibits Atorvastatin metabolism, skyrocketing statin blood levels and causing skeletal muscle breakdown.",
-        "action": "Temporarily hold Atorvastatin during macrolide antibiotic therapy or switch to Azithromycin."
-    },
-    {
-        "drugs": ["thyroxine", "calcium"],
-        "severity": "MODERATE",
-        "title": "Reduced Thyroid Hormone Absorption",
-        "description": "Calcium carbonate binds levothyroxine in the gut, drastically reducing gastrointestinal absorption.",
-        "action": "Separate ingestion by at least 4 hours. Take Thyroxine first thing in the morning on an empty stomach."
-    },
-    {
-        "drugs": ["aspirin", "ibuprofen"],
-        "severity": "HIGH",
-        "title": "Gastrointestinal Ulceration & Blunted Antiplatelet Effect",
-        "description": "Co-administration increases gastric bleeding risk and Ibuprofen competitively blocks Aspirin's irreversible platelet inhibition.",
-        "action": "Take Aspirin at least 30 minutes before or 8 hours after Ibuprofen, or avoid NSAID entirely."
-    }
-]
-
-FOOD_RULES = {
-    "thyroxine": "Take on an empty stomach first thing in the morning with plain water. Wait at least 30-45 minutes before tea, coffee, or breakfast.",
-    "paracetamol": "Can be taken with or without food. Taking after a light meal reduces stomach discomfort.",
-    "metformin": "Take with or immediately after meals to reduce stomach upset, bloating, and diarrhea.",
-    "telmisartan": "Take consistently at the same time each day (morning or evening) with or without food. Avoid potassium-based salt substitutes.",
-    "atorvastatin": "Can be taken at night with or without food. Avoid drinking large amounts of grapefruit juice (>200ml/day).",
-    "levocetirizine": "Take at night before sleeping to prevent daytime drowsiness.",
-    "pantoprazole": "Take 30 to 60 minutes before morning breakfast with water for maximum acid suppression.",
-    "amoxicillin": "Take at the start of a meal to minimize gastrointestinal discomfort.",
+# Common Indian brand names -> generic, so "Dolo 650" or "Telma 40" are checked too.
+BRANDS = {
+    "dolo": "paracetamol", "crocin": "paracetamol", "calpol": "paracetamol", "p-650": "paracetamol",
+    "ecosprin": "aspirin", "disprin": "aspirin", "loprin": "aspirin",
+    "brufen": "ibuprofen", "ibugesic": "ibuprofen", "combiflam": "ibuprofen paracetamol",
+    "voveran": "diclofenac", "zerodol": "aceclofenac", "hifenac": "aceclofenac", "meftal": "mefenamic",
+    "thyronorm": "levothyroxine", "eltroxin": "levothyroxine", "thyrox": "levothyroxine",
+    "shelcal": "calcium", "calcimax": "calcium", "cipcal": "calcium",
+    "telma": "telmisartan", "telmikind": "telmisartan", "losar": "losartan", "olmezest": "olmesartan",
+    "cardace": "ramipril", "envas": "enalapril", "amlong": "amlodipine", "stamlo": "amlodipine",
+    "glycomet": "metformin", "gluconorm": "metformin", "amaryl": "glimepiride",
+    "atorva": "atorvastatin", "storvas": "atorvastatin", "rosuvas": "rosuvastatin",
+    "pan ": "pantoprazole", "pan-d": "pantoprazole", "pantocid": "pantoprazole", "razo": "rabeprazole", "omez": "omeprazole",
+    "warf": "warfarin", "acitrom": "acenocoumarol", "eliquis": "apixaban", "xarelto": "rivaroxaban",
+    "clopilet": "clopidogrel", "plavix": "clopidogrel", "aldactone": "spironolactone",
+    "levocet": "levocetirizine", "orofer": "ferrous", "autrin": "ferrous", "livogen": "ferrous",
+    "ciplox": "ciprofloxacin", "cifran": "ciprofloxacin", "lanoxin": "digoxin", "cordarone": "amiodarone",
+    "folitrax": "methotrexate", "imutrex": "methotrexate",
 }
+CLASSES = {
+    "nsaid": ["ibuprofen", "diclofenac", "naproxen", "aceclofenac", "mefenamic", "ketorolac", "etoricoxib"],
+    "bp_raas": ["telmisartan", "losartan", "olmesartan", "valsartan", "ramipril", "enalapril", "lisinopril"],
+    "potassium_sparing": ["spironolactone", "eplerenone", "amiloride"],
+    "anticoagulant": ["warfarin", "acenocoumarol", "apixaban", "rivaroxaban", "dabigatran"],
+    "antiplatelet": ["aspirin", "clopidogrel", "ticagrelor", "prasugrel"],
+    "thyroid": ["levothyroxine", "thyroxine"],
+    "methotrexate": ["methotrexate"],
+    "binds_thyroid": ["calcium", "ferrous", "iron"],
+}
+CLASS_RULES = [
+    ("nsaid", "bp_raas", "HIGH", "Kidney strain and weaker blood pressure control",
+     "Painkillers like ibuprofen or diclofenac can reduce how well blood pressure medicines work and can strain the kidneys.",
+     "Ask your doctor or pharmacist before taking these painkillers. Paracetamol is often preferred, but confirm first."),
+    ("nsaid", "anticoagulant", "HIGH", "Bleeding risk",
+     "Painkillers like ibuprofen add to the bleeding risk of blood thinners.",
+     "Do not combine without your doctor's advice."),
+    ("antiplatelet", "anticoagulant", "HIGH", "Bleeding risk",
+     "Aspirin or clopidogrel together with a blood thinner raises bleeding risk.",
+     "Only take both if your doctor prescribed them together."),
+    ("nsaid", "antiplatelet", "HIGH", "Stomach bleeding risk",
+     "Painkillers like ibuprofen with aspirin raise the risk of stomach bleeding, and ibuprofen can blunt aspirin's protective effect.",
+     "Ask your doctor before combining them."),
+    ("nsaid", "methotrexate", "HIGH", "Methotrexate side effects",
+     "Painkillers like ibuprofen can slow how the kidneys clear methotrexate, raising its side effects.",
+     "Ask the doctor who prescribed methotrexate before taking any painkiller."),
+    ("bp_raas", "potassium_sparing", "HIGH", "High potassium",
+     "These blood pressure medicines together can push potassium too high.",
+     "Your doctor may want a potassium blood test. Do not stop either without asking."),
+    ("thyroid", "binds_thyroid", "MODERATE", "Thyroid tablet absorbed less",
+     "Calcium and iron tablets reduce how much thyroid tablet the body absorbs.",
+     "Take the thyroid tablet first thing in the morning on an empty stomach, and calcium or iron at least 4 hours later."),
+]
+PAIR_RULES = [
+    (["paracetamol", "alcohol"], "HIGH", "Liver strain",
+     "Regular alcohol with paracetamol raises the risk of liver damage.",
+     "Avoid alcohol while taking paracetamol. If you drink regularly, ask your doctor what daily dose is safe for you; it is often lower than the usual maximum."),
+    (["metformin", "alcohol"], "HIGH", "Lactic acidosis and low sugar risk",
+     "Heavy drinking with metformin raises the risk of lactic acidosis and low blood sugar.",
+     "Avoid heavy or binge drinking. Ask your doctor what is safe."),
+    (["levocetirizine", "alcohol"], "MODERATE", "Extra drowsiness",
+     "Alcohol adds to the drowsiness from this antihistamine.",
+     "Do not drive after taking both."),
+    (["warfarin", "ciprofloxacin"], "HIGH", "Warfarin effect increased",
+     "Ciprofloxacin can raise the blood-thinning effect of warfarin and the risk of bleeding.",
+     "Tell the prescribing doctor you take warfarin; an INR check is often needed."),
+    (["digoxin", "amiodarone"], "HIGH", "Digoxin levels rise",
+     "Amiodarone raises digoxin levels in the blood, which can cause slow heart rate, nausea or vision changes.",
+     "Your doctor usually lowers the digoxin dose and checks levels. Do not change doses yourself."),
+    (["atorvastatin", "clarithromycin"], "HIGH", "Muscle damage risk",
+     "Clarithromycin raises atorvastatin levels, which can damage muscles.",
+     "Tell the doctor prescribing the antibiotic that you take atorvastatin."),
+]
+FOOD_RULES = {
+    "levothyroxine": "Take on an empty stomach first thing in the morning with plain water. Wait 30 to 45 minutes before tea, coffee or breakfast.",
+    "paracetamol": "Can be taken with or without food.",
+    "metformin": "Take with or right after meals to reduce stomach upset.",
+    "telmisartan": "Take at the same time each day. Avoid potassium-based salt substitutes unless your doctor agrees.",
+    "atorvastatin": "Usually taken at night. Avoid large amounts of grapefruit juice.",
+    "levocetirizine": "Often taken at night because it can cause drowsiness.",
+    "pantoprazole": "Take 30 to 60 minutes before breakfast.",
+    "ferrous": "Iron is absorbed better with vitamin C and less with tea, coffee, milk or calcium taken at the same time.",
+}
+NOT_EXHAUSTIVE = ("This check covers a short list of well-known interactions and common Indian brand names. "
+                  "'No interactions found' does not mean the combination is safe. Ask your pharmacist or doctor before "
+                  "starting, stopping or combining medicines.")
+
+
+def _generic_names(med: str) -> str:
+    m = f" {med.strip().lower()} "
+    out = [m]
+    for brand, generic in BRANDS.items():
+        if brand in m:
+            out.append(generic)
+    return " ".join(out)
 
 
 def check_drug_safety_service(medications: List[str]) -> Dict[str, Any]:
-    clean_meds = [m.strip().lower() for m in medications if m and m.strip()]
-    detected_interactions = []
-    food_guidelines = {}
+    clean = [m.strip() for m in medications if m and m.strip()][:20]
+    expanded = {m: _generic_names(m) for m in clean}
+    joined = " ".join(expanded.values())
 
-    for item in KNOWN_INTERACTIONS:
-        drugs = item["drugs"]
-        matches = [d for d in drugs if any(d in cm for cm in clean_meds)]
-        if len(matches) == len(drugs):
-            detected_interactions.append({
-                "drugs_involved": [d.capitalize() for d in drugs],
-                "severity": item["severity"],
-                "title": item["title"],
-                "description": item["description"],
-                "action": item["action"],
-            })
+    def has(word: str) -> List[str]:
+        return [m for m, g in expanded.items() if word in g]
 
-    for cm in clean_meds:
-        for drug_key, rule in FOOD_RULES.items():
-            if drug_key in cm:
-                food_guidelines[drug_key.capitalize()] = rule
+    def has_class(cls: str) -> List[str]:
+        return sorted({m for w in CLASSES[cls] for m in has(w)})
 
-    antihistamines = [m for m in clean_meds if any(k in m for k in ["cetirizine", "loratadine", "fexofenadine", "chlorpheniramine", "hydroxyzine"])]
-    nsaids = [m for m in clean_meds if any(k in m for k in ["ibuprofen", "diclofenac", "naproxen", "aceclofenac", "mefenamic", "ketorolac"])]
-    ppis = [m for m in clean_meds if any(k in m for k in ["pantoprazole", "omeprazole", "rabeprazole", "esomeprazole"])]
+    found, seen = [], set()
+    for a, b, sev, title, desc, action in CLASS_RULES:
+        ma, mb = has_class(a), has_class(b)
+        pair = tuple(sorted(set(ma) | set(mb)))
+        if ma and mb and set(ma) != set(mb) and (title, pair) not in seen:
+            seen.add((title, pair))
+            found.append({"drugs_involved": list(pair), "severity": sev, "title": title, "description": desc, "action": action})
+    for drugs, sev, title, desc, action in PAIR_RULES:
+        hits = [has(d) for d in drugs]
+        if all(hits):
+            involved = sorted({m for h in hits for m in h})
+            found.append({"drugs_involved": involved, "severity": sev, "title": title, "description": desc, "action": action})
 
     duplicates = []
-    if len(antihistamines) > 1:
-        duplicates.append(f"Multiple antihistamines detected ({', '.join(antihistamines)}). This may cause excessive sedation.")
-    if len(nsaids) > 1:
-        duplicates.append(f"Multiple NSAID painkillers detected ({', '.join(nsaids)}). High risk of gastrointestinal bleeding.")
+    for cls, label in (("nsaid", "painkillers of the NSAID type"), ("anticoagulant", "blood thinners"), ("bp_raas", "blood pressure medicines of the same family")):
+        members = has_class(cls)
+        if len(members) > 1:
+            duplicates.append(f"More than one of the {label}: {', '.join(members)}. Check with your doctor that this is intended.")
+    ppis = sorted({m for w in ("pantoprazole", "omeprazole", "rabeprazole", "esomeprazole") for m in has(w)})
     if len(ppis) > 1:
-        duplicates.append(f"Multiple acid blockers detected ({', '.join(ppis)}). Usually only one PPI is indicated.")
+        duplicates.append(f"More than one acid reducer: {', '.join(ppis)}. Usually only one is needed.")
 
+    food = {}
+    for key, rule in FOOD_RULES.items():
+        for m in has(key):
+            food[m] = rule
+    recognised = [m for m, g in expanded.items() if any(w in g for ws in CLASSES.values() for w in ws)
+                  or any(k in g for k in FOOD_RULES) or any(w in g for d, *_ in PAIR_RULES for w in d)]
     return {
-        "medications_analyzed": medications,
-        "interactions_found_count": len(detected_interactions),
-        "interactions": detected_interactions,
+        "medications_analyzed": clean,
+        "recognised": recognised,
+        "not_recognised": [m for m in clean if m not in recognised],
+        "interactions_found_count": len(found),
+        "interactions": found,
         "duplicate_class_warnings": duplicates,
-        "food_and_timing_guidelines": food_guidelines,
-        "clinical_disclaimer": "This safety screen is for educational verification. Always confirm changes with a registered medical practitioner.",
+        "food_and_timing_guidelines": food,
+        "coverage_note": NOT_EXHAUSTIVE,
+        "clinical_disclaimer": NOT_EXHAUSTIVE,
     }
 
 
@@ -494,17 +499,24 @@ def ask_health_copilot_service(
         }
 
     patient = None
-    if patient_name_or_id:
+    if patient_name_or_id and patient_name_or_id.strip():
         patient = resolve_patient(patient_name_or_id, owner=owner, allowed_patient_ids=allowed_patient_ids)
-
-    if not patient:
+        if not patient:
+            names = [p["name"] for p in fetch_all_patients(owner=owner, allowed_patient_ids=allowed_patient_ids)]
+            return {
+                "answer": f"I could not find exactly one family member called '{patient_name_or_id}'. "
+                          f"Available: {', '.join(names) or 'none'}. Please say which person you mean.",
+                "safety": "ok", "citations": [], "disclaimer": disclaimer,
+            }
+    else:
         patients = fetch_all_patients(owner=owner, allowed_patient_ids=allowed_patient_ids)
-        for p in patients:
-            if fetch_records_for_patient(p, owner=owner):
-                patient = p
-                break
-        if not patient and patients:
+        if len(patients) == 1:
             patient = patients[0]
+        elif patients:
+            return {
+                "answer": f"Which family member is this about? Available: {', '.join(p['name'] for p in patients)}.",
+                "safety": "ok", "citations": [], "disclaimer": disclaimer,
+            }
 
     if not patient:
         return {
@@ -605,26 +617,12 @@ def find_specialist_doctors_service(specialty_or_condition: str, city: str = "Hy
                 "city": d.city,
                 "distance_km": d.distance_km,
                 "match_reason": d.reason,
-                "booking_contact": d.phone or "Call Hospital Reception / 108",
+                "booking_contact": d.phone or "Call the hospital reception (number not listed)",
                 "timings": d.timings,
                 "maps_url": d.maps_url,
             }
             for d in doctors
         ]
     except Exception as e:
-        logger.warning(f"Doctor finder fallback: {e}")
-        return [
-            {
-                "doctor_name": f"Consultant {specialty_or_condition} Specialist",
-                "specialty": specialty_or_condition,
-                "hospital": f"Apollo Hospitals, {city}",
-                "rating": 4.8,
-                "address": f"Central Medical Enclave, {city}",
-                "city": city,
-                "distance_km": 3.2,
-                "match_reason": f"Top-rated tertiary hospital specialized in {specialty_or_condition}.",
-                "booking_contact": "040-23607777 / 1860-500-1066",
-                "timings": "Mon - Sat (10:00 AM - 5:00 PM)",
-                "maps_url": f"https://www.google.com/maps/search/?api=1&query=Apollo+Hospitals+{city}",
-            }
-        ]
+        logger.warning(f"Doctor finder unavailable: {e}")
+        return [{"error": "Hospital search is not available right now. Please try again, or ask your family doctor for a referral."}]

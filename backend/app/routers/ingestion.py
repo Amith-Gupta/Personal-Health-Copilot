@@ -7,14 +7,35 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPExcepti
 from app.schemas.payloads import HealthRecord, RecordMove
 from app.services import store
 from app.services.auth import current_user_id
+from app.services.limits import budget
 from app.services.fhir_mapper import to_fhir_bundle
 from app.services.ocr_engine import ExtractionFailed, NotMedicalDocument, extract_document
+
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/health-records", tags=["Health records"])
 
 ALLOWED = {"image/png", "image/jpeg", "image/webp", "image/heic", "image/heif", "application/pdf", "application/json", "application/fhir+json"}
 MAX_BYTES = 15 * 1024 * 1024
 TITLES = {"Prescription": "Prescription", "DiagnosticReport": "Lab report", "DischargeSummary": "Discharge summary"}
+
+
+async def read_limited(file: UploadFile, limit: int, too_big: str) -> bytes:
+    """Reads an upload in 1 MB chunks and stops as soon as it passes the limit, so an oversized
+    body is rejected without being held in memory."""
+    if file.size is not None and file.size > limit:
+        raise HTTPException(413, too_big)
+    chunks, total = [], 0
+    while True:
+        chunk = await file.read(1024 * 1024)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > limit:
+            raise HTTPException(413, too_big)
+        chunks.append(chunk)
+    return b"".join(chunks)
 
 
 def _tokens(name: Optional[str]) -> set:
@@ -36,15 +57,13 @@ def _title(rec) -> str:
 
 
 @router.post("/upload", response_model=HealthRecord, status_code=201)
-async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owner: str = Depends(current_user_id)):
+async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owner: str = Depends(budget("upload"))):
     profile = store.get_profile(owner, profile_id)
     if not profile:
         raise HTTPException(404, "Choose whose passbook this document belongs to.")
-    content = await file.read()
+    content = await read_limited(file, MAX_BYTES, "The file is larger than 15 MB. Try a photo or a smaller PDF.")
     if not content:
         raise HTTPException(400, "The file is empty.")
-    if len(content) > MAX_BYTES:
-        raise HTTPException(413, "The file is larger than 15 MB. Try a photo or a smaller PDF.")
     mime = (file.content_type or "").lower()
     if content[:4] == b"%PDF":
         mime = "application/pdf"
@@ -88,6 +107,15 @@ async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owne
     )
     saved = await asyncio.to_thread(store.save_record, owner, record, path, preview)
     store.audit(owner, "upload", profile.id, record_id, {"type": record.document_type, "model": meta.model})
+    # The care-plan agent reads the new document straight away: reminders from a prescription,
+    # follow-ups and repeat tests. A failure here must never lose the upload itself.
+    try:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        from app.services import care_store
+        await asyncio.to_thread(care_store.sync, owner, profile.id, datetime.now(ZoneInfo("Asia/Kolkata")).date())
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"care plan sync after upload failed: {e}")
     return saved
 
 

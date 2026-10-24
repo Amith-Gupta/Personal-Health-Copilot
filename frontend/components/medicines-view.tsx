@@ -30,10 +30,11 @@ import { Badge, Card, Empty, Skeleton, cx } from "./ui";
 type ViewMode = "routine" | "grid" | "table";
 type FormFilter = "all" | "tablet" | "syrup" | "drops";
 
-const ROUTINE_SLOTS: { slot: Slot; label: string; time: string; Icon: typeof Sun; tone: string }[] = [
-  { slot: "morning", label: "Morning", time: "8:00 AM – 9:00 AM", Icon: SunHorizon, tone: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
-  { slot: "afternoon", label: "Afternoon", time: "1:00 PM – 2:00 PM", Icon: Sun, tone: "text-orange-500 bg-orange-500/10 border-orange-500/20" },
-  { slot: "night", label: "Night", time: "9:00 PM – 10:00 PM", Icon: Moon, tone: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20" },
+// Exact times come from each prescription (see the Care plan tab), not from fixed clock ranges.
+const ROUTINE_SLOTS: { slot: Slot; label: string; Icon: typeof Sun; tone: string }[] = [
+  { slot: "morning", label: "Morning", Icon: SunHorizon, tone: "text-fg-2 bg-subtle border-line" },
+  { slot: "afternoon", label: "Afternoon", Icon: Sun, tone: "text-fg-2 bg-subtle border-line" },
+  { slot: "night", label: "Night", Icon: Moon, tone: "text-fg-2 bg-subtle border-line" },
 ];
 
 function getFormIcon(form?: string | null, name?: string) {
@@ -53,15 +54,15 @@ function getFormIcon(form?: string | null, name?: string) {
 function getFormBadgeTone(form?: string | null, name?: string) {
   const str = `${form || ""} ${name || ""}`.toLowerCase();
   if (str.includes("syrup") || str.includes("suspension") || str.includes("liquid")) {
-    return "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400";
+    return "border-warn/30 bg-warn-soft text-warn";
   }
   if (str.includes("drop") || str.includes("drops") || str.includes("saline")) {
-    return "border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400";
+    return "border-line bg-subtle text-fg-2";
   }
   if (str.includes("inj") || str.includes("injection")) {
-    return "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400";
+    return "border-high/30 bg-high-soft text-high";
   }
-  return "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
+  return "border-ok/30 bg-ok-soft text-ok";
 }
 
 export function MedicinesView({
@@ -78,21 +79,9 @@ export function MedicinesView({
   const [formFilter, setFormFilter] = useState<FormFilter>("all");
   const [search, setSearch] = useState("");
 
-  if (!records) {
-    return (
-      <Card>
-        <div className="space-y-4 p-6" aria-busy="true">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-20 rounded-xl" />
-          ))}
-        </div>
-      </Card>
-    );
-  }
-
   // Get active medications from latest prescriptions
   const allRows = useMemo(() => {
-    return currentMedicines(records);
+    return records ? currentMedicines(records) : [];
   }, [records]);
 
   // Counts by form
@@ -136,6 +125,19 @@ export function MedicinesView({
     });
   }, [allRows, formFilter, search, lang]);
 
+  // Hooks above always run; only now is it safe to bail out while records load.
+  if (!records) {
+    return (
+      <Card>
+        <div className="space-y-4 p-6" aria-busy="true">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+      </Card>
+    );
+  }
+
   // Slot calculations
   const morningCount = allRows.filter(({ m }) => {
     const s = schedule(m);
@@ -165,14 +167,14 @@ export function MedicinesView({
                 <Pill size={16} weight="duotone" />
               </span>
               <h2 className="text-base sm:text-lg font-bold tracking-tight text-fg">
-                {t.tabs.medicines} &amp; Daily Routine
+                {t.medsTitle}
               </h2>
               <Badge tone="accent" className="font-semibold text-[11px] py-0">
-                {allRows.length} Active {allRows.length === 1 ? "Medicine" : "Medicines"}
+                {t.medsActive(allRows.length)}
               </Badge>
             </div>
             <p className="text-xs text-fg-3 leading-relaxed max-w-2xl">
-              From {latestRx ? `${latestRx.extracted.doctor_name || tidyName(latestRx.extracted.facility_name) || "your doctor"} (${formatDate(latestRx.record_date, lang)})` : "your verified clinical prescriptions"}. Complete dosages, routine timings, and AI guidance.
+              {latestRx ? t.medsFrom(`${latestRx.extracted.doctor_name || tidyName(latestRx.extracted.facility_name) || t.types["Prescription"]} (${formatDate(latestRx.record_date, lang)})`) : null}
             </p>
           </div>
 
@@ -187,10 +189,10 @@ export function MedicinesView({
                       .join(", ")}.`
                   )
                 }
-                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent transition-all hover:bg-accent hover:text-white shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent transition-all hover:bg-accent hover:text-accent-fg shadow-xs"
               >
                 <Sparkle size={13} weight="fill" />
-                <span>Check Interactions</span>
+                <span>{t.checkInteractions}</span>
               </button>
             )}
             <button
@@ -199,7 +201,7 @@ export function MedicinesView({
               title="Print medication schedule chart"
             >
               <Printer size={13} />
-              <span>Print Schedule</span>
+              <span>{t.printSchedule}</span>
             </button>
           </div>
         </div>
@@ -207,42 +209,42 @@ export function MedicinesView({
         {/* Routine Time Slot Pill Summary */}
         <div className="mt-3.5 grid grid-cols-2 gap-2 sm:grid-cols-4 border-t border-line/80 pt-3">
           <div className="flex items-center gap-2.5 rounded-lg border border-line bg-canvas/60 p-2 sm:p-2.5">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-amber-500/10 text-amber-500">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-subtle text-fg-2">
               <SunHorizon size={16} weight="duotone" />
             </span>
             <div>
-              <p className="text-[10px] font-medium text-fg-3 uppercase tracking-wider">Morning</p>
-              <p className="text-xs font-bold text-fg">{morningCount} {morningCount === 1 ? "dose" : "doses"}</p>
+              <p className="text-[11px] font-medium text-fg-3">{t.morning}</p>
+              <p className="text-xs font-bold text-fg">{t.doses(morningCount)}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 rounded-lg border border-line bg-canvas/60 p-2 sm:p-2.5">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-orange-500/10 text-orange-500">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-subtle text-fg-2">
               <Sun size={16} weight="duotone" />
             </span>
             <div>
-              <p className="text-[10px] font-medium text-fg-3 uppercase tracking-wider">Afternoon</p>
-              <p className="text-xs font-bold text-fg">{afternoonCount} {afternoonCount === 1 ? "dose" : "doses"}</p>
+              <p className="text-[11px] font-medium text-fg-3">{t.afternoon}</p>
+              <p className="text-xs font-bold text-fg">{t.doses(afternoonCount)}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 rounded-lg border border-line bg-canvas/60 p-2 sm:p-2.5">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-indigo-500/10 text-indigo-400">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-subtle text-fg-2">
               <Moon size={16} weight="duotone" />
             </span>
             <div>
-              <p className="text-[10px] font-medium text-fg-3 uppercase tracking-wider">Night</p>
-              <p className="text-xs font-bold text-fg">{nightCount} {nightCount === 1 ? "dose" : "doses"}</p>
+              <p className="text-[11px] font-medium text-fg-3">{t.night}</p>
+              <p className="text-xs font-bold text-fg">{t.doses(nightCount)}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 rounded-lg border border-line bg-canvas/60 p-2 sm:p-2.5">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-emerald-500/10 text-emerald-500">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-subtle text-fg-2">
               <Clock size={16} weight="duotone" />
             </span>
             <div>
-              <p className="text-[10px] font-medium text-fg-3 uppercase tracking-wider">As Needed</p>
-              <p className="text-xs font-bold text-fg">{asNeededCount > 0 ? `${asNeededCount} PRN` : "Routine"}</p>
+              <p className="text-[11px] font-medium text-fg-3">{t.asNeeded}</p>
+              <p className="text-xs font-bold text-fg">{t.doses(asNeededCount)}</p>
             </div>
           </div>
         </div>
@@ -257,8 +259,9 @@ export function MedicinesView({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by medicine, dose, or instructions..."
-            className="w-full rounded-xl border border-line bg-surface py-2 pl-10 pr-9 text-xs sm:text-sm text-fg placeholder:text-fg-3/60 focus:border-accent focus:ring-1 focus:ring-accent transition-colors shadow-xs"
+            placeholder={t.medsSearch}
+            aria-label={t.medsSearch}
+            className="h-11 w-full rounded-xl border border-line bg-surface pl-10 pr-9 text-[16px] text-fg placeholder:text-fg-3 sm:h-10 sm:text-sm focus:border-accent focus:ring-1 focus:ring-accent transition-colors shadow-xs"
           />
           {search && (
             <button
@@ -368,7 +371,7 @@ export function MedicinesView({
         /* ========================================================================= */
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
-            {ROUTINE_SLOTS.map(({ slot, label, time, Icon, tone }) => {
+            {ROUTINE_SLOTS.map(({ slot, Icon, tone }) => {
               const medsInSlot = filteredRows.filter(({ m }) => {
                 const s = schedule(m);
                 return s.kind === "slots" && s.slots[slot] !== "0";
@@ -384,8 +387,7 @@ export function MedicinesView({
                           <Icon size={18} weight="duotone" />
                         </span>
                         <div>
-                          <h3 className="text-sm font-bold text-fg">{label}</h3>
-                          <p className="text-[11px] text-fg-3">{time}</p>
+                          <h3 className="text-sm font-bold text-fg">{t[slot]}</h3>
                         </div>
                       </div>
                       <span className="rounded-full bg-subtle px-2 py-0.5 text-xs font-semibold text-fg-2 num">
@@ -397,7 +399,7 @@ export function MedicinesView({
                     <ul className="mt-4 space-y-3">
                       {medsInSlot.length === 0 ? (
                         <li className="py-6 text-center text-xs text-fg-3 italic">
-                          No medications scheduled for {label.toLowerCase()}.
+                          —
                         </li>
                       ) : (
                         medsInSlot.map(({ m, r }, i) => {
@@ -460,7 +462,7 @@ export function MedicinesView({
                                     }
                                     className="font-semibold text-accent hover:underline flex items-center gap-0.5"
                                   >
-                                    <span>Ask Copilot</span>
+                                    <span>{t.askThisQuestion}</span>
                                     <ArrowRight size={11} />
                                   </button>
                                 )}
@@ -480,7 +482,7 @@ export function MedicinesView({
           {allRows.some(({ m }) => schedule(m).kind === "asNeeded") && (
             <div className="panel p-5">
               <div className="flex items-center gap-2 border-b border-line pb-3">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-500/10 text-emerald-500">
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-ok-soft text-ok">
                   <Clock size={16} weight="duotone" />
                 </span>
                 <h3 className="text-sm font-semibold text-fg">As Needed / PRN Medications</h3>
@@ -588,11 +590,11 @@ export function MedicinesView({
                           `Please explain the dosage instructions, intended purpose, and precautions for ${m.name} (${m.dosage || "prescribed dosage"}) in simple words.`
                         )
                       }
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-white transition-colors shadow-xs"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-accent-fg transition-colors shadow-xs"
                       title="Ask Copilot about this medicine"
                     >
                       <Sparkle size={12} weight="fill" />
-                      <span>Ask Copilot</span>
+                      <span>{t.askThisQuestion}</span>
                     </button>
                   )}
                 </div>
@@ -660,7 +662,7 @@ export function MedicinesView({
                                 `What is ${m.name} prescribed for, and how should it be taken?`
                               )
                             }
-                            className="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-white transition-colors"
+                            className="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-accent-fg transition-colors"
                           >
                             <span>Ask</span>
                             <ArrowRight size={11} />
@@ -687,7 +689,7 @@ export function MedicinesView({
               <div>
                 <h4 className="text-sm font-semibold text-fg">Have questions about your medications?</h4>
                 <p className="text-xs text-fg-3">
-                  Ask Gemini Health Copilot to clarify dosages, food restrictions, or side effects.
+                  Ask Health Copilot to clarify dosages, food restrictions, or side effects.
                 </p>
               </div>
             </div>
