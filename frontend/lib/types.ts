@@ -8,10 +8,12 @@ export interface LocalizedList { english: string[]; hindi: string[]; telugu: str
 export interface Medication {
   name: string; form?: string | null; dosage: string; frequency: string;
   timing?: string | null; duration?: string | null; instructions?: Localized | null; uncertain: boolean;
+  source_box?: number[] | null;
 }
 export interface LabObservation {
   test_name: string; observed_value: string; unit?: string | null; reference_range?: string | null;
   flag: Flag; flag_source: "computed" | "document" | "ai"; explanation?: Localized | null; uncertain: boolean;
+  source_box?: number[] | null;
 }
 export interface Extracted {
   record_type: RecordType; record_date?: string | null; patient_name?: string | null;

@@ -42,6 +42,7 @@ The app is two services plus Supabase (already hosted — project `health-copilo
 | `SUPABASE_JWKS_URL` | `https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json` | |
 | `FRONTEND_ORIGIN` | Public frontend URL | Comma-separate multiple origins. Used for CORS |
 | `HOST` / `PORT` | `0.0.0.0` / auto | Render and App Runner set `PORT` themselves |
+| `MCP_DATA_DIR` | A writable folder, e.g. `/var/lib/health-copilot` | Where ChatGPT/MCP access tokens, policies and their audit trail are stored (file readable only by the app user). Defaults to `backend/data`. Run **one** backend instance until this moves into the database |
 
 Get Supabase keys via CLI or Dashboard → Project Settings → API Keys:
 
@@ -212,7 +213,9 @@ This only affects links inside auth emails (password reset, magic links). Sign-i
 
 ### Schema
 
-Already applied. If deploying to a fresh project:
+The original tables are applied. **The care plan (reminders, follow-ups, repeat tests) adds two tables in `supabase/migrations/20261024120000_care_plan.sql`; apply it with `supabase db push` before deploying the backend that uses it.** Until then the Care plan tab still works, computed live from the records, but taken / snooze / edit cannot be saved.
+
+If deploying to a fresh project:
 
 ```bash
 supabase link --project-ref <project-ref>

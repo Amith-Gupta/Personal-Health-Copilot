@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Lang, TrendVerdict } from "./types";
 
 const en = {
+  showOnPage: "Show on the page",
   care: {
     tab: "Care plan",
     dosesTitle: "Today's medicines", noDoses: "No medicine reminders for today.",
@@ -192,6 +193,7 @@ type Dict = typeof en;
 
 const hi: Dict = {
   ...en,
+  showOnPage: "पेज पर दिखाएं",
   care: {
     ...en.care,
     tab: "देखभाल योजना",
@@ -380,6 +382,7 @@ const hi: Dict = {
 
 const te: Dict = {
   ...en,
+  showOnPage: "పేజీలో చూపించు",
   care: {
     ...en.care,
     tab: "సంరక్షణ ప్రణాళిక",

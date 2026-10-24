@@ -28,6 +28,7 @@ class MedicationItem(BaseModel):
     duration: Optional[str] = None
     instructions: Optional[Localized] = None
     uncertain: bool = False
+    source_box: Optional[List[int]] = None  # [ymin, xmin, ymax, xmax] on a 0-1000 grid of the page image
 
 
 class LabObservationItem(BaseModel):
@@ -39,6 +40,7 @@ class LabObservationItem(BaseModel):
     flag_source: Literal["computed", "document", "ai"] = "ai"
     explanation: Optional[Localized] = None
     uncertain: bool = False
+    source_box: Optional[List[int]] = None  # [ymin, xmin, ymax, xmax] on a 0-1000 grid of the page image
 
 
 class ExtractedRecord(BaseModel):
