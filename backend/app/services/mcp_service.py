@@ -345,6 +345,8 @@ BRANDS = {
     "warf": "warfarin", "acitrom": "acenocoumarol", "eliquis": "apixaban", "xarelto": "rivaroxaban",
     "clopilet": "clopidogrel", "plavix": "clopidogrel", "aldactone": "spironolactone",
     "levocet": "levocetirizine", "orofer": "ferrous", "autrin": "ferrous", "livogen": "ferrous",
+    "ciplox": "ciprofloxacin", "cifran": "ciprofloxacin", "lanoxin": "digoxin", "cordarone": "amiodarone",
+    "folitrax": "methotrexate", "imutrex": "methotrexate",
 }
 CLASSES = {
     "nsaid": ["ibuprofen", "diclofenac", "naproxen", "aceclofenac", "mefenamic", "ketorolac", "etoricoxib"],
@@ -353,6 +355,7 @@ CLASSES = {
     "anticoagulant": ["warfarin", "acenocoumarol", "apixaban", "rivaroxaban", "dabigatran"],
     "antiplatelet": ["aspirin", "clopidogrel", "ticagrelor", "prasugrel"],
     "thyroid": ["levothyroxine", "thyroxine"],
+    "methotrexate": ["methotrexate"],
     "binds_thyroid": ["calcium", "ferrous", "iron"],
 }
 CLASS_RULES = [
@@ -368,6 +371,9 @@ CLASS_RULES = [
     ("nsaid", "antiplatelet", "HIGH", "Stomach bleeding risk",
      "Painkillers like ibuprofen with aspirin raise the risk of stomach bleeding, and ibuprofen can blunt aspirin's protective effect.",
      "Ask your doctor before combining them."),
+    ("nsaid", "methotrexate", "HIGH", "Methotrexate side effects",
+     "Painkillers like ibuprofen can slow how the kidneys clear methotrexate, raising its side effects.",
+     "Ask the doctor who prescribed methotrexate before taking any painkiller."),
     ("bp_raas", "potassium_sparing", "HIGH", "High potassium",
      "These blood pressure medicines together can push potassium too high.",
      "Your doctor may want a potassium blood test. Do not stop either without asking."),
@@ -385,6 +391,12 @@ PAIR_RULES = [
     (["levocetirizine", "alcohol"], "MODERATE", "Extra drowsiness",
      "Alcohol adds to the drowsiness from this antihistamine.",
      "Do not drive after taking both."),
+    (["warfarin", "ciprofloxacin"], "HIGH", "Warfarin effect increased",
+     "Ciprofloxacin can raise the blood-thinning effect of warfarin and the risk of bleeding.",
+     "Tell the prescribing doctor you take warfarin; an INR check is often needed."),
+    (["digoxin", "amiodarone"], "HIGH", "Digoxin levels rise",
+     "Amiodarone raises digoxin levels in the blood, which can cause slow heart rate, nausea or vision changes.",
+     "Your doctor usually lowers the digoxin dose and checks levels. Do not change doses yourself."),
     (["atorvastatin", "clarithromycin"], "HIGH", "Muscle damage risk",
      "Clarithromycin raises atorvastatin levels, which can damage muscles.",
      "Tell the doctor prescribing the antibiotic that you take atorvastatin."),

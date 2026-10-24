@@ -186,3 +186,12 @@ def test_token_routes_are_rate_limited(governance, monkeypatch):
     codes = [client.get("/api/v1/chatgpt/patients", headers={"X-API-Key": key}).status_code for _ in range(31)]
     chatgpt_router._TOKEN_WINDOW.reset()
     assert codes[:30] == [200] * 30 and codes[30] == 429
+
+
+@pytest.mark.parametrize("meds,title", [
+    (["Warfarin 5 mg", "Ciplox 500"], "Warfarin effect increased"),
+    (["Folitrax 7.5", "Brufen 400"], "Methotrexate side effects"),
+    (["Lanoxin", "Cordarone"], "Digoxin levels rise"),
+])
+def test_interactions_named_in_the_investigation_report(meds, title):
+    assert title in titles(mcp_service.check_drug_safety_service(meds))

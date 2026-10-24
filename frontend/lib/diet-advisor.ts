@@ -127,6 +127,15 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         o.flag === "HIGH"
     );
 
+
+  const testIs = (re: RegExp, flag: "HIGH" | "LOW") => outTests.some(({ o }) => re.test(o.test_name.toLowerCase()) && o.flag === flag);
+  // Thyroid: diagnosis, a thyroid tablet, or a high TSH on the latest report.
+  const isHypothyroid =
+    conditions.some((c) => c.includes("hypothyroid")) || testIs(/\btsh\b|thyroid stimulating/, "HIGH") ||
+    own.some((r) => r.extracted.medications.some((m) => /levothyroxine|thyroxine|thyronorm|eltroxin/i.test(m.name)));
+  const isHighUricAcid = conditions.some((c) => c.includes("gout") || c.includes("uric")) || testIs(/uric acid/, "HIGH");
+  const isKidneyConcern = conditions.some((c) => c.includes("kidney") || c.includes("renal") || c.includes("ckd")) || testIs(/creatinine|\burea\b/, "HIGH");
+
   const triggeredBy: { en: string; hi: string; te: string }[] = [];
   const eat: FoodRecommendation[] = [];
   const avoid: FoodRestriction[] = [];
@@ -663,6 +672,80 @@ export function generateDietPlan(records: HealthRecord[], profile: Profile): Pat
         biomarker: { en: "Systemic Inflammation (hs-CRP)", hi: "सूजन (hs-CRP)", te: "శరీర వాపు (hs-CRP)" },
       });
     }
+  }
+
+  // 5. THYROID: timing around the tablet matters more than any single food.
+  if (isHypothyroid) {
+    triggeredBy.push({ en: "Thyroid (TSH / thyroid tablet)", hi: "थायरॉइड (TSH / थायरॉइड की दवा)", te: "థైరాయిడ్ (TSH / థైరాయిడ్ మాత్ర)" });
+    habits.push({
+      id: "thyroid-tablet-timing",
+      title: { en: "Thyroid tablet first, food later", hi: "पहले थायरॉइड की गोली, फिर खाना", te: "ముందు థైరాయిడ్ మాత్ర, తర్వాత ఆహారం" },
+      desc: {
+        en: "Take the thyroid tablet with plain water on waking. Wait 30 to 45 minutes before tea, coffee or breakfast, and keep calcium or iron tablets at least 4 hours apart.",
+        hi: "थायरॉइड की गोली उठते ही सादे पानी से लें। चाय, कॉफ़ी या नाश्ते से पहले 30 से 45 मिनट रुकें, और कैल्शियम या आयरन की गोली कम से कम 4 घंटे बाद लें।",
+        te: "థైరాయిడ్ మాత్రను లేవగానే మంచినీళ్లతో వేసుకోండి. టీ, కాఫీ లేదా అల్పాహారానికి ముందు 30 నుండి 45 నిమిషాలు ఆగండి; కాల్షియం లేదా ఐరన్ మాత్రలను కనీసం 4 గంటల తేడాతో వేసుకోండి.",
+      },
+      iconName: "sun",
+      badge: { en: "Tablet timing", hi: "गोली का समय", te: "మాత్ర సమయం" },
+      timing: { en: "On waking", hi: "उठते ही", te: "లేవగానే" },
+      evidence: {
+        en: "Food, tea, calcium and iron reduce how much of the tablet is absorbed. Ask your doctor about your exact routine.",
+        hi: "खाना, चाय, कैल्शियम और आयरन गोली का असर कम करते हैं। अपनी दिनचर्या डॉक्टर से पक्की करें।",
+        te: "ఆహారం, టీ, కాల్షియం, ఐరన్ మాత్ర శోషణను తగ్గిస్తాయి. మీ దినచర్యను డాక్టర్‌తో నిర్ధారించుకోండి.",
+      },
+    });
+  }
+
+  // 6. HIGH URIC ACID
+  if (isHighUricAcid) {
+    triggeredBy.push({ en: "High uric acid", hi: "यूरिक एसिड ज़्यादा", te: "యూరిక్ యాసిడ్ ఎక్కువ" });
+    avoid.push({
+      id: "uric-acid-triggers",
+      iconName: "prohibit",
+      swapIconName: "drop",
+      emoji: "🍺",
+      name: { en: "Alcohol, sugary drinks and organ meat", hi: "शराब, मीठे पेय और कलेजी जैसा मांस", te: "మద్యం, తీపి పానీయాలు, లివర్ వంటి మాంసం" },
+      risk: {
+        en: "These are commonly linked with higher uric acid and gout attacks.",
+        hi: "इन्हें आमतौर पर यूरिक एसिड बढ़ने और गठिया के दौरे से जोड़ा जाता है।",
+        te: "ఇవి సాధారణంగా యూరిక్ యాసిడ్ పెరగడం, గౌట్ నొప్పులతో ముడిపడి ఉంటాయి.",
+      },
+      swapFor: { en: "Water through the day", hi: "दिन भर पानी", te: "రోజంతా నీళ్లు" },
+      swapReason: {
+        en: "Enough water helps the body clear uric acid, unless your doctor has asked you to limit fluids.",
+        hi: "पर्याप्त पानी यूरिक एसिड निकालने में मदद करता है, जब तक डॉक्टर ने पानी कम करने को न कहा हो।",
+        te: "డాక్టర్ నీళ్లు తగ్గించమని చెప్పకపోతే, తగినన్ని నీళ్లు యూరిక్ యాసిడ్ బయటకు పోవడానికి సహాయపడతాయి.",
+      },
+      avoidReasonBadge: { en: "Uric acid", hi: "यूरिक एसिड", te: "యూరిక్ యాసిడ్" },
+      swapAdvantageBadge: { en: "Plain water", hi: "सादा पानी", te: "మంచినీళ్లు" },
+      biomarker: { en: "Uric acid", hi: "यूरिक एसिड", te: "యూరిక్ యాసిడ్" },
+    });
+  }
+
+  // 7. KIDNEY: only the safe, general part; protein and potassium limits are the doctor's call.
+  if (isKidneyConcern) {
+    triggeredBy.push({ en: "Kidney test (creatinine / urea)", hi: "किडनी जांच (क्रिएटिनिन / यूरिया)", te: "కిడ్నీ పరీక్ష (క్రియాటినిన్ / యూరియా)" });
+    avoid.push({
+      id: "kidney-salt",
+      iconName: "prohibit",
+      swapIconName: "cooking",
+      emoji: "🧂",
+      name: { en: "Pickles, papad and extra salt", hi: "अचार, पापड़ और ज़्यादा नमक", te: "ఊరగాయలు, అప్పడాలు, అదనపు ఉప్పు" },
+      risk: {
+        en: "Salty foods raise blood pressure and add strain on the kidneys. Ask your doctor before changing protein or potassium-rich foods (bananas, coconut water); the right limit depends on your reports.",
+        hi: "नमकीन खाना बीपी बढ़ाता है और किडनी पर ज़ोर डालता है। प्रोटीन या पोटैशियम वाली चीज़ें (केला, नारियल पानी) बदलने से पहले डॉक्टर से पूछें; सही सीमा आपकी रिपोर्ट पर निर्भर है।",
+        te: "ఉప్పు ఎక్కువ ఆహారం బీపీ పెంచి కిడ్నీలపై భారం పెడుతుంది. ప్రోటీన్ లేదా పొటాషియం ఎక్కువ ఉండే ఆహారం (అరటి, కొబ్బరి నీళ్లు) మార్చే ముందు డాక్టర్‌ను అడగండి; సరైన పరిమితి మీ రిపోర్టులపై ఆధారపడి ఉంటుంది.",
+      },
+      swapFor: { en: "Lemon, herbs and spices for flavour", hi: "स्वाद के लिए नींबू, हरी पत्तियां और मसाले", te: "రుచికి నిమ్మ, ఆకుకూరలు, మసాలాలు" },
+      swapReason: {
+        en: "Flavour without extra salt.",
+        hi: "बिना ज़्यादा नमक के स्वाद।",
+        te: "అదనపు ఉప్పు లేకుండా రుచి.",
+      },
+      avoidReasonBadge: { en: "Salt", hi: "नमक", te: "ఉప్పు" },
+      swapAdvantageBadge: { en: "Less salt", hi: "कम नमक", te: "తక్కువ ఉప్పు" },
+      biomarker: { en: "Creatinine / urea", hi: "क्रिएटिनिन / यूरिया", te: "క్రియాటినిన్ / యూరియా" },
+    });
   }
 
   // Universal Lifestyle Habits (3 key proven routines)

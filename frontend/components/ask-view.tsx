@@ -344,7 +344,9 @@ export function AskView({
       m.start(250);
       setMicState("listening");
     } catch {
-      setMicErr("Microphone permission was not given. Please allow mic access.");
+      // Tell the person what will work instead of a generic failure.
+      const unsupported = typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia;
+      setMicErr(unsupported ? t.micUnsupported : !window.isSecureContext ? t.micNeedsHttps : t.micDenied);
       setMicState("idle");
     }
   }

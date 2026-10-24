@@ -30,10 +30,11 @@ import { Badge, Card, Empty, Skeleton, cx } from "./ui";
 type ViewMode = "routine" | "grid" | "table";
 type FormFilter = "all" | "tablet" | "syrup" | "drops";
 
-const ROUTINE_SLOTS: { slot: Slot; label: string; time: string; Icon: typeof Sun; tone: string }[] = [
-  { slot: "morning", label: "Morning", time: "8:00 AM – 9:00 AM", Icon: SunHorizon, tone: "text-fg-2 bg-subtle border-line" },
-  { slot: "afternoon", label: "Afternoon", time: "1:00 PM – 2:00 PM", Icon: Sun, tone: "text-fg-2 bg-subtle border-line" },
-  { slot: "night", label: "Night", time: "9:00 PM – 10:00 PM", Icon: Moon, tone: "text-fg-2 bg-subtle border-line" },
+// Exact times come from each prescription (see the Care plan tab), not from fixed clock ranges.
+const ROUTINE_SLOTS: { slot: Slot; label: string; Icon: typeof Sun; tone: string }[] = [
+  { slot: "morning", label: "Morning", Icon: SunHorizon, tone: "text-fg-2 bg-subtle border-line" },
+  { slot: "afternoon", label: "Afternoon", Icon: Sun, tone: "text-fg-2 bg-subtle border-line" },
+  { slot: "night", label: "Night", Icon: Moon, tone: "text-fg-2 bg-subtle border-line" },
 ];
 
 function getFormIcon(form?: string | null, name?: string) {
@@ -370,7 +371,7 @@ export function MedicinesView({
         /* ========================================================================= */
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
-            {ROUTINE_SLOTS.map(({ slot, label, time, Icon, tone }) => {
+            {ROUTINE_SLOTS.map(({ slot, Icon, tone }) => {
               const medsInSlot = filteredRows.filter(({ m }) => {
                 const s = schedule(m);
                 return s.kind === "slots" && s.slots[slot] !== "0";
@@ -387,7 +388,6 @@ export function MedicinesView({
                         </span>
                         <div>
                           <h3 className="text-sm font-bold text-fg">{t[slot]}</h3>
-                          <p className="text-[11px] text-fg-3">{time}</p>
                         </div>
                       </div>
                       <span className="rounded-full bg-subtle px-2 py-0.5 text-xs font-semibold text-fg-2 num">

@@ -4,6 +4,9 @@ import type { Lang, TrendVerdict } from "./types";
 
 const en = {
   showOnPage: "Show on the page",
+  micUnsupported: "This browser cannot record voice. Please type your question, or use Chrome or Edge.",
+  micNeedsHttps: "Voice needs a secure (https) page. Please type your question.",
+  micDenied: "Microphone permission was not given. Please allow mic access, or type your question.",
   care: {
     tab: "Care plan",
     dosesTitle: "Today's medicines", noDoses: "No medicine reminders for today.",
@@ -194,6 +197,9 @@ type Dict = typeof en;
 const hi: Dict = {
   ...en,
   showOnPage: "पेज पर दिखाएं",
+  micUnsupported: "यह ब्राउज़र आवाज़ रिकॉर्ड नहीं कर सकता। कृपया सवाल टाइप करें, या Chrome या Edge इस्तेमाल करें।",
+  micNeedsHttps: "आवाज़ के लिए सुरक्षित (https) पेज चाहिए। कृपया सवाल टाइप करें।",
+  micDenied: "माइक की अनुमति नहीं मिली। कृपया माइक की अनुमति दें, या सवाल टाइप करें।",
   care: {
     ...en.care,
     tab: "देखभाल योजना",
@@ -383,6 +389,9 @@ const hi: Dict = {
 const te: Dict = {
   ...en,
   showOnPage: "పేజీలో చూపించు",
+  micUnsupported: "ఈ బ్రౌజర్ వాయిస్ రికార్డ్ చేయలేదు. దయచేసి మీ ప్రశ్నను టైప్ చేయండి, లేదా Chrome లేదా Edge వాడండి.",
+  micNeedsHttps: "వాయిస్‌కి సురక్షిత (https) పేజీ కావాలి. దయచేసి ప్రశ్నను టైప్ చేయండి.",
+  micDenied: "మైక్ అనుమతి ఇవ్వలేదు. దయచేసి మైక్ అనుమతించండి, లేదా ప్రశ్నను టైప్ చేయండి.",
   care: {
     ...en.care,
     tab: "సంరక్షణ ప్రణాళిక",

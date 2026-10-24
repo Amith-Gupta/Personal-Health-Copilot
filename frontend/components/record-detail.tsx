@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { MagnifyingGlass, ArrowLeft, ArrowSquareOut, Code, SpeakerHigh, SpeakerSlash, Trash, WarningCircle } from "@phosphor-icons/react";
+import { FilePdf, MagnifyingGlass, ArrowLeft, ArrowSquareOut, Code, SpeakerHigh, SpeakerSlash, Trash, WarningCircle } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { cachedImage } from "@/lib/image-cache";
 import { isOut, tidyName } from "@/lib/clinical";
@@ -114,12 +114,21 @@ export function RecordDetail({ record, urls, profiles, active, onBack, onMoved, 
               {srcErr || !record.has_source_file ? <p className="py-16 text-center text-sm text-fg-3">Original file not available.</p>
                 : !src ? <Skeleton className="aspect-[3/4] w-full" />
                 : isPdf ? (
-                  <object data={`${src}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} type="application/pdf" aria-label={record.source_filename} className="aspect-[3/4] w-full rounded bg-white">
+                  <>
+                  {/* Phone browsers rarely embed PDFs (blank box or forced download): offer a clear open action instead. */}
+                  <a href={original || src || "#"} target="_blank" rel="noreferrer"
+                    className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded bg-surface text-center text-sm text-fg-2 sm:hidden">
+                    <FilePdf size={40} className="text-fg-3" />
+                    <span className="max-w-[16rem] truncate font-medium text-fg">{record.source_filename}</span>
+                    <span className="rounded-full bg-accent px-4 py-2 font-medium text-accent-fg">{t.openOriginal}</span>
+                  </a>
+                  <object data={`${src}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} type="application/pdf" aria-label={record.source_filename} className="hidden aspect-[3/4] w-full rounded bg-white sm:block">
                     <div className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-3 rounded bg-surface text-sm text-fg-3">
                       <p>PDF preview is not available in this browser.</p>
                       <a href={original || src || "#"} target="_blank" rel="noreferrer" className="rounded-full bg-accent px-4 py-2 font-medium text-accent-fg">{t.openOriginal}</a>
                     </div>
                   </object>
+                  </>
                 )
                 : (
                   // The wrapper is exactly the size of the rendered image (block, full width, natural
