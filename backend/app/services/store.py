@@ -115,6 +115,17 @@ def _derived_rows(owner: str, rec: HealthRecord) -> tuple:
 
 
 def save_record(owner: str, rec: HealthRecord, storage_path: Optional[str] = None, preview_path: Optional[str] = None) -> HealthRecord:
+    if storage_path is None or preview_path is None:
+        try:
+            existing = db().table("health_records").select("storage_path, preview_path").eq("owner_id", owner).eq("id", rec.id).execute().data
+            if existing:
+                if storage_path is None:
+                    storage_path = existing[0].get("storage_path")
+                if preview_path is None:
+                    preview_path = existing[0].get("preview_path")
+        except Exception:
+            pass
+
     row = {"id": rec.id, "owner_id": owner, "patient_id": rec.profile_id, "document_type": rec.document_type,
            "record_date": rec.record_date, "title": rec.title, "extracted": rec.extracted.model_dump(),
            "extraction": rec.extraction.model_dump(), "name_check": rec.name_check,

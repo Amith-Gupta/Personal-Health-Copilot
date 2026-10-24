@@ -1,6 +1,13 @@
 import os
-from pydantic_settings import BaseSettings
+from datetime import timezone, timedelta
 from typing import List
+from pydantic_settings import BaseSettings
+
+try:
+    from zoneinfo import ZoneInfo
+    IST = ZoneInfo("Asia/Kolkata")
+except Exception:
+    IST = timezone(timedelta(hours=5, minutes=30))
 
 
 class Settings(BaseSettings):

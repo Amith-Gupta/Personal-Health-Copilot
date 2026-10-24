@@ -1,9 +1,10 @@
 import asyncio
 import uuid
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
+
+from app.config import IST
 
 from app.schemas.payloads import CopilotQueryRequest, CopilotQueryResponse, DoctorRecommendation, DoctorSearchRequest
 from app.services import store
@@ -63,7 +64,7 @@ async def query(body: CopilotQueryRequest, owner: str = Depends(budget("ask"))):
     try:
         answer, citations, model, suggested_questions, format_hint = await asyncio.to_thread(
             answer_question, body.query, body.language, profile, records, body.history,
-            care, datetime.now(ZoneInfo("Asia/Kolkata")).date().isoformat(),
+            care, datetime.now(IST).date().isoformat(),
         )
     except CopilotUnavailable:
         raise HTTPException(503, "The assistant is not reachable right now. Your records are safe; please try again.")

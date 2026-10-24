@@ -8,7 +8,7 @@ from app.schemas.payloads import Citation, HealthRecord, Profile, ConversationTu
 from app.services.trends import build_trends
 
 logger = logging.getLogger(__name__)
-MODELS = ["openai/gpt-oss-120b", "qwen/qwen3.8-27b"]
+MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
 LANG_NAME = {"en": "English", "hi": "Hindi (Devanagari script)", "te": "Telugu (Telugu script)"}
 
 
@@ -16,7 +16,7 @@ class CopilotUnavailable(Exception):
     pass
 
 
-GEMINI_TEXT_MODELS = ["gemini-3.5-flash", "gemini-flash-lite-latest"]
+GEMINI_TEXT_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
 
 
 def _gemini_answer(messages: List[dict]) -> Tuple[str, str]:

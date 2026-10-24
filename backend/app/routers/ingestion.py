@@ -111,9 +111,9 @@ async def upload(file: UploadFile = File(...), profile_id: str = Form(...), owne
     # follow-ups and repeat tests. A failure here must never lose the upload itself.
     try:
         from datetime import datetime
-        from zoneinfo import ZoneInfo
+        from app.config import IST
         from app.services import care_store
-        await asyncio.to_thread(care_store.sync, owner, profile.id, datetime.now(ZoneInfo("Asia/Kolkata")).date())
+        await asyncio.to_thread(care_store.sync, owner, profile.id, datetime.now(IST).date())
     except Exception as e:  # noqa: BLE001
         logger.warning(f"care plan sync after upload failed: {e}")
     return saved

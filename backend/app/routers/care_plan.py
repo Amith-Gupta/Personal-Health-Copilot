@@ -4,18 +4,17 @@ import re
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Literal, Optional
 from uuid import UUID
-from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
+from app.config import IST
 from app.services import care_store, store
 from app.services.auth import current_user_id
 from app.services.care_plan import doses_for_day, risk_insights, visit_questions
 
 router = APIRouter(tags=["Care plan"])
-IST = ZoneInfo("Asia/Kolkata")
 TIME = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 
 

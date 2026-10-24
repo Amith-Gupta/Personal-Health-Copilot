@@ -64,13 +64,13 @@ export function pick(l: Localized | null | undefined, lang: Lang): string {
   if (!l) return "";
   if (lang === "hi" && l.hindi) return l.hindi;
   if (lang === "te" && l.telugu) return l.telugu;
-  return l.english;
+  return l.english || "";
 }
 export function pickList(l: LocalizedList | null | undefined, lang: Lang): string[] {
   if (!l) return [];
-  if (lang === "hi" && l.hindi.length) return l.hindi;
-  if (lang === "te" && l.telugu.length) return l.telugu;
-  return l.english;
+  if (lang === "hi" && Array.isArray(l.hindi) && l.hindi.length > 0) return l.hindi;
+  if (lang === "te" && Array.isArray(l.telugu) && l.telugu.length > 0) return l.telugu;
+  return Array.isArray(l.english) ? l.english : [];
 }
 
 export type TrendVerdict = "improving" | "worsening" | "steady" | "in_range" | "watch";
