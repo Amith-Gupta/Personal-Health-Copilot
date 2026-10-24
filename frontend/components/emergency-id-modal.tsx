@@ -32,20 +32,44 @@ interface EmergencyIdModalProps {
 
 const BLOOD_GROUPS = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-", "Unknown"];
 
+function detectBloodGroup(records: HealthRecord[]): string {
+  for (const r of records) {
+    for (const obs of r.extracted?.lab_observations || []) {
+      const name = (obs.test_name || "").toLowerCase();
+      if (name.includes("blood group") || name.includes("rh type") || name.includes("abo") || name === "blood type") {
+        const val = (obs.observed_value || "").trim().toUpperCase();
+        for (const bg of BLOOD_GROUPS) {
+          if (bg !== "Unknown" && (val === bg || val.startsWith(bg))) return bg;
+        }
+      }
+    }
+  }
+  return "Unknown";
+}
+
+function detectAllergies(records: HealthRecord[]): string[] {
+  const found: string[] = [];
+  records.forEach((r) => {
+    (r.extracted?.diagnoses || []).forEach((d) => {
+      if (/allerg|reaction|sensitivity|hypersensitiv/i.test(d)) {
+        found.push(d);
+      }
+    });
+  });
+  return Array.from(new Set(found));
+}
+
 export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModalProps) {
   const { lang, t } = useI18n();
   const toast = useToast();
 
   const storageKey = `emergency_id_${profile.id}`;
 
-  const [bloodGroup, setBloodGroup] = useState<string>("O+");
-  const [allergies, setAllergies] = useState<string[]>([
-    "Penicillin (Severe Anaphylaxis)",
-    "NSAIDs / Aspirin Sensitivity",
-  ]);
+  const [bloodGroup, setBloodGroup] = useState<string>(() => detectBloodGroup(records));
+  const [allergies, setAllergies] = useState<string[]>(() => detectAllergies(records));
   const [newAllergy, setNewAllergy] = useState("");
-  const [iceName, setIceName] = useState("Family / Spouse");
-  const [icePhone, setIcePhone] = useState("+91 98765 43210");
+  const [iceName, setIceName] = useState(profile.relation ? `${profile.relation} Contact` : "Emergency Contact");
+  const [icePhone, setIcePhone] = useState("");
   const [organDonor, setOrganDonor] = useState(true);
   const [viewMode, setViewMode] = useState<"card" | "lockscreen">("card");
   const [copied, setCopied] = useState(false);
@@ -75,11 +99,14 @@ export function EmergencyIdModal({ profile, records, onClose }: EmergencyIdModal
         if (parsed.iceName) setIceName(parsed.iceName);
         if (parsed.icePhone) setIcePhone(parsed.icePhone);
         if (parsed.organDonor !== undefined) setOrganDonor(parsed.organDonor);
-      } else if (profile.relation === "Mother" || profile.relation === "Father") {
-        setAllergies(["Sulfa Antibiotics", "Contrast Dye Sensitivity"]);
+      } else {
+        const detectedBg = detectBloodGroup(records);
+        if (detectedBg !== "Unknown") setBloodGroup(detectedBg);
+        const detectedAllergiesList = detectAllergies(records);
+        if (detectedAllergiesList.length > 0) setAllergies(detectedAllergiesList);
       }
     } catch {}
-  }, [storageKey, profile.relation]);
+  }, [storageKey, records]);
 
   function persist(updates: Partial<{ bloodGroup: string; allergies: string[]; iceName: string; icePhone: string; organDonor: boolean }>) {
     try {
@@ -290,10 +317,19 @@ NATIONAL EMERGENCY: 112 / 108`;
 
                 {/* Fast Call ICE Button */}
                 <a
-                  href={`tel:${icePhone}`}
-                  className="mt-3.5 flex items-center justify-center gap-2 rounded-xl bg-high py-2.5 text-xs font-extrabold text-white shadow hover:opacity-90 transition-all active:scale-[0.98]"
+                  href={icePhone ? `tel:${icePhone}` : "#"}
+                  className={cx(
+                    "mt-3.5 flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-extrabold text-white shadow transition-all active:scale-[0.98]",
+                    icePhone ? "bg-high hover:opacity-90" : "bg-high/50 cursor-not-allowed"
+                  )}
+                  onClick={(e) => {
+                    if (!icePhone) {
+                      e.preventDefault();
+                      toast("Please set an ICE phone number first.");
+                    }
+                  }}
                 >
-                  <PhoneCall size={14} weight="bold" /> Call ICE ({icePhone})
+                  <PhoneCall size={14} weight="bold" /> {icePhone ? `Call ICE (${icePhone})` : "Set Emergency Contact"}
                 </a>
               </div>
 
@@ -587,25 +623,36 @@ NATIONAL EMERGENCY: 112 / 108`;
                         <input
                           type="text"
                           value={iceName}
+                          placeholder="Contact Name"
                           onChange={(e) => {
                             setIceName(e.target.value);
                             persist({ iceName: e.target.value });
                           }}
-                          className="h-6 w-24 rounded-lg border border-line bg-surface px-1.5 text-xs font-semibold text-fg focus:outline-none focus:border-high"
+                          className="h-6 w-28 rounded-lg border border-line bg-surface px-1.5 text-xs font-semibold text-fg placeholder:text-fg-3/60 focus:outline-none focus:border-high"
                         />
                         <input
                           type="tel"
                           value={icePhone}
+                          placeholder="+91 Emergency Phone"
                           onChange={(e) => {
                             setIcePhone(e.target.value);
                             persist({ icePhone: e.target.value });
                           }}
-                          className="num h-6 w-32 rounded-lg border border-line bg-surface px-1.5 text-xs font-black text-high focus:outline-none focus:border-high"
+                          className="num h-6 w-36 rounded-lg border border-line bg-surface px-1.5 text-xs font-black text-high placeholder:text-fg-3/60 focus:outline-none focus:border-high"
                         />
                       </div>
                       <a
-                        href={`tel:${icePhone}`}
-                        className="inline-flex items-center gap-1 rounded-lg bg-high px-2.5 py-1 text-[11px] font-black text-white hover:opacity-90 transition-opacity shadow-xs ml-auto"
+                        href={icePhone ? `tel:${icePhone}` : "#"}
+                        className={cx(
+                          "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-black text-white transition-opacity shadow-xs ml-auto",
+                          icePhone ? "bg-high hover:opacity-90" : "bg-high/50 cursor-not-allowed"
+                        )}
+                        onClick={(e) => {
+                          if (!icePhone) {
+                            e.preventDefault();
+                            toast("Please enter an emergency phone number.");
+                          }
+                        }}
                       >
                         <PhoneCall size={12} weight="bold" /> Dial Now
                       </a>
