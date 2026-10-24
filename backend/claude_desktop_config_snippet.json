@@ -1,9 +1,11 @@
 {
   "mcpServers": {
     "personal-health-copilot": {
-      "command": "C:\\Users\\kamil\\OneDrive\\Desktop\\health-care-bytexl\\backend\\venv\\Scripts\\python.exe",
+      "command": "C:\\Users\\venka\\Desktop\\Personal-Health-Copilot\\backend\\venv\\Scripts\\python.exe",
       "args": [
-        "C:\\Users\\kamil\\OneDrive\\Desktop\\health-care-bytexl\\backend\\mcp_server.py"
+        "C:\\Users\\venka\\Desktop\\Personal-Health-Copilot\\backend\\mcp_server.py",
+        "--api-key",
+        "<YOUR_PERSONAL_MCP_KEY_FROM_WEBSITE>"
       ]
     }
   }

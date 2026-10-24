@@ -3,6 +3,7 @@
 Shared between:
   - backend/mcp_server.py (Claude Desktop / Cursor stdio & SSE)
   - backend/app/routers/chatgpt_router.py (ChatGPT Custom GPT Actions)
+  - backend/app/routers/mcp_governance_router.py (Web Portal Governance API)
 """
 import json
 import logging
@@ -33,14 +34,20 @@ def load_seed_data() -> Dict[str, Any]:
     return {"profiles": [], "records": []}
 
 
-def fetch_all_patients() -> List[Dict[str, Any]]:
-    """Aggregates all patients from Supabase and the seed dataset."""
+def fetch_all_patients(
+    owner: Optional[str] = None,
+    allowed_patient_ids: Optional[List[str]] = None,
+) -> List[Dict[str, Any]]:
+    """Aggregates patients strictly isolated by the owner account with privacy filters."""
     patients: List[Dict[str, Any]] = []
     seen_ids = set()
 
-    # 1. Fetch from Supabase
+    # 1. Fetch from Supabase (strictly scoped by owner if provided)
     try:
-        rows = store.db().table("patients").select("*").execute().data
+        query = store.db().table("patients").select("*")
+        if owner:
+            query = query.eq("owner_id", owner)
+        rows = query.execute().data
         for r in rows:
             patients.append({
                 "id": r["id"],
@@ -53,29 +60,39 @@ def fetch_all_patients() -> List[Dict[str, Any]]:
             })
             seen_ids.add(r["id"])
     except Exception as e:
-        logger.warning(f"Supabase patient query failed (falling back to seed): {e}")
+        logger.warning(f"Supabase patient query note: {e}")
 
-    # 2. Add seed family profiles if not already present
-    seed = load_seed_data()
-    for p in seed.get("profiles", []):
-        if p["id"] not in seen_ids and not any(x["name"].lower() == p["name"].lower() for x in patients):
-            patients.append({
-                "id": p["id"],
-                "name": p["name"],
-                "relation": p.get("relation", "Family member"),
-                "age": p.get("age"),
-                "sex": p.get("sex"),
-                "source": "sample_seed",
-                "owner_id": "seed",
-            })
-            seen_ids.add(p["id"])
+    # 2. Add seed family profiles only if no database records exist for local dev/demo
+    if not patients and not owner:
+        seed = load_seed_data()
+        for p in seed.get("profiles", []):
+            if p["id"] not in seen_ids and not any(x["name"].lower() == p["name"].lower() for x in patients):
+                patients.append({
+                    "id": p["id"],
+                    "name": p["name"],
+                    "relation": p.get("relation", "Family member"),
+                    "age": p.get("age"),
+                    "sex": p.get("sex"),
+                    "source": "sample_seed",
+                    "owner_id": "seed",
+                })
+                seen_ids.add(p["id"])
+
+    # 3. Apply patient-level privacy filter from governance policy
+    if allowed_patient_ids:
+        allowed_set = set(allowed_patient_ids)
+        patients = [p for p in patients if p["id"] in allowed_set]
 
     return patients
 
 
-def resolve_patient(identifier: str) -> Optional[Dict[str, Any]]:
-    """Resolves a patient by exact UUID or fuzzy case-insensitive name match."""
-    patients = fetch_all_patients()
+def resolve_patient(
+    identifier: str,
+    owner: Optional[str] = None,
+    allowed_patient_ids: Optional[List[str]] = None,
+) -> Optional[Dict[str, Any]]:
+    """Resolves a patient by exact UUID or fuzzy case-insensitive name match within the owner's scope."""
+    patients = fetch_all_patients(owner=owner, allowed_patient_ids=allowed_patient_ids)
     clean = identifier.strip().lower()
 
     # Exact ID match
@@ -93,20 +110,41 @@ def resolve_patient(identifier: str) -> Optional[Dict[str, Any]]:
         if clean in p["name"].lower() or p["name"].lower() in clean:
             return p
 
+    # If not found in owner's db and running in local seed fallback
+    if not owner:
+        seed = load_seed_data()
+        for p in seed.get("profiles", []):
+            if clean in p["name"].lower() or p["name"].lower() in clean or p["id"].lower() == clean:
+                return {
+                    "id": p["id"],
+                    "name": p["name"],
+                    "relation": p.get("relation", "Family member"),
+                    "age": p.get("age"),
+                    "sex": p.get("sex"),
+                    "source": "sample_seed",
+                    "owner_id": "seed",
+                }
+
     return None
 
 
-def fetch_records_for_patient(patient: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Fetches all clinical records belonging to a patient."""
+def fetch_records_for_patient(
+    patient: Dict[str, Any],
+    owner: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Fetches all clinical records belonging to a patient, strictly owner-scoped."""
     patient_id = patient["id"]
     source = patient.get("source", "database")
     records: List[Dict[str, Any]] = []
 
     if source == "database":
         try:
-            records = store.db().table("health_records").select("*").eq("patient_id", patient_id).execute().data
+            q = store.db().table("health_records").select("*").eq("patient_id", patient_id)
+            if owner:
+                q = q.eq("owner_id", owner)
+            records = q.execute().data
         except Exception as e:
-            logger.warning(f"Supabase records query failed for {patient_id}: {e}")
+            logger.warning(f"Supabase records query note for {patient_id}: {e}")
 
     if not records:
         seed = load_seed_data()
@@ -119,11 +157,18 @@ def fetch_records_for_patient(patient: Dict[str, Any]) -> List[Dict[str, Any]]:
 # Business Clinical Services
 # ---------------------------------------------------------------------------
 
-def get_all_patient_profiles() -> List[Dict[str, Any]]:
-    patients = fetch_all_patients()
+def get_all_patient_profiles(
+    owner: Optional[str] = None,
+    allowed_patient_ids: Optional[List[str]] = None,
+) -> List[Dict[str, Any]]:
+    patients = fetch_all_patients(owner=owner, allowed_patient_ids=allowed_patient_ids)
     record_counts: Dict[str, int] = {}
+
     try:
-        rows = store.db().table("health_records").select("id,patient_id").execute().data
+        q = store.db().table("health_records").select("id,patient_id")
+        if owner:
+            q = q.eq("owner_id", owner)
+        rows = q.execute().data
         for r in rows:
             pid = r.get("patient_id")
             if pid:
@@ -131,11 +176,12 @@ def get_all_patient_profiles() -> List[Dict[str, Any]]:
     except Exception as e:
         logger.warning(f"Could not batch count database records: {e}")
 
-    seed = load_seed_data()
-    for r in seed.get("records", []):
-        pid = r.get("profile_id")
-        if pid:
-            record_counts[pid] = record_counts.get(pid, 0) + 1
+    if not record_counts:
+        seed = load_seed_data()
+        for r in seed.get("records", []):
+            pid = r.get("profile_id")
+            if pid:
+                record_counts[pid] = record_counts.get(pid, 0) + 1
 
     result = []
     for p in patients:
@@ -152,14 +198,22 @@ def get_all_patient_profiles() -> List[Dict[str, Any]]:
     return result
 
 
-def get_patient_summary_service(patient_name_or_id: str) -> Dict[str, Any]:
-    patient = resolve_patient(patient_name_or_id)
+def get_patient_summary_service(
+    patient_name_or_id: str,
+    owner: Optional[str] = None,
+    allowed_patient_ids: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    patient = resolve_patient(patient_name_or_id, owner=owner, allowed_patient_ids=allowed_patient_ids)
     if not patient:
         return {
-            "error": f"Patient '{patient_name_or_id}' not found. Call list_patient_profiles to view available patients."
+            "error": f"Patient '{patient_name_or_id}' not found or access restricted by privacy settings. Call list_patient_profiles to view available patients.",
+            "patient": {"name": patient_name_or_id, "id": "unknown"},
+            "diagnosed_conditions": [],
+            "active_medications_count": 0,
+            "clinical_encounters": [],
         }
 
-    records = fetch_records_for_patient(patient)
+    records = fetch_records_for_patient(patient, owner=owner)
     all_diagnoses = set()
     medications_list = []
     lab_tests_list = []
@@ -218,14 +272,19 @@ def get_patient_summary_service(patient_name_or_id: str) -> Dict[str, Any]:
     }
 
 
-def get_prescribed_medications_service(patient_name_or_id: str) -> List[Dict[str, Any]]:
-    patient = resolve_patient(patient_name_or_id)
+def get_prescribed_medications_service(
+    patient_name_or_id: str,
+    owner: Optional[str] = None,
+    allowed_patient_ids: Optional[List[str]] = None,
+) -> List[Dict[str, Any]]:
+    patient = resolve_patient(patient_name_or_id, owner=owner, allowed_patient_ids=allowed_patient_ids)
     if not patient:
         return [{
-            "error": f"Patient '{patient_name_or_id}' not found."
+            "error": f"Patient '{patient_name_or_id}' not found or access restricted.",
+            "medication_name": "None",
         }]
 
-    records = fetch_records_for_patient(patient)
+    records = fetch_records_for_patient(patient, owner=owner)
     meds_output = []
 
     for r in records:
@@ -254,14 +313,20 @@ def get_prescribed_medications_service(patient_name_or_id: str) -> List[Dict[str
     return meds_output
 
 
-def get_lab_reports_service(patient_name_or_id: str, test_name_filter: Optional[str] = None) -> List[Dict[str, Any]]:
-    patient = resolve_patient(patient_name_or_id)
+def get_lab_reports_service(
+    patient_name_or_id: str,
+    test_name_filter: Optional[str] = None,
+    owner: Optional[str] = None,
+    allowed_patient_ids: Optional[List[str]] = None,
+) -> List[Dict[str, Any]]:
+    patient = resolve_patient(patient_name_or_id, owner=owner, allowed_patient_ids=allowed_patient_ids)
     if not patient:
         return [{
-            "error": f"Patient '{patient_name_or_id}' not found."
+            "error": f"Patient '{patient_name_or_id}' not found or access restricted.",
+            "test_name": "None",
         }]
 
-    records = fetch_records_for_patient(patient)
+    records = fetch_records_for_patient(patient, owner=owner)
     labs_output = []
     filter_lower = test_name_filter.lower().strip() if test_name_filter else None
 
@@ -407,7 +472,13 @@ def check_drug_safety_service(medications: List[str]) -> Dict[str, Any]:
     }
 
 
-def ask_health_copilot_service(query: str, patient_name_or_id: Optional[str] = None, language: str = "en") -> Dict[str, Any]:
+def ask_health_copilot_service(
+    query: str,
+    patient_name_or_id: Optional[str] = None,
+    language: str = "en",
+    owner: Optional[str] = None,
+    allowed_patient_ids: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     lang = language.lower() if language in ("en", "hi", "te") else "en"
     disclaimer = DISCLAIMER.get(lang, DISCLAIMER["en"])
 
@@ -424,12 +495,12 @@ def ask_health_copilot_service(query: str, patient_name_or_id: Optional[str] = N
 
     patient = None
     if patient_name_or_id:
-        patient = resolve_patient(patient_name_or_id)
+        patient = resolve_patient(patient_name_or_id, owner=owner, allowed_patient_ids=allowed_patient_ids)
 
     if not patient:
-        patients = fetch_all_patients()
+        patients = fetch_all_patients(owner=owner, allowed_patient_ids=allowed_patient_ids)
         for p in patients:
-            if fetch_records_for_patient(p):
+            if fetch_records_for_patient(p, owner=owner):
                 patient = p
                 break
         if not patient and patients:
@@ -437,13 +508,13 @@ def ask_health_copilot_service(query: str, patient_name_or_id: Optional[str] = N
 
     if not patient:
         return {
-            "answer": "No patient records found in the system.",
+            "answer": "No patient records found in your personal account or access is restricted by privacy policy.",
             "safety": "ok",
             "citations": [],
             "disclaimer": disclaimer,
         }
 
-    records_raw = fetch_records_for_patient(patient)
+    records_raw = fetch_records_for_patient(patient, owner=owner)
     if not records_raw:
         return {
             "answer": f"No medical documents are currently uploaded for {patient['name']}.",
@@ -499,7 +570,7 @@ def ask_health_copilot_service(query: str, patient_name_or_id: Optional[str] = N
             "disclaimer": disclaimer,
         }
     except CopilotUnavailable:
-        summary = get_patient_summary_service(patient["name"])
+        summary = get_patient_summary_service(patient["name"], owner=owner, allowed_patient_ids=allowed_patient_ids)
         return {
             "patient": patient["name"],
             "answer": f"Here is the verified clinical data for {patient['name']}:\n"

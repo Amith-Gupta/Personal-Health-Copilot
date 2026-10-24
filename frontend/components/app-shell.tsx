@@ -18,6 +18,7 @@ import { Button, ErrorNote, Skeleton, cx, useToast } from "./ui";
 import { MemberForm } from "./sidebar";
 import { VisitSummary } from "./visit-summary";
 import { EmergencyIdModal } from "./emergency-id-modal";
+import { McpGovernanceModal } from "./mcp-governance-modal";
 
 export type Tab = "overview" | "records" | "medicines" | "ask";
 const byDate = (a: HealthRecord, b: HealthRecord) => (b.record_date || "").localeCompare(a.record_date || "") || b.created_at.localeCompare(a.created_at);
@@ -36,6 +37,7 @@ export function AppShell({ email }: { email: string }) {
   const [uploading, setUploading] = useState(false);
   const [visit, setVisit] = useState(false);
   const [emergencyOpen, setEmergencyOpen] = useState(false);
+  const [mcpOpen, setMcpOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
 
   const [justUploadedRecord, setJustUploadedRecord] = useState<HealthRecord | null>(null);
@@ -94,7 +96,7 @@ export function AppShell({ email }: { email: string }) {
   return (
     <div className="min-h-[100dvh] flex flex-col justify-between">
       <div>
-        <TopBar email={email} />
+        <TopBar email={email} onOpenMcpGovernance={() => setMcpOpen(true)} />
         {profiles?.length !== 0 && <FamilyRow profiles={profiles} activeId={activeId} onSelect={select} onProfilesChanged={loadProfiles} />}
         {!profiles && !loadError && <HeaderSkeleton />}
       </div>
@@ -174,6 +176,13 @@ export function AppShell({ email }: { email: string }) {
                 profile={active}
                 records={records || []}
                 onClose={() => setEmergencyOpen(false)}
+              />
+            )}
+            {mcpOpen && (
+              <McpGovernanceModal
+                email={email}
+                profiles={profiles || []}
+                onClose={() => setMcpOpen(false)}
               />
             )}
           </>

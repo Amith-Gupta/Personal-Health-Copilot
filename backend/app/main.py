@@ -3,7 +3,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import ingestion, profiles, search, voice, chatgpt_router
+from app.routers import ingestion, profiles, search, voice, chatgpt_router, mcp_governance_router
 from app.services import store
 from app.services.auth import current_user_id
 
@@ -30,7 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (profiles, ingestion, search, voice, chatgpt_router):
+for r in (profiles, ingestion, search, voice, chatgpt_router, mcp_governance_router):
     app.include_router(r.router, prefix=settings.API_V1_PREFIX)
 
 

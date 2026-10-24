@@ -2,11 +2,20 @@
 
 These endpoints expose the Health Copilot clinical knowledge base over standard OpenAPI 3.0 / 3.1
 so any user on ChatGPT (Web, iOS, Android, Mac, Windows) can query their family's health records.
+
+Features optional authentication via 'X-API-Key' or 'Authorization: Bearer <key>'
+to securely scope queries to the authenticated user's family records and enforce governance.
 """
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Header, Query
 from pydantic import BaseModel, Field
 
+from app.services.mcp_governance import (
+    authenticate_caller,
+    authorize_mcp_request,
+    log_mcp_activity,
+    MCPCallerContext,
+)
 from app.services.mcp_service import (
     get_all_patient_profiles,
     get_patient_summary_service,
@@ -18,6 +27,14 @@ from app.services.mcp_service import (
 )
 
 router = APIRouter(prefix="/chatgpt", tags=["ChatGPT Connector"])
+
+
+def resolve_chatgpt_context(
+    x_api_key: Optional[str] = None,
+    authorization: Optional[str] = None,
+) -> Optional[MCPCallerContext]:
+    token = x_api_key or authorization
+    return authenticate_caller(token) if token else None
 
 
 # Request payload schemas
@@ -32,45 +49,159 @@ class CopilotAskRequest(BaseModel):
 
 
 @router.get("/patients", summary="List all family patients", operation_id="listPatients")
-def list_patients() -> List[Dict[str, Any]]:
+def list_patients(
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
+) -> List[Dict[str, Any]]:
     """Retrieves all registered family patients with basic demographics and document counts."""
-    return get_all_patient_profiles()
+    ctx = resolve_chatgpt_context(x_api_key, authorization)
+    owner = ctx.owner_id if ctx else None
+    allowed_pids = ctx.allowed_patient_ids if ctx else None
+
+    result = get_all_patient_profiles(owner=owner, allowed_patient_ids=allowed_pids)
+    if ctx:
+        log_mcp_activity(
+            owner_id=ctx.owner_id,
+            tool_name="chatgpt:list_patients",
+            arguments={"count": len(result)},
+            client_info="ChatGPT Custom GPT",
+        )
+    return result
 
 
 @router.get("/patients/{patient_name_or_id}/summary", summary="Get patient health summary", operation_id="getPatientSummary")
-def get_patient_summary(patient_name_or_id: str) -> Dict[str, Any]:
+def get_patient_summary(
+    patient_name_or_id: str,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
+) -> Dict[str, Any]:
     """Retrieves an executive medical summary for a patient including diagnosed conditions, medications preview, and doctor visits."""
-    return get_patient_summary_service(patient_name_or_id)
+    ctx = resolve_chatgpt_context(x_api_key, authorization)
+    owner = ctx.owner_id if ctx else None
+    allowed_pids = ctx.allowed_patient_ids if ctx else None
+
+    result = get_patient_summary_service(patient_name_or_id, owner=owner, allowed_patient_ids=allowed_pids)
+    if ctx:
+        log_mcp_activity(
+            owner_id=ctx.owner_id,
+            tool_name="chatgpt:get_patient_summary",
+            arguments={"patient": patient_name_or_id},
+            client_info="ChatGPT Custom GPT",
+            patient_name=patient_name_or_id,
+        )
+    return result
 
 
 @router.get("/patients/{patient_name_or_id}/medications", summary="Get prescribed medications", operation_id="getPrescribedMedications")
-def get_prescribed_medications(patient_name_or_id: str) -> List[Dict[str, Any]]:
+def get_prescribed_medications(
+    patient_name_or_id: str,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
+) -> List[Dict[str, Any]]:
     """Retrieves all active prescribed medications, dosages, frequencies, food timings, and prescribing doctors for a patient."""
-    return get_prescribed_medications_service(patient_name_or_id)
+    ctx = resolve_chatgpt_context(x_api_key, authorization)
+    owner = ctx.owner_id if ctx else None
+    allowed_pids = ctx.allowed_patient_ids if ctx else None
+
+    result = get_prescribed_medications_service(patient_name_or_id, owner=owner, allowed_patient_ids=allowed_pids)
+    if ctx:
+        log_mcp_activity(
+            owner_id=ctx.owner_id,
+            tool_name="chatgpt:get_prescribed_medications",
+            arguments={"patient": patient_name_or_id},
+            client_info="ChatGPT Custom GPT",
+            patient_name=patient_name_or_id,
+        )
+    return result
 
 
 @router.get("/patients/{patient_name_or_id}/lab-reports", summary="Get laboratory test reports", operation_id="getLabReports")
-def get_lab_reports(patient_name_or_id: str, test_filter: Optional[str] = Query(None, description="Filter test name (e.g. 'glucose', 'tsh')")) -> List[Dict[str, Any]]:
+def get_lab_reports(
+    patient_name_or_id: str,
+    test_filter: Optional[str] = Query(None, description="Filter test name (e.g. 'glucose', 'tsh')"),
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
+) -> List[Dict[str, Any]]:
     """Retrieves laboratory test observations with observed values, reference bounds, and clinical abnormal flags (HIGH, LOW, NORMAL)."""
-    return get_lab_reports_service(patient_name_or_id, test_filter)
+    ctx = resolve_chatgpt_context(x_api_key, authorization)
+    owner = ctx.owner_id if ctx else None
+    allowed_pids = ctx.allowed_patient_ids if ctx else None
+
+    result = get_lab_reports_service(patient_name_or_id, test_name_filter=test_filter, owner=owner, allowed_patient_ids=allowed_pids)
+    if ctx:
+        log_mcp_activity(
+            owner_id=ctx.owner_id,
+            tool_name="chatgpt:get_lab_reports",
+            arguments={"patient": patient_name_or_id, "filter": test_filter},
+            client_info="ChatGPT Custom GPT",
+            patient_name=patient_name_or_id,
+        )
+    return result
 
 
 @router.post("/drug-safety", summary="Check drug-drug interactions and safety", operation_id="checkDrugSafety")
-def check_drug_safety(body: DrugSafetyRequest) -> Dict[str, Any]:
+def check_drug_safety(
+    body: DrugSafetyRequest,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
+) -> Dict[str, Any]:
     """Analyzes a list of medications for drug-drug interactions, duplicate therapeutic classes, and food/alcohol precautions."""
-    return check_drug_safety_service(body.medications)
+    ctx = resolve_chatgpt_context(x_api_key, authorization)
+    result = check_drug_safety_service(body.medications)
+    if ctx:
+        log_mcp_activity(
+            owner_id=ctx.owner_id,
+            tool_name="chatgpt:check_drug_safety",
+            arguments={"medications": body.medications},
+            client_info="ChatGPT Custom GPT",
+        )
+    return result
 
 
 @router.post("/ask", summary="Ask medical question grounded in records", operation_id="askHealthCopilot")
-def ask_copilot(body: CopilotAskRequest) -> Dict[str, Any]:
+def ask_copilot(
+    body: CopilotAskRequest,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
+) -> Dict[str, Any]:
     """Answers patient clinical questions grounded strictly in their health records with emergency crisis screening."""
-    return ask_health_copilot_service(body.query, body.patient_name_or_id, body.language)
+    ctx = resolve_chatgpt_context(x_api_key, authorization)
+    owner = ctx.owner_id if ctx else None
+    allowed_pids = ctx.allowed_patient_ids if ctx else None
+
+    result = ask_health_copilot_service(
+        body.query,
+        body.patient_name_or_id,
+        body.language,
+        owner=owner,
+        allowed_patient_ids=allowed_pids,
+    )
+    if ctx:
+        log_mcp_activity(
+            owner_id=ctx.owner_id,
+            tool_name="chatgpt:ask_copilot",
+            arguments={"query": body.query, "patient": body.patient_name_or_id},
+            client_info="ChatGPT Custom GPT",
+            patient_name=body.patient_name_or_id,
+        )
+    return result
 
 
 @router.get("/doctors", summary="Find specialist doctors and hospitals", operation_id="findSpecialistDoctors")
 def find_doctors(
     specialty_or_condition: str = Query(..., description="Condition or specialty (e.g. 'Diabetes', 'Cardiology')"),
-    city: str = Query("Hyderabad", description="City name (e.g. 'Hyderabad', 'Tirupati', 'Bengaluru')")
+    city: str = Query("Hyderabad", description="City name (e.g. 'Hyderabad', 'Tirupati', 'Bengaluru')"),
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    authorization: Optional[str] = Header(None),
 ) -> List[Dict[str, Any]]:
     """Finds top verified medical specialists and hospitals based on clinical diagnosis and city location."""
-    return find_specialist_doctors_service(specialty_or_condition, city)
+    ctx = resolve_chatgpt_context(x_api_key, authorization)
+    result = find_specialist_doctors_service(specialty_or_condition, city)
+    if ctx:
+        log_mcp_activity(
+            owner_id=ctx.owner_id,
+            tool_name="chatgpt:find_doctors",
+            arguments={"specialty": specialty_or_condition, "city": city},
+            client_info="ChatGPT Custom GPT",
+        )
+    return result
