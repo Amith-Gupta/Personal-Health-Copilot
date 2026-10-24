@@ -687,7 +687,7 @@ export function MedicinesView({
               <div>
                 <h4 className="text-sm font-semibold text-fg">Have questions about your medications?</h4>
                 <p className="text-xs text-fg-3">
-                  Ask Gemini Health Copilot to clarify dosages, food restrictions, or side effects.
+                  Ask Health Copilot to clarify dosages, food restrictions, or side effects.
                 </p>
               </div>
             </div>

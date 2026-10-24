@@ -248,7 +248,7 @@ export function UploadCta({ name, onFile, compact }: { name: string; onFile: (f:
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c4f542] opacity-75"></span>
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-[#c4f542]"></span>
                     </span>
-                    <span>Gemini 120B Multimodal Engine</span>
+                    <span>Gemini Flash vision</span>
                   </span>
                   <span className="font-mono text-[10px] text-zinc-500">Instant test</span>
                 </div>
